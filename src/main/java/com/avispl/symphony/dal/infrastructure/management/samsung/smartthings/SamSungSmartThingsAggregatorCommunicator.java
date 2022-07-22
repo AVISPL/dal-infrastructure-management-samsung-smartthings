@@ -15,7 +15,7 @@ import com.avispl.symphony.api.dal.monitor.aggregator.Aggregator;
 import com.avispl.symphony.dal.communicator.RestCommunicator;
 
 /**
- * com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.SamSungSmartThingsAggregatorCommunicator
+ * SamSungSmartThingsAggregatorCommunicator
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/22/2022
