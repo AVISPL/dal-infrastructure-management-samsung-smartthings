@@ -244,16 +244,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private List<Future> devicesExecutionPool = new ArrayList<>();
 
 	/**
-	 * Build an instance of ZoomRoomsAggregatorCommunicator
-	 * Setup aggregated devices processor, initialize adapter properties
-	 *
-	 * @throws IOException if unable to locate mapping ymp file or properties file
-	 */
-	public SamSungSmartThingsAggregatorCommunicator() throws IOException {
-		//ToDo:
-	}
-
-	/**
 	 * {@inheritDoc}
 	 */
 	@Override
