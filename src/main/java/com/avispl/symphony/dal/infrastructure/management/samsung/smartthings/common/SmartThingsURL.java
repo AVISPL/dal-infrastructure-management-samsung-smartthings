@@ -13,6 +13,9 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.co
  */
 public class SmartThingsURL {
 
+	private SmartThingsURL() {
+	}
+
 	// URL
 	public static final String BASE_URI = "api.smartthings.com/v1/";
 	public static final String HUB_DEVICE = "hubdevices/";
@@ -22,6 +25,7 @@ public class SmartThingsURL {
 	public static final String DEVICES = "devices";
 	public static final String CAPABILITIES = "capabilities";
 	public static final String PRESENTATION = "presentation";
+	public static final String SCENE = "scenes";
 
 	// Parameter
 	public static final String LOCATION_ID = "locationId=";

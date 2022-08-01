@@ -29,6 +29,10 @@ public class Component {
 	@JsonAlias("capabilities")
 	private List<DeviceCapability> capabilities = new ArrayList<>();
 
+	@JsonAlias("categories")
+	private List<DeviceCategories> categories = new ArrayList<>();
+
+	private String category;
 	/**
 	 * Retrieves {@code {@link #id}}
 	 *
@@ -82,4 +86,44 @@ public class Component {
 	public void setCapabilities(List<DeviceCapability> capabilities) {
 		this.capabilities = capabilities;
 	}
+
+	/**
+	 * Retrieves {@code {@link #categories}}
+	 *
+	 * @return value of {@link #categories}
+	 */
+	public List<DeviceCategories> getCategories() {
+		return categories;
+	}
+
+	/**
+	 * Sets {@code categories}
+	 *
+	 * @param categories the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.DeviceCategories>} field
+	 */
+	public void setCategories(List<DeviceCategories> categories) {
+		this.categories = categories;
+	}
+
+	/**
+	 * Retrieves {@code {@link #category}}
+	 *
+	 * @return value of {@link #category}
+	 */
+	public String getCategory() {
+		if (!categories.isEmpty()){
+			return categories.get(0).getName();
+		}
+		return category;
+	}
+
+	/**
+	 * Sets {@code category}
+	 *
+	 * @param category the {@code java.lang.String} field
+	 */
+	public void setCategory(String category) {
+		this.category = category;
+	}
+
 }

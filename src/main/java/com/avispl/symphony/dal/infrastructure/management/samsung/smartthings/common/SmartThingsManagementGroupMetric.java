@@ -15,7 +15,7 @@ public enum SmartThingsManagementGroupMetric {
 
 	LOCATION_MANAGEMENT("LocationManagement#"),
 	DEVICES_DASHBOARD("Devices#"),
-	SCENE("SceneTrigger#"),
+	SCENE("ScenesTrigger#"),
 	ROOM_MANAGEMENT("RoomManagement#"),
 	CREATE_ROOM("CreateRoom#");
 
