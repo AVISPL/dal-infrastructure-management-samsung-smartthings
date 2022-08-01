@@ -5,14 +5,11 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.location;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.SmartThingsConstant;
 
 /**
  * LocationWrapper

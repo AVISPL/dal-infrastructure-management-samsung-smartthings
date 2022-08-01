@@ -13,6 +13,9 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.co
  */
 public class SmartThingsConstant {
 
+	private SmartThingsConstant() {
+	}
+
 	public static final char HASH = '#';
 	public static final char AT_SIGN = '@';
 	public static final String COMMA = ",";
@@ -32,4 +35,5 @@ public class SmartThingsConstant {
 	public static final String OFF = "Off";
 	public static final String RUN = "Run";
 	public static final String RUNNING = "Running";
+	public static final String MAIN = "main";
 }
