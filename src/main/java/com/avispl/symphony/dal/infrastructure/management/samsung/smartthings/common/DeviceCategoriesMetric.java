@@ -11,7 +11,7 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.co
  * Created on 8/1/2022
  * @since 1.0.0
  */
-public enum DeviceTypeMetric {
+public enum DeviceCategoriesMetric {
 
 	HUB("Hub", true),
 	TV("Television", true);
@@ -26,7 +26,7 @@ public enum DeviceTypeMetric {
 	 * @param name Name of create room metric
 	 * @param isImplement
 	 */
-	DeviceTypeMetric(String name, boolean isImplement) {
+	DeviceCategoriesMetric(String name, boolean isImplement) {
 		this.name = name;
 		this.isImplement = isImplement;
 	}

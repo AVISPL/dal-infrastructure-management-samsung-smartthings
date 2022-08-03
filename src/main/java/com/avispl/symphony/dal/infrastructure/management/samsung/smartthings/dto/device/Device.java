@@ -10,6 +10,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.SmartThingsConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DevicePresentation;
 
 /**
@@ -207,5 +208,34 @@ public class Device {
 	 */
 	public void setComponents(List<Component> components) {
 		this.components = components;
+	}
+
+	/**
+	 * Retrieves device category
+	 *
+	 * @return String Category of device
+	 */
+	public String retrieveCategory() {
+		for (Component component : components) {
+			if (SmartThingsConstant.MAIN.equals(component.getName())) {
+				return component.retrieveCategory();
+			}
+		}
+		return SmartThingsConstant.EMPTY;
+	}
+
+	@Override
+	public String toString() {
+		return "Device{" +
+				"deviceId='" + deviceId + '\'' +
+				", name='" + name + '\'' +
+				", presentationId='" + presentationId + '\'' +
+				", manufacturerName='" + manufacturerName + '\'' +
+				", locationId='" + locationId + '\'' +
+				", roomId='" + roomId + '\'' +
+				", components=" + components +
+				", state='" + state + '\'' +
+				", presentation=" + presentation +
+				'}';
 	}
 }

@@ -7,6 +7,8 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dt
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import com.avispl.symphony.dal.util.StringUtils;
+
 /**
  * Rom
  *
@@ -79,4 +81,18 @@ public class Room {
 	public void setName(String name) {
 		this.name = name;
 	}
+
+	/**
+	 * This method is used to create request body for room control:
+	 *
+	 * @return String JSON request body
+	 */
+	public String contributeRequestBody() {
+		StringBuilder request = new StringBuilder();
+		if (StringUtils.isNotNullOrEmpty(name)){
+			request.append("{\"name\":\"").append(name).append("\"}");
+		}
+		return request.toString();
+	}
+
 }

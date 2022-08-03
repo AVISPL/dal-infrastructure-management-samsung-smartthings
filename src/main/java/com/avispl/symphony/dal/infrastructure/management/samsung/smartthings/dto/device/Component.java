@@ -10,6 +10,8 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.SmartThingsConstant;
+
 /**
  * Component include and group Capabilities in a Device Profile.
  *
@@ -32,7 +34,6 @@ public class Component {
 	@JsonAlias("categories")
 	private List<DeviceCategories> categories = new ArrayList<>();
 
-	private String category;
 	/**
 	 * Retrieves {@code {@link #id}}
 	 *
@@ -106,24 +107,15 @@ public class Component {
 	}
 
 	/**
-	 * Retrieves {@code {@link #category}}
+	 * Retrieves category
 	 *
-	 * @return value of {@link #category}
+	 * @return String Category of device
 	 */
-	public String getCategory() {
+	public String retrieveCategory() {
 		if (!categories.isEmpty()){
 			return categories.get(0).getName();
 		}
-		return category;
-	}
-
-	/**
-	 * Sets {@code category}
-	 *
-	 * @param category the {@code java.lang.String} field
-	 */
-	public void setCategory(String category) {
-		this.category = category;
+		return SmartThingsConstant.EMPTY;
 	}
 
 }

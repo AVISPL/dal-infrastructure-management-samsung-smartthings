@@ -58,4 +58,12 @@ public class DeviceCapability {
 	public void setVersion(String version) {
 		this.version = version;
 	}
+
+	@Override
+	public String toString() {
+		return "DeviceCapability{" +
+				"id='" + id + '\'' +
+				", version='" + version + '\'' +
+				'}';
+	}
 }

@@ -7,6 +7,7 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dt
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -19,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DeviceCapabilityWrapper {
 
+	@JsonAlias("items")
 	List<DeviceCapability> deviceCapabilities = new ArrayList<>();
 
 	/**

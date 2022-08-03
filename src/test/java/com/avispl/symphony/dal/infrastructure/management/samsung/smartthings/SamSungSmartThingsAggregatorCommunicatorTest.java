@@ -4,37 +4,41 @@
 
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings;
 
-import org.junit.jupiter.api.AfterEach;
+import java.util.Map;
+
+import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+
+import com.avispl.symphony.api.dal.dto.control.ControllableProperty;
+import com.avispl.symphony.api.dal.dto.monitor.ExtendedStatistics;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatorManagementGroupMetric;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.location.LocationManagementMetric;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.room.RoomManagementMetric;
 
 /**
  * SamSungSmartThingsAggregatorCommunicatorTest
  *
  * @author Kevin / Symphony Dev Team<br>
- * Created on 8/1/2022
+ * Created on 8/2/2022
  * @since 1.0.0
  */
 public class SamSungSmartThingsAggregatorCommunicatorTest {
-	static SamSungSmartThingsAggregatorCommunicator samSungSmartThingsAggregatorCommunicator;
-	private static final String HOST_NAME = "api.smartthings.com";
+	private SamSungSmartThingsAggregatorCommunicator communicator;
 
-	@BeforeEach
-	public void init() throws Exception {
-		samSungSmartThingsAggregatorCommunicator = new SamSungSmartThingsAggregatorCommunicator();
-		samSungSmartThingsAggregatorCommunicator.setTrustAllCertificates(false);
-		samSungSmartThingsAggregatorCommunicator.setPort(443);
-		samSungSmartThingsAggregatorCommunicator.setHost(HOST_NAME);
-		samSungSmartThingsAggregatorCommunicator.setContentType("application/json");
-		samSungSmartThingsAggregatorCommunicator.setPassword("***REMOVED***");
-		samSungSmartThingsAggregatorCommunicator.init();
-		samSungSmartThingsAggregatorCommunicator.authenticate();
-	}
-
-	@AfterEach
-	void stopWireMockRule() {
-		samSungSmartThingsAggregatorCommunicator.destroy();
+	@BeforeEach()
+	public void setUp() throws Exception {
+		communicator = new SamSungSmartThingsAggregatorCommunicator();
+		communicator.setHost("api.smartthings.com");
+		communicator.setTrustAllCertificates(false);
+		communicator.setPort(443);
+		communicator.setProtocol("https");
+		communicator.setContentType("application/json");
+		communicator.setPassword("***REMOVED***");
+		communicator.init();
+		communicator.authenticate();
 	}
 
 	/**
@@ -44,6 +48,58 @@ public class SamSungSmartThingsAggregatorCommunicatorTest {
 	@Tag("Mock")
 	@Test
 	void testGetMultipleStatistics() throws Exception {
-		samSungSmartThingsAggregatorCommunicator.ping();
+		communicator.retrieveMultipleStatistics();
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Map<String, String> stats = extendedStatistics.getStatistics();
+
+		Assert.assertNotEquals("9468", stats.get("AVISPL Test Core110f" + "#" + "SystemId"));
 	}
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty location management : Change location name
+	 *
+	 * Expected: control successfully
+	 */
+	@Tag("RealDevice")
+	@Test
+	void testUpdateLocationName() throws Exception {
+		communicator.retrieveMultipleStatistics();
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Map<String, String> stats = extendedStatistics.getStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+
+		String propertyName = AggregatorManagementGroupMetric.LOCATION_MANAGEMENT.getName() + LocationManagementMetric.LOCATION.getName() + "1";
+		String propertyValue = "HomeHarry";
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty loom management : Change room name
+	 *
+	 * Expected: control successfully
+	 */
+	@Tag("RealDevice")
+	@Test
+	void testUpdateRoomName() throws Exception {
+		communicator.retrieveMultipleStatistics();
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Map<String, String> stats = extendedStatistics.getStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+
+		String propertyName = AggregatorManagementGroupMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + "1";
+		String propertyValue = "Living Room 2";
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
+
 }
