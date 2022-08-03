@@ -16,7 +16,7 @@ public class SmartThingsConstant {
 	private SmartThingsConstant() {
 	}
 
-	public static final char HASH = '#';
+	public static final String HASH = "#";
 	public static final char AT_SIGN = '@';
 	public static final String COMMA = ",";
 	public static final String QUESTION_MARK = "?";
@@ -35,5 +35,13 @@ public class SmartThingsConstant {
 	public static final String OFF = "Off";
 	public static final String RUN = "Run";
 	public static final String RUNNING = "Running";
+	public static final String SUCCESSFUL = "Successful";
+	public static final String CREATE = "Create";
+	public static final String CREATING = "Creating";
+	public static final String CANCEL = "Cancel";
+	public static final String CANCELING = "Canceling";
 	public static final String MAIN = "main";
+	public static final String ONLINE = "ONLINE";
+	public static final String OFFLINE = "OFFLINE";
+	public static final String NONE = "None";
 }

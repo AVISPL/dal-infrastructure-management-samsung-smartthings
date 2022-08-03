@@ -17,7 +17,7 @@ public class SmartThingsURL {
 	}
 
 	// URL
-	public static final String BASE_URI = "api.smartthings.com/v1/";
+	public static final String BASE_URI = "v1/";
 	public static final String HUB_DEVICE = "hubdevices/";
 	public static final String DEVICE_HEALTH = "/health";
 	public static final String LOCATIONS = "locations";
@@ -26,6 +26,7 @@ public class SmartThingsURL {
 	public static final String CAPABILITIES = "capabilities";
 	public static final String PRESENTATION = "presentation";
 	public static final String SCENE = "scenes";
+	public static final String EXECUTE = "/execute";
 
 	// Parameter
 	public static final String LOCATION_ID = "locationId=";

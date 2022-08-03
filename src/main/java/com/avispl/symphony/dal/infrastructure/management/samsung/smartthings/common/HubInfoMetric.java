@@ -14,8 +14,8 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.co
 public enum HubInfoMetric {
 
 	NAME("HubName"),
-	SERIAL_NUMBER("serialNumber"),
-	FIRMWARE_VERSION("firmwareVersion"),
+	CURRENT_LOCATION("CurrentLocation"),
+	FIRMWARE_VERSION("FirmwareVersion"),
 	STATE("Status");
 
 	private final String name;

@@ -7,6 +7,8 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dt
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import com.avispl.symphony.dal.util.StringUtils;
+
 /**
  * Location
  *
@@ -78,5 +80,27 @@ public class Location {
 	 */
 	public void setLocationParent(LocationParent locationParent) {
 		this.locationParent = locationParent;
+	}
+
+	/**
+	 * This method is used to create request body for location control:
+	 *
+	 * @return String JSON request body
+	 */
+	public String contributeRequestBody() {
+		StringBuilder request = new StringBuilder();
+		if (StringUtils.isNotNullOrEmpty(locationId) && StringUtils.isNotNullOrEmpty(name)){
+			request.append("{\"name\":\"").append(name).append("\"}");
+		}
+		return request.toString();
+	}
+
+	@Override
+	public String toString() {
+		return "Location{" +
+				"locationId='" + locationId + '\'' +
+				", name='" + name + '\'' +
+				", locationParent=" + locationParent +
+				'}';
 	}
 }

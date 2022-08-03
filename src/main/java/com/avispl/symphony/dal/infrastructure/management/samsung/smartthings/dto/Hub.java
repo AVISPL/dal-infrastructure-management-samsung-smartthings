@@ -26,8 +26,6 @@ public class Hub {
 	@JsonAlias ("firmwareVersion")
 	private String firmwareVersion;
 
-	private String id;
-
 	@JsonAlias ("state")
 	private String state;
 
@@ -86,21 +84,12 @@ public class Hub {
 	}
 
 	/**
-	 * Retrieves {@code {@link #id}}
+	 * Sets {@code state}
 	 *
-	 * @return value of {@link #id}
+	 * @param state the {@code java.lang.String} field
 	 */
-	public String getId() {
-		return id;
-	}
-
-	/**
-	 * Sets {@code id}
-	 *
-	 * @param id the {@code java.lang.String} field
-	 */
-	public void setId(String id) {
-		this.id = id;
+	public void setState(String state) {
+		this.state = state;
 	}
 
 	/**
@@ -110,14 +99,5 @@ public class Hub {
 	 */
 	public String getState() {
 		return state;
-	}
-
-	/**
-	 * Sets {@code state}
-	 *
-	 * @param state the {@code java.lang.String} field
-	 */
-	public void setState(String state) {
-		this.state = state;
 	}
 }

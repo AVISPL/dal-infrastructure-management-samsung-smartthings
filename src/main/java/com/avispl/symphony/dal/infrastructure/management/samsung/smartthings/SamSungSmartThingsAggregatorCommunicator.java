@@ -1,27 +1,29 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings;
 
-import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 
 import com.avispl.symphony.api.dal.control.Controller;
 import com.avispl.symphony.api.dal.dto.control.AdvancedControllableProperty;
@@ -33,15 +35,15 @@ import com.avispl.symphony.api.dal.error.ResourceNotReachableException;
 import com.avispl.symphony.api.dal.monitor.Monitorable;
 import com.avispl.symphony.api.dal.monitor.aggregator.Aggregator;
 import com.avispl.symphony.dal.communicator.RestCommunicator;
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.DeviceTypeMetric;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatorManagementGroupMetric;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.DeviceCategoriesMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.HubInfoMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.SmartThingsConstant;
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.SmartThingsManagementGroupMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.SmartThingsURL;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.location.LocationManagementMetric;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.room.CreateRoomMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.room.RoomManagementMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.Hub;
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.Component;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.Device;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.DeviceCapability;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.DeviceCapabilityWrapper;
@@ -103,15 +105,15 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				long currentTimestamp = System.currentTimeMillis();
 				retrieveInfo(currentTimestamp);
 
-				Set<String> presentationIds = new HashSet<>();
+				Set<String> presentationIds = cachedDevices.values().stream().map(Device::getPresentationId).collect(Collectors.toSet());
 
 				if (logger.isDebugEnabled()) {
 					logger.debug("Fetching other than SmartThings device list");
 				}
-				if (!devicesGlobal.isEmpty() && validDeviceMetaDataRetrievalPeriodTimestamp <= currentTimestamp) {
+				if (!cachedDevices.isEmpty() && validDeviceMetaDataRetrievalPeriodTimestamp <= currentTimestamp) {
 					validDeviceMetaDataRetrievalPeriodTimestamp = currentTimestamp + deviceMetaDataRetrievalTimeout;
 
-					for (Device device : devicesGlobal.values()) {
+					for (Device device : cachedDevices.values()) {
 						devicesExecutionPool.add(executorService.submit(() -> {
 							try {
 								retrieveDeviceHealth(device.getDeviceId());
@@ -120,6 +122,8 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 								if (!presentationIds.contains(device.getPresentationId())) {
 									retrieveDevicePresentation(device);
 								}
+
+								mapDevicesToAggregatedDevice(cachedDevices.get(device.getDeviceId()));
 							} catch (Exception e) {
 								logger.error(String.format("Exception during retrieve '%s' data processing." + device.getName()), e);
 							}
@@ -139,7 +143,39 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				if (!inProgress) {
 					break mainloop;
 				}
+				int aggregatedDevicesCount = aggregatedDevices.size();
+				if (aggregatedDevicesCount == 0) {
+					continue mainloop;
+				}
+
+				nextDevicesCollectionIterationTimestamp = System.currentTimeMillis();
+				while (nextDevicesCollectionIterationTimestamp > System.currentTimeMillis()) {
+					try {
+						TimeUnit.MILLISECONDS.sleep(1000);
+					} catch (InterruptedException e) {
+						//
+					}
+				}
+
+				if (!aggregatedDevices.isEmpty()) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Applying filter options");
+					}
+					if (logger.isDebugEnabled()) {
+						logger.debug("Aggregated devices after applying filter: " + aggregatedDevices);
+					}
+				}
+
+				// We don't want to fetch devices statuses too often, so by default it's currentTime + 30s
+				// otherwise - the variable is reset by the retrieveMultipleStatistics() call, which
+				// launches devices detailed statistics collection
+				nextDevicesCollectionIterationTimestamp = System.currentTimeMillis() + 30000;
+
+				if (logger.isDebugEnabled()) {
+					logger.debug("Finished collecting devices statistics cycle at " + new Date());
+				}
 			}
+			// Finished collecting
 		}
 
 		/**
@@ -163,14 +199,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 */
 	private synchronized void updateAggregatorStatus() {
 		devicePaused = validRetrieveStatisticsTimestamp < System.currentTimeMillis();
-	}
-
-	/**
-	 * Uptime time stamp to valid one
-	 */
-	private synchronized void updateValidRetrieveStatisticsTimestamp() {
-		validRetrieveStatisticsTimestamp = System.currentTimeMillis() + retrieveStatisticsTimeOut;
-		updateAggregatorStatus();
 	}
 
 	/**
@@ -199,8 +227,14 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 */
 	private volatile long validDeviceMetaDataRetrievalPeriodTimestamp;
 
-	// Adapter properties
-	private String locationFilter;
+	/**
+	 * We don't want the statistics to be collected constantly, because if there's not a big list of devices -
+	 * new devices' statistics loop will be launched before the next monitoring iteration. To avoid that -
+	 * this variable stores a timestamp which validates it, so when the devices' statistics is done collecting, variable
+	 * is set to currentTime + 30s, at the same time, calling {@link #retrieveMultipleStatistics()} and updating the
+	 * {@link #aggregatedDevices} resets it to the currentTime timestamp, which will re-activate data collection.
+	 */
+	private long nextDevicesCollectionIterationTimestamp;
 
 	/**
 	 * SmartThings personal access token
@@ -208,19 +242,34 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private String apiToken;
 
 	/**
-	 * Store the list of locations from SmartThings
+	 * Caching the list of locations
 	 */
-	private LocationWrapper locationWrapperGlobal;
+	private List<Location> cachedLocations = Collections.synchronizedList(new ArrayList<>());
 
 	/**
-	 * Store the list of devices from SmartThings
+	 * Caching the list rooms data
 	 */
-	private ConcurrentHashMap<String, Device> devicesGlobal = new ConcurrentHashMap<>();
+	private List<Room> cachedRooms = Collections.synchronizedList(new ArrayList<>());
 
 	/**
-	 * Store the list of devices capabilities from SmartThings
+	 * Caching create room data
 	 */
-	private List<DeviceCapability> capabilitiesGlobal = Collections.synchronizedList(new ArrayList<>());
+	private volatile Room cachedCreateRoom = new Room();
+
+	/**
+	 * Caching the list of scenes data
+	 */
+	private List<Scene> cachedScenes = Collections.synchronizedList(new ArrayList<>());
+
+	/**
+	 * Caching the list of devices data
+	 */
+	private ConcurrentHashMap<String, Device> cachedDevices = new ConcurrentHashMap<>();
+
+	/**
+	 * Caching the list of devices capabilities data
+	 */
+	private List<DeviceCapability> cachedCapabilities = Collections.synchronizedList(new ArrayList<>());
 
 	/**
 	 * Runner service responsible for collecting data
@@ -230,7 +279,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * List of aggregated devices
 	 */
-	private List<AggregatedDevice> aggregatedDevices = Collections.synchronizedList(new ArrayList<>());
+	private ConcurrentHashMap<String, AggregatedDevice> aggregatedDevices = new ConcurrentHashMap<>();
 
 	/**
 	 * Executor that runs all the async operations, that {@link #deviceDataLoader} is posting and
@@ -244,6 +293,42 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private List<Future> devicesExecutionPool = new ArrayList<>();
 
 	/**
+	 * List error message occur while fetching aggregated devices
+	 */
+	private Set<String> deviceErrorMessagesList = Collections.synchronizedSet(new LinkedHashSet<>());
+
+	/**
+	 * ReentrantLock to prevent null pointer exception to localExtendedStatistics when controlProperty method is called before GetMultipleStatistics method.
+	 */
+	private final ReentrantLock reentrantLock = new ReentrantLock();
+
+	// Adapter properties
+	private String locationFilter;
+
+	private String locationIdFiltered;
+	private ExtendedStatistics localExtendedStatistics;
+	private boolean isEmergencyDelivery = false;
+	private boolean isEditedForCreateRoom = false;
+
+	/**
+	 * Retrieves {@code {@link #locationFilter}}
+	 *
+	 * @return value of {@link #locationFilter}
+	 */
+	public String getLocationFilter() {
+		return locationFilter;
+	}
+
+	/**
+	 * Sets {@code locationFilter}
+	 *
+	 * @param locationFilter the {@code java.lang.String} field
+	 */
+	public void setLocationFilter(String locationFilter) {
+		this.locationFilter = locationFilter;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
@@ -253,7 +338,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		}
 		apiToken = this.getPassword();
 		this.setBaseUri(SmartThingsURL.BASE_URI);
-		if (checkValidApiToken()) {
+		if (validateApiToken()) {
 			executorService = Executors.newFixedThreadPool(8);
 			executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader());
 			validDeviceMetaDataRetrievalPeriodTimestamp = System.currentTimeMillis();
@@ -263,47 +348,117 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 	@Override
 	public List<Statistics> getMultipleStatistics() throws Exception {
-		if (!checkValidApiToken()) {
-			throw new ResourceNotReachableException("Personal access token cannot be null or empty, please enter valid token in the password field.");
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("Getting statistics from the device X4 decoder at host %s with port %s", this.host, this.getPort()));
 		}
-		ExtendedStatistics extendedStatistics = new ExtendedStatistics();
-		Map<String, String> stats = new HashMap<>();
-		List<AdvancedControllableProperty> controllablePropertyList = new ArrayList<>();
-		extendedStatistics.setStatistics(stats);
-		if (!devicesGlobal.isEmpty()) {
-			retrieveLocations(stats, controllablePropertyList);
-			retrieveRooms(stats, controllablePropertyList);
-			retrieveScenes(stats, controllablePropertyList);
-
-			String hubId = findDeviceIdByType(DeviceTypeMetric.HUB.getName());
-			if (!hubId.isEmpty()) {
-				retrieveHubDetailInfo(stats, hubId);
-				retrieveHubHealth(stats, hubId);
+		reentrantLock.lock();
+		try {
+			if (!validateApiToken()) {
+				throw new ResourceNotReachableException("Personal access token cannot be null or empty, please enter valid token in the password field.");
 			}
+			ExtendedStatistics extendedStatistics = new ExtendedStatistics();
+			Map<String, String> stats = new HashMap<>();
+			List<AdvancedControllableProperty> advancedControllableProperties = new ArrayList<>();
 
+			if (!cachedDevices.isEmpty() && !isEmergencyDelivery) {
+				populateLocationsManagement(stats, advancedControllableProperties);
+				populateCreateRoomManagement(stats, advancedControllableProperties);
+				retrieveRooms(stats, advancedControllableProperties);
+				retrieveScenes(stats, advancedControllableProperties);
+
+				String hubId = findDeviceIdByCategory(DeviceCategoriesMetric.HUB.getName());
+				if (!hubId.isEmpty()) {
+					retrieveHubDetailInfo(stats, hubId);
+					retrieveHubHealth(stats, hubId);
+				}
+				extendedStatistics.setStatistics(stats);
+				extendedStatistics.setControllableProperties(advancedControllableProperties);
+				localExtendedStatistics = extendedStatistics;
+			}
+			isEmergencyDelivery = false;
+		} finally {
+			reentrantLock.unlock();
 		}
-		return Collections.singletonList(extendedStatistics);
+		return Collections.singletonList(localExtendedStatistics);
 	}
 
 	@Override
 	public void controlProperty(ControllableProperty controllableProperty) throws Exception {
-  //ToDo:
+		String property = controllableProperty.getProperty();
+		String value = String.valueOf(controllableProperty.getValue());
+		reentrantLock.lock();
+		try {
+			if (this.localExtendedStatistics == null) {
+				return;
+			}
+			Map<String, String> stats = this.localExtendedStatistics.getStatistics();
+			List<AdvancedControllableProperty> advancedControllableProperties = this.localExtendedStatistics.getControllableProperties();
+
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("controlProperty property " + property);
+				this.logger.debug("controlProperty value " + value);
+			}
+			String[] splitProperty = property.split(SmartThingsConstant.HASH);
+			if (splitProperty.length != 2) {
+				throw new IllegalArgumentException("Unexpected length of control property");
+			}
+			AggregatorManagementGroupMetric managementGroupMetric = AggregatorManagementGroupMetric.getByName(splitProperty[0].concat(SmartThingsConstant.HASH));
+
+			switch (managementGroupMetric) {
+				case LOCATION_MANAGEMENT:
+					locationControl(stats, advancedControllableProperties, splitProperty[1], value);
+					break;
+				case ROOM_MANAGEMENT:
+					roomControl(stats, advancedControllableProperties, splitProperty[1], value);
+					break;
+				case SCENE:
+					sceneControl(stats, advancedControllableProperties, splitProperty[1]);
+					break;
+				case CREATE_ROOM:
+					createRoomControl(stats, advancedControllableProperties, splitProperty[1], value);
+					break;
+				default:
+					if (logger.isWarnEnabled()) {
+						logger.warn(String.format("Controlling group %s is not supported.", managementGroupMetric.getName()));
+					}
+					throw new IllegalStateException(String.format("Controlling group %s is not supported.", managementGroupMetric.getName()));
+			}
+		} finally {
+			reentrantLock.unlock();
+		}
 	}
 
 	@Override
 	public void controlProperties(List<ControllableProperty> list) throws Exception {
-		//ToDo:
+
 	}
 
 	@Override
 	public List<AggregatedDevice> retrieveMultipleStatistics() throws Exception {
-		updateValidRetrieveStatisticsTimestamp();
-		return null;
+		if (validateApiToken()) {
+			if (executorService == null) {
+				// Due to the bug that after changing properties on fly - the adapter is destroyed but adapter is not initialized properly,
+				// so executor service is not running. We need to make sure executorService exists
+				executorService = Executors.newFixedThreadPool(8);
+				executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader());
+			}
+			nextDevicesCollectionIterationTimestamp = System.currentTimeMillis();
+			updateValidRetrieveStatisticsTimestamp();
+		}
+		if (!deviceErrorMessagesList.isEmpty()) {
+			synchronized (deviceErrorMessagesList) {
+				String errorMessage = deviceErrorMessagesList.stream().map(Object::toString)
+						.collect(Collectors.joining("\n"));
+				deviceErrorMessagesList.clear();
+				throw new ResourceNotReachableException(errorMessage);
+			}
+		}
+		return aggregatedDevices.values().stream().collect(Collectors.toList());
 	}
 
 	@Override
-	public List<AggregatedDevice> retrieveMultipleStatistics(List<String> list) throws Exception {
-		return null;
+	public List<AggregatedDevice> retrieveMultipleStatistics(List<String> listDeviceId) throws Exception {
+		return retrieveMultipleStatistics().stream().filter(aggregatedDevice -> listDeviceId.contains(aggregatedDevice.getDeviceId())).collect(Collectors.toList());
 	}
 
 	/**
@@ -329,13 +484,13 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		devicesExecutionPool.clear();
 
 		aggregatedDevices.clear();
-		devicesGlobal.clear();
+		cachedDevices.clear();
 		super.internalDestroy();
 	}
 
 	@Override
 	protected void authenticate() throws Exception {
-  // The aggregator have its own authorization method
+		// The aggregator have its own authorization method
 	}
 
 	/**
@@ -361,24 +516,26 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			for (int i = 0; i < this.getPingAttempts(); i++) {
 				long startTime = System.currentTimeMillis();
 
-				try (Socket puSocketConnection = new Socket(this.getHost(), this.getPort())) {
+				String[] hostSplit = this.getHost().split(SmartThingsConstant.SLASH);
+				String host = hostSplit[0];
+				try (Socket puSocketConnection = new Socket(host, this.getPort())) {
 					puSocketConnection.setSoTimeout(this.getPingTimeout());
-
 					if (puSocketConnection.isConnected()) {
 						long pingResult = System.currentTimeMillis() - startTime;
 						pingResultTotal += pingResult;
+						System.out.println(String.format("PING OK: Attempt #%s to connect to %s on port %s succeeded in %s ms", i + 1, host, this.getPort(), pingResult));
 						if (this.logger.isTraceEnabled()) {
-							this.logger.trace(String.format("PING OK: Attempt #%s to connect to %s on port %s succeeded in %s ms", i + 1, this.getHost(), this.getPort(), pingResult));
+							this.logger.trace(String.format("PING OK: Attempt #%s to connect to %s on port %s succeeded in %s ms", i + 1, host, this.getPort(), pingResult));
 						}
 					} else {
 						if (this.logger.isDebugEnabled()) {
-							this.logger.debug(String.format("PING DISCONNECTED: Connection to %s did not succeed within the timeout period of %sms", this.getHost(), this.getPingTimeout()));
+							this.logger.debug(String.format("PING DISCONNECTED: Connection to %s did not succeed within the timeout period of %sms", host, this.getPingTimeout()));
 						}
 						return this.getPingTimeout();
 					}
 				} catch (SocketTimeoutException tex) {
 					if (this.logger.isDebugEnabled()) {
-						this.logger.debug(String.format("PING TIMEOUT: Connection to %s did not succeed within the timeout period of %sms", this.getHost(), this.getPingTimeout()));
+						this.logger.debug(String.format("PING TIMEOUT: Connection to %s did not succeed within the timeout period of %sms", host, this.getPingTimeout()));
 					}
 					return this.getPingTimeout();
 				}
@@ -387,6 +544,14 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		} else {
 			throw new IllegalStateException("Cannot use device class without calling init() first");
 		}
+	}
+
+	/**
+	 * Uptime time stamp to valid one
+	 */
+	private synchronized void updateValidRetrieveStatisticsTimestamp() {
+		validRetrieveStatisticsTimestamp = System.currentTimeMillis() + retrieveStatisticsTimeOut;
+		updateAggregatorStatus();
 	}
 
 	//region retrieve hub inventory, hub heath, locations, rooms, scene  info
@@ -407,7 +572,13 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			if (hub != null) {
 				stats.put(HubInfoMetric.NAME.getName(), hub.getName());
 				stats.put(HubInfoMetric.FIRMWARE_VERSION.getName(), hub.getFirmwareVersion());
-				stats.put(HubInfoMetric.SERIAL_NUMBER.getName(), hub.getSerialNumber());
+
+				String locationName = cachedLocations.get(0).getName();
+				Optional<Location> location = cachedLocations.stream().filter(l -> l.getLocationId().equals(locationIdFiltered)).findFirst();
+				if (location.isPresent()) {
+					locationName = location.get().getName();
+				}
+				stats.put(HubInfoMetric.CURRENT_LOCATION.getName(), locationName);
 			} else {
 				throw new ResourceNotReachableException("Hub information is empty");
 			}
@@ -424,7 +595,8 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 */
 	public void retrieveHubHealth(Map<String, String> stats, String hubId) {
 		try {
-			String request = SmartThingsURL.HUB_DEVICE
+			String request = SmartThingsURL.DEVICES
+					.concat(SmartThingsConstant.SLASH)
 					.concat(hubId)
 					.concat(SmartThingsURL.DEVICE_HEALTH);
 
@@ -441,40 +613,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * This method is used to retrieve locations info by send GET request to "https://api.smartthings.com/v1/locations"
-	 *
-	 * @throws ResourceNotReachableException When getting the empty response
-	 * @throws ResourceNotReachableException If any error occurs
-	 */
-	public void retrieveLocations(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
-		try {
-			String request = SmartThingsURL.LOCATIONS;
-
-			LocationWrapper locationWrapper = doGet(request, LocationWrapper.class);
-
-			if (locationWrapper != null) {
-				locationWrapperGlobal = locationWrapper;
-				populateLocationsManagement(stats, advancedControllableProperties, locationWrapper);
-			} else {
-				throw new ResourceNotReachableException("Hub locations is empty");
-			}
-		} catch (Exception e) {
-			throw new ResourceNotReachableException("Error while retrieve locations info: " + e.getMessage(), e);
-		}
-	}
-
-	/**
-	 * This method is used to populate locations management group
-	 */
-	public void populateLocationsManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, LocationWrapper locationWrapper) {
-		List<Location> locations = locationWrapper.getLocations();
-		for (int locationIndex = 1; locationIndex <= locations.size(); locationIndex++) {
-			addAdvanceControlProperties(advancedControllableProperties,
-					createText(stats, SmartThingsManagementGroupMetric.LOCATION_MANAGEMENT.getName() + LocationManagementMetric.LOCATION.getName() + locationIndex, locations.get(locationIndex).getName()));
-		}
-	}
-
-	/**
 	 * This method is used to retrieve rooms info by send GET request to "https://api.smartthings.com/v1/locations/{locationId}/rooms"
 	 *
 	 * @throws ResourceNotReachableException When getting the empty response
@@ -482,16 +620,17 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 */
 	public void retrieveRooms(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
 		try {
-			String locationId = locationWrapperGlobal.findByName(locationFilter);
 			String request = SmartThingsURL.LOCATIONS
-					.concat(locationId)
+					.concat(SmartThingsConstant.SLASH)
+					.concat(locationIdFiltered)
 					.concat(SmartThingsConstant.SLASH)
 					.concat(SmartThingsURL.ROOMS);
 
 			RoomWrapper roomWrapper = doGet(request, RoomWrapper.class);
 
-			if (roomWrapper != null) {
-				populateRoomManagement(stats, advancedControllableProperties, roomWrapper);
+			if (roomWrapper != null && !roomWrapper.getRooms().isEmpty()) {
+				cachedRooms = roomWrapper.getRooms();
+				populateRoomManagement(stats, advancedControllableProperties);
 			} else {
 				throw new ResourceNotReachableException("rooms is empty");
 			}
@@ -503,11 +642,26 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * This method is used to populate locations management group
 	 */
-	public void populateRoomManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, RoomWrapper roomWrapper) {
-		List<Room> rooms = roomWrapper.getRooms();
-		for (int roomIndex = 1; roomIndex <= rooms.size(); roomIndex++) {
+	public void populateRoomManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
+		for (int roomIndex = 0; roomIndex < cachedRooms.size(); roomIndex++) {
 			addAdvanceControlProperties(advancedControllableProperties,
-					createText(stats, SmartThingsManagementGroupMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + roomIndex, rooms.get(roomIndex).getName()));
+					createText(stats, AggregatorManagementGroupMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + roomIndex, cachedRooms.get(roomIndex).getName()));
+		}
+	}
+
+	/**
+	 * This method is used to populate locations management group
+	 */
+	public void populateCreateRoomManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
+		Location location = findLocationByName(locationFilter);
+		stats.put(AggregatorManagementGroupMetric.CREATE_ROOM.getName() + CreateRoomMetric.LOCATION.getName(), getDefaultValueForNullData(location.getName(), SmartThingsConstant.EMPTY));
+		addAdvanceControlProperties(advancedControllableProperties,
+				createText(stats, AggregatorManagementGroupMetric.CREATE_ROOM.getName() + CreateRoomMetric.ROOM_NAME.getName(), cachedCreateRoom.getName()));
+		addAdvanceControlProperties(advancedControllableProperties,
+				createButton(stats, AggregatorManagementGroupMetric.CREATE_ROOM.getName() + CreateRoomMetric.CREATE_ROOM, SmartThingsConstant.CREATE, SmartThingsConstant.CREATING));
+		if (isEditedForCreateRoom) {
+			addAdvanceControlProperties(advancedControllableProperties,
+					createButton(stats, AggregatorManagementGroupMetric.CREATE_ROOM.getName() + CreateRoomMetric.CANCEL, SmartThingsConstant.CANCEL, SmartThingsConstant.CANCELING));
 		}
 	}
 
@@ -519,16 +673,16 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 */
 	public void retrieveScenes(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
 		try {
-			String locationId = locationWrapperGlobal.findByName(locationFilter);
 			String request = SmartThingsURL.SCENE
 					.concat(SmartThingsConstant.QUESTION_MARK)
 					.concat(SmartThingsURL.LOCATION_ID)
-					.concat(locationId);
+					.concat(locationIdFiltered);
 
 			SceneWrapper sceneWrapper = doGet(request, SceneWrapper.class);
 
-			if (sceneWrapper != null) {
-				populateScenesManagement(advancedControllableProperties, sceneWrapper);
+			if (sceneWrapper != null && !sceneWrapper.getScenes().isEmpty()) {
+				cachedScenes = sceneWrapper.getScenes();
+				populateScenesManagement(stats, advancedControllableProperties, sceneWrapper);
 			} else {
 				throw new ResourceNotReachableException("rooms is empty");
 			}
@@ -540,17 +694,17 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * This method is used to populate scenes trigger group
 	 */
-	public void populateScenesManagement( List<AdvancedControllableProperty> advancedControllableProperties, SceneWrapper sceneWrapper) {
+	public void populateScenesManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, SceneWrapper sceneWrapper) {
 		List<Scene> scenes = sceneWrapper.getScenes();
 		for (Scene scene : scenes) {
 			addAdvanceControlProperties(advancedControllableProperties,
-					createButton(SmartThingsManagementGroupMetric.SCENE.getName().concat(scene.getSceneName()), SmartThingsConstant.RUN, SmartThingsConstant.RUNNING));
+					createButton(stats, AggregatorManagementGroupMetric.SCENE.getName().concat(scene.getSceneName()), SmartThingsConstant.RUN, SmartThingsConstant.RUNNING));
 		}
 	}
 	//--------------------------------------------------------------------------------------------------------------------------------
 	//endregion
 
-	//region retrieve aggregated device and device capabilities info
+	//region retrieve locations, aggregated device and device capabilities info in worker thread
 	//--------------------------------------------------------------------------------------------------------------------------------
 
 	/**
@@ -565,11 +719,18 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				if (!aggregatedDevices.isEmpty()) {
 					logger.debug(String.format("Old fetched devices list: %s", aggregatedDevices));
 				}
-				if (!capabilitiesGlobal.isEmpty()) {
-					logger.debug(String.format("Old fetched capabilities list: %s", capabilitiesGlobal));
+				if (!cachedCapabilities.isEmpty()) {
+					logger.debug(String.format("Old fetched capabilities list: %s", cachedCapabilities));
+				}
+				if (!cachedLocations.isEmpty()) {
+					logger.debug(String.format("Old fetched capabilities list: %s", cachedCapabilities));
 				}
 			}
 			return;
+		}
+		retrieveLocations();
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("New fetched devices list: %s", cachedLocations));
 		}
 		retrieveDevices();
 		if (logger.isDebugEnabled()) {
@@ -577,7 +738,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		}
 		retrieveCapabilities();
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("New fetched capabilities list: %s", capabilitiesGlobal));
+			logger.debug(String.format("New fetched capabilities list: %s", cachedCapabilities));
 		}
 	}
 
@@ -589,18 +750,18 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 */
 	private void retrieveDevices() {
 		try {
-			String locationId = locationWrapperGlobal.findByName(locationFilter);
 			String request = SmartThingsURL.DEVICES
 					.concat(SmartThingsConstant.QUESTION_MARK)
 					.concat(SmartThingsURL.LOCATION_ID)
-					.concat(locationId);
+					.concat(locationIdFiltered);
 
 			DeviceWrapper responseDeviceList = this.doGet(request, DeviceWrapper.class);
-			devicesGlobal = (ConcurrentHashMap<String, Device>) responseDeviceList.getDevices().stream().collect(Collectors.toMap(Device::getDeviceId, Function.identity()));
+			cachedDevices = (ConcurrentHashMap<String, Device>) responseDeviceList.getDevices().stream().collect(Collectors.toConcurrentMap(Device::getDeviceId, Function.identity()));
 
 		} catch (Exception e) {
 			String errorMessage = String.format("Aggregated Device Data Retrieval-Error: %s with cause: %s", e.getMessage(), e.getCause().getMessage());
-			throw new ResourceNotReachableException(errorMessage, e);
+			deviceErrorMessagesList.add(errorMessage);
+			logger.error(errorMessage, e);
 		}
 	}
 
@@ -615,17 +776,51 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			String request = SmartThingsURL.CAPABILITIES;
 
 			DeviceCapabilityWrapper deviceCapabilitiesWrapper = this.doGet(request, DeviceCapabilityWrapper.class);
-			capabilitiesGlobal = deviceCapabilitiesWrapper.getDeviceCapabilities();
+			cachedCapabilities = deviceCapabilitiesWrapper.getDeviceCapabilities();
 
 		} catch (Exception e) {
 			String errorMessage = String.format("Device capabilities Data Retrieval-Error: %s with cause: %s", e.getMessage(), e.getCause().getMessage());
 			throw new ResourceNotReachableException(errorMessage, e);
 		}
 	}
+
+	/**
+	 * This method is used to retrieve locations info by send GET request to "https://api.smartthings.com/v1/locations"
+	 *
+	 * @throws ResourceNotReachableException When getting the empty response
+	 * @throws ResourceNotReachableException If any error occurs
+	 */
+	public void retrieveLocations() {
+		try {
+			String request = SmartThingsURL.LOCATIONS;
+
+			LocationWrapper locationWrapper = doGet(request, LocationWrapper.class);
+
+			if (locationWrapper != null && !locationWrapper.getLocations().isEmpty()) {
+				cachedLocations = locationWrapper.getLocations();
+				locationIdFiltered = findLocationByName(locationFilter).getLocationId();
+			} else {
+				throw new ResourceNotReachableException("Hub locations is empty");
+			}
+		} catch (Exception e) {
+			throw new ResourceNotReachableException("Error while retrieve locations info: " + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * This method is used to populate locations management group
+	 */
+	public void populateLocationsManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
+		for (int locationIndex = 0; locationIndex < cachedLocations.size(); locationIndex++) {
+			addAdvanceControlProperties(advancedControllableProperties, createText(stats, AggregatorManagementGroupMetric.LOCATION_MANAGEMENT.getName()
+					+ LocationManagementMetric.LOCATION.getName() + locationIndex, cachedLocations.get(locationIndex).getName()));
+		}
+	}
+
 	//--------------------------------------------------------------------------------------------------------------------------------
 	//endregion
 
-	//region retrieve device health, device presentation and device capabilities detail info
+	//region retrieve device health, device presentation and device full status detail info in worker thread
 	//--------------------------------------------------------------------------------------------------------------------------------
 
 	/**
@@ -645,12 +840,14 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			DeviceHealth deviceHealth = doGet(request, DeviceHealth.class);
 
 			if (deviceHealth != null) {
-				devicesGlobal.get(deviceID).setState(deviceHealth.getState());
+				cachedDevices.get(deviceID).setState(deviceHealth.getState());
 			} else {
-				throw new ResourceNotReachableException(String.format("%s health info is empty", devicesGlobal.get(deviceID).getName()));
+				throw new ResourceNotReachableException(String.format("%s health info is empty", cachedDevices.get(deviceID).getName()));
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while retrieve %s health info: " + e.getMessage(), devicesGlobal.get(deviceID).getName()), e);
+			String errorMessage = String.format("Error while retrieve %s health info: " + e.getMessage(), cachedDevices.get(deviceID).getName());
+			deviceErrorMessagesList.add(errorMessage);
+			logger.error(errorMessage, e);
 		}
 	}
 
@@ -674,19 +871,216 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			DevicePresentation devicePresentation = doGet(request, DevicePresentation.class);
 
 			if (devicePresentation != null) {
-				for (Device dv : devicesGlobal.values()) {
-					if (device.getPresentation().equals(dv.getPresentation())) {
-						devicesGlobal.get(dv.getDeviceId()).setPresentation(devicePresentation);
+				for (Device dv : cachedDevices.values()) {
+					if (device.getPresentationId().equals(dv.getPresentationId())) {
+						cachedDevices.get(dv.getDeviceId()).setPresentation(devicePresentation);
 					}
 				}
 			} else {
 				throw new ResourceNotReachableException(String.format("%s presentation info is empty", device.getName()));
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while retrieve %s presentation info: " + e.getMessage(), device.getName()), e);
+			String errorMessage = String.format("Error while retrieve %s presentation info: " + e.getMessage(), device.getName());
+			deviceErrorMessagesList.add(errorMessage);
+			logger.error(errorMessage, e);
 		}
 	}
 
+	/**
+	 * This method is used to retrieve list of device health by send GET request to
+	 * https://api.smartthings.com/v1/presentation?presentationId={presentationId}&manufacturerName={manufacturerName}
+	 *
+	 * @throws ResourceNotReachableException When getting the empty response
+	 * @throws ResourceNotReachableException If any error occurs
+	 */
+	private void mapDevicesToAggregatedDevice(Device device) {
+		Objects.requireNonNull(device);
+		AggregatedDevice aggregatedDevice = new AggregatedDevice();
+		aggregatedDevice.setDeviceId(device.getDeviceId());
+		aggregatedDevice.setCategory(getDefaultValueForNullData(device.retrieveCategory(), SmartThingsConstant.NONE));
+		aggregatedDevice.setDeviceName(getDefaultValueForNullData(device.getName(), SmartThingsConstant.NONE));
+		aggregatedDevice.setDeviceOnline(convertDeviceStatusValue(device));
+		aggregatedDevices.put(device.getDeviceId(), aggregatedDevice);
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------------
+	//endregion
+
+	//region perform location control
+	//--------------------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * This method is used for calling control location properties:
+	 *
+	 * @param stats is the map that store all statistics
+	 * @param advancedControllableProperties is the list that store all controllable properties
+	 * @param controllableProperty name of controllable property
+	 * @param value value of controllable property
+	 * @throws ResourceNotReachableException when fail to control talkback
+	 */
+	private void locationControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value) {
+		try {
+			int locationIndex = Integer.parseInt(controllableProperty.substring(LocationManagementMetric.LOCATION.getName().length()));
+			for (int i = 0; i < cachedLocations.size(); i++) {
+				if (i == locationIndex) {
+					continue;
+				}
+				if (cachedLocations.get(i).getName().equals(value)) {
+					throw new ResourceNotReachableException(String.format("The location name %s already exists, Please chose the different location name", value));
+				}
+			}
+			cachedLocations.get(locationIndex).setName(value);
+			String request = SmartThingsURL.LOCATIONS
+					.concat(SmartThingsConstant.SLASH)
+					.concat(cachedLocations.get(locationIndex).getLocationId());
+
+			String requestBody = cachedLocations.get(locationIndex).contributeRequestBody();
+			Location location = doPut(request, requestBody, Location.class);
+
+			if (location == null || !location.getName().equals(value)) {
+				throw new ResourceNotReachableException(String.format("Changing %s name fail, please try again later", controllableProperty));
+			}
+			addAdvanceControlProperties(advancedControllableProperties,
+					createText(stats, AggregatorManagementGroupMetric.LOCATION_MANAGEMENT.getName() + LocationManagementMetric.LOCATION.getName() + locationIndex, value));
+			isEmergencyDelivery = true;
+		} catch (NumberFormatException e) {
+			throw new IllegalStateException("Unexpected location activation: " + controllableProperty);
+		} catch (Exception e) {
+			throw new ResourceNotReachableException(String.format("Error while controlling location %s: %s", controllableProperty, e.getMessage()), e);
+		}
+	}
+
+	/**
+	 * This method is used for calling control room properties:
+	 *
+	 * @param stats is the map that store all statistics
+	 * @param advancedControllableProperties is the list that store all controllable properties
+	 * @param controllableProperty name of controllable property
+	 * @param value value of controllable property
+	 * @throws ResourceNotReachableException when fail to control talkback
+	 */
+	private void roomControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value) {
+		try {
+			int roomIndex = Integer.parseInt(controllableProperty.substring(RoomManagementMetric.ROOM.getName().length()));
+			for (int i = 0; i < cachedRooms.size(); i++) {
+				if (i == roomIndex) {
+					continue;
+				}
+				if (cachedRooms.get(i).getName().equals(value)) {
+					throw new ResourceNotReachableException(String.format("The room name %s already exists, Please chose the different room name", value));
+				}
+			}
+			cachedRooms.get(roomIndex).setName(value);
+			String request = SmartThingsURL.LOCATIONS
+					.concat(SmartThingsConstant.SLASH)
+					.concat(locationIdFiltered)
+					.concat(SmartThingsConstant.SLASH)
+					.concat(SmartThingsURL.ROOMS)
+					.concat(SmartThingsConstant.SLASH)
+					.concat(cachedRooms.get(roomIndex).getRoomId());
+
+			String requestBody = cachedRooms.get(roomIndex).contributeRequestBody();
+			Room room = doPut(request, requestBody, Room.class);
+
+			if (room == null || !room.getName().equals(value)) {
+				throw new ResourceNotReachableException(String.format("Changing %s name fail, please try again later", controllableProperty));
+			}
+			addAdvanceControlProperties(advancedControllableProperties,
+					createText(stats, AggregatorManagementGroupMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + roomIndex, value));
+			isEmergencyDelivery = true;
+		} catch (NumberFormatException e) {
+			throw new IllegalStateException("Unexpected room activation: " + controllableProperty);
+		} catch (Exception e) {
+			throw new ResourceNotReachableException(String.format("Error while controlling room %s: %s", controllableProperty, e.getMessage()), e);
+		}
+	}
+
+	/**
+	 * This method is used for calling control room properties:
+	 *
+	 * @param stats is the map that store all statistics
+	 * @param advancedControllableProperties is the list that store all controllable properties
+	 * @param controllableProperty name of controllable property
+	 * @throws ResourceNotReachableException when fail to control talkback
+	 */
+	private void sceneControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty) {
+		try {
+			String sceneId = findSceneIdByName(controllableProperty);
+			String request = SmartThingsURL.SCENE
+					.concat(SmartThingsConstant.SLASH)
+					.concat(sceneId)
+					.concat(SmartThingsURL.EXECUTE);
+
+			ResponseEntity<?> response = doPost(request, String.class);
+
+			if (!response.getStatusCode().is2xxSuccessful()) {
+				throw new ResourceNotReachableException(String.format("Run Scene %s fail, please try again later", controllableProperty));
+			}
+			addAdvanceControlProperties(advancedControllableProperties,
+					createButton(stats, AggregatorManagementGroupMetric.SCENE.getName().concat(controllableProperty), SmartThingsConstant.SUCCESSFUL, SmartThingsConstant.SUCCESSFUL));
+			isEmergencyDelivery = true;
+		} catch (Exception e) {
+			throw new ResourceNotReachableException(String.format("Error while controlling scene %s: %s", controllableProperty, e.getMessage()), e);
+		}
+	}
+
+	/**
+	 * This method is used for calling control create room properties:
+	 *
+	 * @param stats is the map that store all statistics
+	 * @param advancedControllableProperties is the list that store all controllable properties
+	 * @param controllableProperty name of controllable property
+	 * @param value value of controllable property
+	 * @throws ResourceNotReachableException when fail to control talkback
+	 */
+	private void createRoomControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value) {
+		CreateRoomMetric createRoomMetric = CreateRoomMetric.getByName(controllableProperty);
+		cachedCreateRoom.setLocationId(locationIdFiltered);
+
+		isEditedForCreateRoom = true;
+		switch (createRoomMetric) {
+			case ROOM_NAME:
+				for (Room room : cachedRooms) {
+					if (room.getName().equals(value)) {
+						throw new ResourceNotReachableException(String.format("The room name %s already exists, Please chose the different room name", value));
+					}
+				}
+				cachedCreateRoom.setName(value);
+				break;
+			case CANCEL:
+				cachedCreateRoom = new Room();
+				break;
+			case CREATE_ROOM:
+				isEditedForCreateRoom = false;
+				try {
+
+					String request = SmartThingsURL.LOCATIONS
+							.concat(SmartThingsConstant.SLASH)
+							.concat(locationIdFiltered)
+							.concat(SmartThingsConstant.SLASH)
+							.concat(SmartThingsURL.ROOMS);
+
+					String requestBody = cachedCreateRoom.contributeRequestBody();
+					Room room = doPost(request, requestBody, Room.class);
+
+					if (room == null || !room.getName().equals(value)) {
+						throw new ResourceNotReachableException(String.format("Creating room with name %s fail, please try again later", value));
+					}
+					cachedRooms.add(room);
+					populateCreateRoomManagement(stats, advancedControllableProperties);
+					populateRoomManagement(stats, advancedControllableProperties);
+					isEmergencyDelivery = true;
+				} catch (Exception e) {
+					throw new ResourceNotReachableException(String.format("Error while controlling create room %s: %s", controllableProperty, e.getMessage()), e);
+				}
+				break;
+			default:
+				if (logger.isWarnEnabled()) {
+					logger.warn(String.format("Operation %s is not supported.", controllableProperty));
+				}
+				throw new IllegalStateException(String.format("Operation %s is not supported.", controllableProperty));
+		}
+	}
 	//--------------------------------------------------------------------------------------------------------------------------------
 	//endregion
 
@@ -734,8 +1128,9 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param label default button label
 	 * @return AdvancedControllableProperty button instance
 	 */
-	private AdvancedControllableProperty createButton(String name, String label, String labelPressed) {
+	private AdvancedControllableProperty createButton(Map<String, String> stats, String name, String label, String labelPressed) {
 		AdvancedControllableProperty.Button button = new AdvancedControllableProperty.Button();
+		stats.put(name, label);
 		button.setLabel(label);
 		button.setLabelPressed(labelPressed);
 		button.setGracePeriod(0L);
@@ -750,24 +1145,77 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 *
 	 * @return boolean
 	 */
-	private boolean checkValidApiToken() {
+	private boolean validateApiToken() {
 		return !StringUtils.isNullOrEmpty(apiToken);
 	}
 
 	/**
-	 * Check API token validation
+	 * Find device ID by device Type
 	 *
-	 * @return boolean
+	 * @return String deviceId
 	 */
-	private String findDeviceIdByType(String type) {
-		for (Device device : devicesGlobal.values()) {
-			List<Component> components = device.getComponents();
-			for (Component component : components) {
-				if (SmartThingsConstant.MAIN.equals(component.getName()) && type.equals(component.getCategory())) {
-					return device.getDeviceId();
-				}
+	private String findDeviceIdByCategory(String category) {
+		for (Device device : cachedDevices.values()) {
+			String deviceCategory = device.retrieveCategory();
+			if (StringUtils.isNotNullOrEmpty(category) && StringUtils.isNotNullOrEmpty(deviceCategory) && category.equals(deviceCategory)) {
+				return device.getDeviceId();
 			}
 		}
 		return SmartThingsConstant.EMPTY;
+	}
+
+	/**
+	 * Find locationId by location name
+	 *
+	 * @return String locationId
+	 */
+	private Location findLocationByName(String name) {
+		Objects.requireNonNull(cachedLocations);
+		if (StringUtils.isNotNullOrEmpty(name)) {
+			Optional<Location> location = cachedLocations.stream().filter(l -> name.equals(l.getName())).findFirst();
+			if (location.isPresent()) {
+				return location.get();
+			}
+		}
+		return cachedLocations.get(0);
+	}
+
+	/**
+	 * Find sceneId by name
+	 *
+	 * @return String sceneId
+	 */
+	private String findSceneIdByName(String name) {
+		Objects.requireNonNull(name);
+		if (StringUtils.isNotNullOrEmpty(name)) {
+			Optional<Scene> scene = cachedScenes.stream().filter(sc -> name.equals(sc.getSceneName())).findFirst();
+			if (scene.isPresent()) {
+				return scene.get().getSceneId();
+			}
+		}
+		return SmartThingsConstant.EMPTY;
+	}
+
+	/**
+	 * convert device Online/ Offline status to boolean
+	 *
+	 * @return boolean
+	 */
+	private boolean convertDeviceStatusValue(Device device) {
+		Objects.requireNonNull(device);
+		if (StringUtils.isNotNullOrEmpty(device.getState())) {
+			return SmartThingsConstant.ONLINE.equals(device.getState());
+		}
+		return false;
+	}
+
+	/**
+	 * get default value for null data
+	 *
+	 * @param value value of monitoring properties
+	 * @return String (none/value)
+	 */
+	private String getDefaultValueForNullData(String value, String defaultValue) {
+		return StringUtils.isNullOrEmpty(value) ? defaultValue : value;
 	}
 }
