@@ -19,6 +19,7 @@ public enum CreateRoomMetric {
 	LOCATION("Location"),
 	ROOM_NAME("RoomName"),
 	CREATE_ROOM("CreateRoom"),
+	EDITED("Edited"),
 	CANCEL("Cancel");
 
 	private final String name;

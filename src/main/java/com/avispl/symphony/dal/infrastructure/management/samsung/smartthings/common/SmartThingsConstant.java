@@ -38,10 +38,13 @@ public class SmartThingsConstant {
 	public static final String SUCCESSFUL = "Successful";
 	public static final String CREATE = "Create";
 	public static final String CREATING = "Creating";
+	public static final String DELETE = "Delete";
+	public static final String DELETING = "Deleting";
 	public static final String CANCEL = "Cancel";
 	public static final String CANCELING = "Canceling";
 	public static final String MAIN = "main";
 	public static final String ONLINE = "ONLINE";
 	public static final String OFFLINE = "OFFLINE";
 	public static final String NONE = "None";
+	public static final String RATE_LIMIT_HEADER_KEY = "X-RateLimit-Reset";
 }

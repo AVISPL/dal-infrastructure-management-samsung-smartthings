@@ -13,7 +13,8 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.co
  */
 public enum RoomManagementMetric {
 
-	ROOM("Room");
+	ROOM("Room"),
+	DELETE_ROOM("Delete");
 
 	private final String name;
 
@@ -33,6 +34,22 @@ public enum RoomManagementMetric {
 	 */
 	public String getName() {
 		return this.name;
+	}
+
+	/**
+	 * This method is used to get room management controlling metric by name
+	 *
+	 * @param name is the name of metric that want to get
+	 * @return RoomManagementMetric is the metric that want to get
+	 */
+	public static RoomManagementMetric getByName(String name, Integer roomIndex) {
+		if (name.equals(RoomManagementMetric.ROOM.getName().concat(roomIndex.toString()))) {
+			return ROOM;
+		}
+		if (name.equals(RoomManagementMetric.ROOM.getName().concat(roomIndex.toString()).concat(RoomManagementMetric.DELETE_ROOM.getName()))) {
+			return DELETE_ROOM;
+		}
+		throw new IllegalStateException("Could not find the create room metric with name: " + name);
 	}
 }
 
