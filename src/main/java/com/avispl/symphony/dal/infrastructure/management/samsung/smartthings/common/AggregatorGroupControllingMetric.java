@@ -14,12 +14,12 @@ import java.util.Optional;
  * Created on 7/26/2022
  * @since 1.0.0
  */
-public enum AggregatorManagementGroupMetric {
+public enum AggregatorGroupControllingMetric {
 
-	LOCATION_MANAGEMENT("LocationManagement#"),
+	LOCATION_MANAGEMENT("EditLocation#"),
 	DEVICES_DASHBOARD("Devices#"),
 	SCENE("ScenesTrigger#"),
-	ROOM_MANAGEMENT("RoomManagement#"),
+	ROOM_MANAGEMENT("EditRoom#"),
 	CREATE_ROOM("CreateRoom#"),
 	AGGREGATED_DEVICE("AggregatedDevice#");
 
@@ -30,7 +30,7 @@ public enum AggregatorManagementGroupMetric {
 	 *
 	 * @param name Name of Hub monitoring metric
 	 */
-	AggregatorManagementGroupMetric(String name) {
+	AggregatorGroupControllingMetric(String name) {
 		this.name = name;
 	}
 
@@ -49,11 +49,11 @@ public enum AggregatorManagementGroupMetric {
 	 * @param name is the name of management metric that want to get
 	 * @return AggregatorManagementGroupMetric is the management metric group that want to get
 	 */
-	public static AggregatorManagementGroupMetric getByName(String name) {
-		Optional<AggregatorManagementGroupMetric> managementGroupMetric = Arrays.stream(AggregatorManagementGroupMetric.values()).filter(c -> name.contains(c.getName())).findFirst();
+	public static AggregatorGroupControllingMetric getByName(String name) {
+		Optional<AggregatorGroupControllingMetric> managementGroupMetric = Arrays.stream(AggregatorGroupControllingMetric.values()).filter(c -> name.equals(c.getName())).findFirst();
 		if (managementGroupMetric.isPresent()) {
 			return managementGroupMetric.get();
 		}
-		return AggregatorManagementGroupMetric.AGGREGATED_DEVICE;
+		return AggregatorGroupControllingMetric.AGGREGATED_DEVICE;
 	}
 }
