@@ -89,7 +89,7 @@ public class Location {
 	 */
 	public String contributeRequestBody() {
 		StringBuilder request = new StringBuilder();
-		if (StringUtils.isNotNullOrEmpty(locationId) && StringUtils.isNotNullOrEmpty(name)){
+		if (StringUtils.isNotNullOrEmpty(name)){
 			request.append("{\"name\":\"").append(name).append("\"}");
 		}
 		return request.toString();

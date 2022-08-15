@@ -47,4 +47,11 @@ public class SmartThingsConstant {
 	public static final String OFFLINE = "OFFLINE";
 	public static final String NONE = "None";
 	public static final String RATE_LIMIT_HEADER_KEY = "X-RateLimit-Reset";
+
+	// Thread metric
+	public static final int MAX_THREAD_QUANTITY = 8;
+	public static final int MIN_THREAD_QUANTITY = 1;
+	public static final int MAX_DEVICE_QUANTITY_PER_THREAD = 6;
+	public static final int MIN_POOLING_INTERVAL = 1;
+
 }
