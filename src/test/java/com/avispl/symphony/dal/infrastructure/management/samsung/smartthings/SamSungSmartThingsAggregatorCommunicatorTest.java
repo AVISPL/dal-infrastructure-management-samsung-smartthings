@@ -51,9 +51,29 @@ class SamSungSmartThingsAggregatorCommunicatorTest {
 	@Tag("RealDevice")
 	@Test
 	void testGetMultipleStatistics() throws Exception {
-		communicator.retrieveMultipleStatistics();
+		communicator.setPoolingInterval("10");
+		communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
+		communicator.setPoolingInterval("2");
 		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics().get(0);
+
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics().get(0);
+
 		Map<String, String> stats = extendedStatistics.getStatistics();
 
 		Assert.assertEquals("000.043.00004", stats.get(HubInfoMetric.FIRMWARE_VERSION.getName()));
@@ -69,7 +89,7 @@ class SamSungSmartThingsAggregatorCommunicatorTest {
 	@Tag("RealDevice")
 	@Test
 	void testUpdateLocationName() throws Exception {
-		communicator.retrieveMultipleStatistics();
+		communicator.getMultipleStatistics();
 		Thread.sleep(30000);
 		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
 		Map<String, String> stats = extendedStatistics.getStatistics();
@@ -92,7 +112,7 @@ class SamSungSmartThingsAggregatorCommunicatorTest {
 	@Tag("RealDevice")
 	@Test
 	void testUpdateRoomName() throws Exception {
-		communicator.retrieveMultipleStatistics();
+		communicator.getMultipleStatistics();
 		Thread.sleep(30000);
 		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
 		Map<String, String> stats = extendedStatistics.getStatistics();
@@ -115,7 +135,7 @@ class SamSungSmartThingsAggregatorCommunicatorTest {
 	@Tag("RealDevice")
 	@Test
 	void testDeleteRoomName() throws Exception {
-		communicator.retrieveMultipleStatistics();
+		communicator.getMultipleStatistics();
 		Thread.sleep(30000);
 		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
 		Map<String, String> stats = extendedStatistics.getStatistics();
@@ -138,7 +158,7 @@ class SamSungSmartThingsAggregatorCommunicatorTest {
 	@Tag("RealDevice")
 	@Test
 	void testCreateRoom() throws Exception {
-		communicator.retrieveMultipleStatistics();
+		communicator.getMultipleStatistics();
 		Thread.sleep(30000);
 		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
 		Map<String, String> stats = extendedStatistics.getStatistics();

@@ -95,4 +95,12 @@ public class Room {
 		return request.toString();
 	}
 
+	@Override
+	public String toString() {
+		return "Room{" +
+				"roomId='" + roomId + '\'' +
+				", locationId='" + locationId + '\'' +
+				", name='" + name + '\'' +
+				'}';
+	}
 }
