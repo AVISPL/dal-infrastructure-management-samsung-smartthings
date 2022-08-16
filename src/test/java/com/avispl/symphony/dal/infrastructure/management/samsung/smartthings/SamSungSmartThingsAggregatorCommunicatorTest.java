@@ -56,7 +56,6 @@ class SamSungSmartThingsAggregatorCommunicatorTest {
 		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
 		communicator.getMultipleStatistics().get(0);
-
 		Map<String, String> stats = extendedStatistics.getStatistics();
 
 		Assert.assertEquals("000.043.00004", stats.get(HubInfoMetric.FIRMWARE_VERSION.getName()));

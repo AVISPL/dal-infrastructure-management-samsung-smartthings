@@ -5,7 +5,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
 
 /**
- * Device Type Metric
+ * Device Category Metric
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/1/2022
