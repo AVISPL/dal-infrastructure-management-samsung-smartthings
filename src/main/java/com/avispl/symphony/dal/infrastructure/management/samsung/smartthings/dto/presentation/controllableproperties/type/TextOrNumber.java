@@ -11,17 +11,16 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Slider presentation
+ * Text/Numeric presentation
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/11/2022
  * @since 1.0.0
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Slider {
+public class TextOrNumber {
 
 	private String value;
-	private String unit;
 
 	@JsonAlias("range")
 	private List<Double> range = new ArrayList<>();
@@ -66,24 +65,6 @@ public class Slider {
 	 */
 	public void setRange(List<Double> range) {
 		this.range = range;
-	}
-
-	/**
-	 * Retrieves {@code {@link #unit}}
-	 *
-	 * @return value of {@link #unit}
-	 */
-	public String getUnit() {
-		return unit;
-	}
-
-	/**
-	 * Sets {@code unit}
-	 *
-	 * @param unit the {@code java.lang.String} field
-	 */
-	public void setUnit(String unit) {
-		this.unit = unit;
 	}
 
 	/**

@@ -28,6 +28,7 @@ public class SmartThingsURL {
 	public static final String SCENE = "scenes";
 	public static final String EXECUTE = "/execute";
 	public static final String STATUS = "/status";
+	public static final String COMMANDS = "/commands";
 
 	// Parameter
 	public static final String LOCATION_ID = "locationId=";

@@ -20,6 +20,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Language {
 
+	@JsonAlias("locale")
+	private String locale;
+
 	@JsonAlias("poCodes")
 	private List<PoCode> poCodes = new ArrayList<>();
 
@@ -39,5 +42,23 @@ public class Language {
 	 */
 	public void setPoCodes(List<PoCode> poCodes) {
 		this.poCodes = poCodes;
+	}
+
+	/**
+	 * Retrieves {@code {@link #locale}}
+	 *
+	 * @return value of {@link #locale}
+	 */
+	public String getLocale() {
+		return locale;
+	}
+
+	/**
+	 * Sets {@code locale}
+	 *
+	 * @param locale the {@code java.lang.String} field
+	 */
+	public void setLocale(String locale) {
+		this.locale = locale;
 	}
 }

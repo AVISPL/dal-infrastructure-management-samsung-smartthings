@@ -42,6 +42,8 @@ public class SmartThingsConstant {
 	public static final String DELETING = "Deleting";
 	public static final String CANCEL = "Cancel";
 	public static final String CANCELING = "Canceling";
+	public static final String PUSH = "Push";
+	public static final String PUSHING = "Pushing";
 	public static final String MAIN = "main";
 	public static final String ONLINE = "ONLINE";
 	public static final String OFFLINE = "OFFLINE";
@@ -55,5 +57,10 @@ public class SmartThingsConstant {
 	public static final int MIN_POOLING_INTERVAL = 1;
 	public static final int CONVERT_POSITION_TO_INDEX = 1;
 	public static final int FIRST_MONITORING_CYCLE_OF_POLLING_INTERVAL = 0;
+
+	// presentations
+	public static final String VALUE = "value";
+	public static final String UNIT = "unit";
+	public static final String ENG_LOCALE = "en";
 
 }

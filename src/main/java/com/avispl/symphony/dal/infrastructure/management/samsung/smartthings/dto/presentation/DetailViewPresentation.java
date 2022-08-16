@@ -11,6 +11,7 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.PushButton;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.Slider;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.Switch;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.TextOrNumber;
 
 /**
  * Detail View Presentation define how the SmartThings app (or other clients) should present the Attributes and Commands of a Device in detail view/ Aggregated Device view
@@ -45,6 +46,12 @@ public class DetailViewPresentation {
 
 	@JsonAlias("state")
 	private Slider state;
+
+	@JsonAlias("numberField")
+	private TextOrNumber numberField;
+
+	@JsonAlias("textField")
+	private TextOrNumber textField;
 
 	/**
 	 * Retrieves {@code {@link #capability}}
@@ -188,5 +195,41 @@ public class DetailViewPresentation {
 	 */
 	public void setState(Slider state) {
 		this.state = state;
+	}
+
+	/**
+	 * Retrieves {@code {@link #numberField}}
+	 *
+	 * @return value of {@link #numberField}
+	 */
+	public TextOrNumber getNumberField() {
+		return numberField;
+	}
+
+	/**
+	 * Sets {@code numberField}
+	 *
+	 * @param numberField the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.TextOrNumber} field
+	 */
+	public void setNumberField(TextOrNumber numberField) {
+		this.numberField = numberField;
+	}
+
+	/**
+	 * Retrieves {@code {@link #textField}}
+	 *
+	 * @return value of {@link #textField}
+	 */
+	public TextOrNumber getTextField() {
+		return textField;
+	}
+
+	/**
+	 * Sets {@code textField}
+	 *
+	 * @param textField the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.TextOrNumber} field
+	 */
+	public void setTextField(TextOrNumber textField) {
+		this.textField = textField;
 	}
 }

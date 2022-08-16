@@ -23,30 +23,44 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Device {
 
+	private String state;
+	private DevicePresentation presentation;
+
 	@JsonAlias("deviceId")
 	private String deviceId;
 
 	@JsonAlias("label")
 	private String name;
 
-	@JsonAlias ("presentationId")
+	@JsonAlias("presentationId")
 	private String presentationId;
 
-	@JsonAlias ("manufacturerName")
+	@JsonAlias("manufacturerName")
 	private String manufacturerName;
 
-	@JsonAlias ("locationId")
+	@JsonAlias("locationId")
 	private String locationId;
 
-	@JsonAlias ("roomId")
+	@JsonAlias("roomId")
 	private String roomId;
 
-	@JsonAlias ("components")
+	@JsonAlias("components")
 	private List<Component> components = new ArrayList<>();
 
-	private String state;
+	public Device() {
+	}
 
-	private DevicePresentation presentation;
+	public Device(Device device) {
+		this.state = device.getState();
+		this.presentation = device.getPresentation();
+		this.deviceId = device.getDeviceId();
+		this.name = device.getName();
+		this.presentationId = device.getPresentationId();
+		this.manufacturerName = device.getManufacturerName();
+		this.locationId = device.getLocationId();
+		this.roomId = device.getRoomId();
+		this.components = device.getComponents();
+	}
 
 	/**
 	 * Retrieves {@code {@link #deviceId}}
@@ -222,6 +236,20 @@ public class Device {
 			}
 		}
 		return SmartThingsConstant.EMPTY;
+	}
+
+	/**
+	 * This method is used to create request body for device control:
+	 *
+	 * @return String JSON request body
+	 */
+	public String contributeRequestBody(String capability, String command) {
+		StringBuilder request = new StringBuilder();
+		request.append("{\"commands\":[{")
+				.append("\"capability\":\"").append(capability).append("\",")
+				.append("\"command\":\"").append(command).append("\"")
+				.append("}]}");
+		return request.toString();
 	}
 
 	@Override
