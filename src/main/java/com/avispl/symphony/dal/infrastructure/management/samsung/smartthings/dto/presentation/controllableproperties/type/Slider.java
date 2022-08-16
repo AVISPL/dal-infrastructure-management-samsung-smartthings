@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Slider {
 
+	private String value;
+
 	@JsonAlias("range")
 	private List<Double> range = new ArrayList<>();
 
@@ -31,6 +33,24 @@ public class Slider {
 
 	@JsonAlias("argumentType")
 	private String argumentType;
+
+	/**
+	 * Retrieves {@code {@link #value}}
+	 *
+	 * @return value of {@link #value}
+	 */
+	public String getValue() {
+		return value;
+	}
+
+	/**
+	 * Sets {@code value}
+	 *
+	 * @param value the {@code java.lang.String} field
+	 */
+	public void setValue(String value) {
+		this.value = value;
+	}
 
 	/**
 	 * Retrieves {@code {@link #range}}

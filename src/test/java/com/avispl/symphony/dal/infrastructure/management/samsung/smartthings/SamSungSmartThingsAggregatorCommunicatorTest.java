@@ -51,26 +51,9 @@ class SamSungSmartThingsAggregatorCommunicatorTest {
 	@Tag("RealDevice")
 	@Test
 	void testGetMultipleStatistics() throws Exception {
-		communicator.setPoolingInterval("10");
 		communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
-		communicator.setPoolingInterval("2");
 		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
-		Thread.sleep(30000);
-		communicator.getMultipleStatistics().get(0);
-
-		Thread.sleep(30000);
-		communicator.getMultipleStatistics().get(0);
-		Thread.sleep(30000);
-		communicator.getMultipleStatistics().get(0);
-		Thread.sleep(30000);
-		communicator.getMultipleStatistics().get(0);
-		Thread.sleep(30000);
-		communicator.getMultipleStatistics().get(0);
-		Thread.sleep(30000);
-		communicator.getMultipleStatistics().get(0);
-		Thread.sleep(30000);
-		communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
 		communicator.getMultipleStatistics().get(0);
 

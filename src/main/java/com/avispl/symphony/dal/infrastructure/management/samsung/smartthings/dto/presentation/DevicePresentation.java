@@ -27,7 +27,7 @@ public class DevicePresentation {
 	private String presentationId;
 
 	@JsonAlias ("dashboard")
-	private List<DashboardPresentation> dashboardPresentations = new ArrayList<>();
+	private DashboardPresentation dashboardPresentations;
 
 	@JsonAlias ("detailView")
 	private List<DetailViewPresentation> detailViewPresentations = new ArrayList<>();
@@ -75,7 +75,7 @@ public class DevicePresentation {
 	 *
 	 * @return value of {@link #dashboardPresentations}
 	 */
-	public List<DashboardPresentation> getDashboardPresentations() {
+	public DashboardPresentation getDashboardPresentations() {
 		return dashboardPresentations;
 	}
 
@@ -84,7 +84,7 @@ public class DevicePresentation {
 	 *
 	 * @param dashboardPresentations the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DashboardPresentation>} field
 	 */
-	public void setDashboardPresentations(List<DashboardPresentation> dashboardPresentations) {
+	public void setDashboardPresentations(DashboardPresentation dashboardPresentations) {
 		this.dashboardPresentations = dashboardPresentations;
 	}
 
