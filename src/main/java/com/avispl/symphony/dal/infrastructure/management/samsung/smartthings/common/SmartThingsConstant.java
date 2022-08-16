@@ -53,5 +53,7 @@ public class SmartThingsConstant {
 	public static final int MIN_THREAD_QUANTITY = 1;
 	public static final int MAX_DEVICE_QUANTITY_PER_THREAD = 6;
 	public static final int MIN_POOLING_INTERVAL = 1;
+	public static final int CONVERT_POSITION_TO_INDEX = 1;
+	public static final int FIRST_MONITORING_CYCLE_OF_POLLING_INTERVAL = 0;
 
 }

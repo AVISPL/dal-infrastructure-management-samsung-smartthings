@@ -17,8 +17,28 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DropdownList {
 
+	private String value;
+
 	@JsonAlias("command")
 	private Command command;
+
+	/**
+	 * Retrieves {@code {@link #value}}
+	 *
+	 * @return value of {@link #value}
+	 */
+	public String getValue() {
+		return value;
+	}
+
+	/**
+	 * Sets {@code value}
+	 *
+	 * @param value the {@code java.lang.String} field
+	 */
+	public void setValue(String value) {
+		this.value = value;
+	}
 
 	/**
 	 * Retrieves {@code {@link #command}}
@@ -37,4 +57,6 @@ public class DropdownList {
 	public void setCommand(Command command) {
 		this.command = command;
 	}
+
+
 }

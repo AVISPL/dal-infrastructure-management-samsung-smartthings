@@ -31,7 +31,7 @@ public class DetailViewPresentation {
 	@JsonAlias("displayType")
 	private String displayType;
 
-	@JsonAlias("standbyPowerSwitch")
+	@JsonAlias({"standbyPowerSwitch", "toggleSwitch"})
 	private Switch standbyPowerSwitch;
 
 	@JsonAlias("list")

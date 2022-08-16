@@ -4,6 +4,10 @@
 
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -16,4 +20,24 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DashboardPresentation {
 
+	@JsonAlias("actions")
+	private List<DetailViewPresentation> actions = new ArrayList<>();
+
+	/**
+	 * Retrieves {@code {@link #actions}}
+	 *
+	 * @return value of {@link #actions}
+	 */
+	public List<DetailViewPresentation> getActions() {
+		return actions;
+	}
+
+	/**
+	 * Sets {@code actions}
+	 *
+	 * @param actions the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DetailViewPresentation>} field
+	 */
+	public void setActions(List<DetailViewPresentation> actions) {
+		this.actions = actions;
+	}
 }

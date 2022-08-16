@@ -57,6 +57,7 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.DeviceWrapper;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.location.Location;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.location.LocationWrapper;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DetailViewPresentation;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DevicePresentation;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.room.Room;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.room.RoomWrapper;
@@ -82,10 +83,19 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	class SamSungSmartThingsDeviceDataLoader implements Runnable {
 		private volatile boolean inProgress;
 		private volatile int threadIndex;
+		private volatile List<String> deviceIds;
 
-		public SamSungSmartThingsDeviceDataLoader(int threadIndex) {
+
+		/**
+		 * Parameters constructors
+		 *
+		 * @param threadIndex index of thread
+		 * @param deviceIds list of device IDs
+		 */
+		public SamSungSmartThingsDeviceDataLoader(int threadIndex, List<String> deviceIds) {
 			inProgress = true;
 			this.threadIndex = threadIndex;
+			this.deviceIds = deviceIds;
 		}
 
 		@Override
@@ -124,13 +134,191 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				if (logger.isDebugEnabled()) {
 					logger.debug("Finished collecting devices statistics cycle at " + new Date());
 				}
-				devicesExecutionPool.remove(threadIndex);
-				if (devicesExecutionPool.isEmpty()) {
-					executorService.shutdownNow();
-				}
 			}
 			// Finished collecting
 		}
+
+		//region retrieve detail aggregated device info: device health, device presentation and device full status in worker thread
+		//--------------------------------------------------------------------------------------------------------------------------------
+
+		/**
+		 * Submit thread to get device detail info
+		 */
+		private void retrieveDeviceDetail(int currentThread) {
+			Set<String> presentationIds = cachedDevices.values().stream().map(Device::getPresentationId).collect(Collectors.toSet());
+			int currentPhaseIndex = currentPhase.get() - SmartThingsConstant.CONVERT_POSITION_TO_INDEX;
+			int devicesPerPollingIntervalQuantity = IntMath.divide(cachedDevices.size(), localPollingInterval, RoundingMode.CEILING);
+
+			List<String> deviceIdsInThread;
+			if (currentThread == deviceStatisticsCollectionThreads - SmartThingsConstant.CONVERT_POSITION_TO_INDEX) {
+				// add the rest of the devices for a monitoring interval to the last thread
+				deviceIdsInThread = this.deviceIds.stream()
+						.skip(currentPhaseIndex * devicesPerPollingIntervalQuantity + currentThread * SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD)
+						.limit(devicesPerPollingIntervalQuantity - SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD * currentThread)
+						.collect(Collectors.toList());
+			} else {
+				deviceIdsInThread = this.deviceIds.stream()
+						.skip(currentPhaseIndex * devicesPerPollingIntervalQuantity + currentThread * SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD)
+						.limit(SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD)
+						.collect(Collectors.toList());
+			}
+			try {
+				for (String deviceId : deviceIdsInThread) {
+					Long startTime = System.currentTimeMillis();
+					retrieveDeviceHealth(deviceId);
+
+					String devicePresentationId = cachedDevices.get(deviceId).getPresentationId();
+					if (presentationIds.contains(devicePresentationId)) {
+						retrieveDevicePresentation(deviceId);
+						presentationIds.remove(devicePresentationId);
+					}
+
+					retrieveDeviceFullStatus(deviceId);
+					mapDevicesToAggregatedDevice(cachedDevices.get(deviceId));
+					if (logger.isDebugEnabled()) {
+						Long time = System.currentTimeMillis() - startTime;
+						logger.debug(String.format("Finished fetch %s details info in worker thread: %s", cachedDevices.get(deviceId).getName(), time));
+					}
+				}
+			} catch (Exception e) {
+				retrieveDeviceDetail(currentThread);
+				logger.error(String.format("Exception during retrieve '%s' data processing", e.getMessage()), e);
+			}
+		}
+
+		/**
+		 * This method is used to retrieve list of device health by send GET request to https://api.smartthings.com/v1/devices/{deviceId}/health
+		 *
+		 * @param deviceID id of device
+		 * @throws ResourceNotReachableException If any error occurs
+		 */
+		private void retrieveDeviceHealth(String deviceID) {
+			Objects.requireNonNull(deviceID);
+			try {
+				String request = SmartThingsURL.DEVICES
+						.concat(SmartThingsConstant.SLASH)
+						.concat(deviceID)
+						.concat(SmartThingsURL.DEVICE_HEALTH);
+
+				DeviceHealth deviceHealth = doGet(request, DeviceHealth.class);
+
+				if (deviceHealth != null) {
+					cachedDevices.get(deviceID).setState(deviceHealth.getState());
+				} else {
+					throw new ResourceNotReachableException(String.format("%s health info is empty", cachedDevices.get(deviceID).getName()));
+				}
+			} catch (Exception e) {
+				failedMonitoringDeviceIds.add(deviceID);
+				if (logger.isErrorEnabled()) {
+					logger.error(String.format("Error while retrieve %s health info: %s ", cachedDevices.get(deviceID).getName(), e.getMessage()), e);
+				}
+			}
+		}
+
+		/**
+		 * This method is used to retrieve list of device health by send GET request to
+		 * https://api.smartthings.com/v1/presentation?presentationId={presentationId}&manufacturerName={manufacturerName}
+		 *
+		 * @param deviceId device ID
+		 * @throws ResourceNotReachableException If any error occurs
+		 */
+		private void retrieveDevicePresentation(String deviceId) {
+			Device device = cachedDevices.get(deviceId);
+			try {
+				String request = SmartThingsURL.PRESENTATION
+						.concat(SmartThingsConstant.QUESTION_MARK)
+						.concat(SmartThingsURL.PRESENTATION_ID)
+						.concat(device.getPresentationId())
+						.concat(SmartThingsConstant.AMPERSAND)
+						.concat(SmartThingsURL.MANUFACTURE_NAME)
+						.concat(device.getManufacturerName());
+
+				ObjectNode objectNode = doGet(request, ObjectNode.class);
+				DevicePresentation devicePresentation = objectMapper.readValue(objectNode.toString(), DevicePresentation.class);
+
+				if (devicePresentation != null) {
+					for (Device dv : cachedDevices.values()) {
+						if (device.getPresentationId().equals(dv.getPresentationId())) {
+							cachedDevices.get(dv.getDeviceId()).setPresentation(devicePresentation);
+						}
+					}
+				} else {
+					throw new ResourceNotReachableException(String.format("%s presentation info is empty", device.getName()));
+				}
+			} catch (Exception e) {
+				failedMonitoringDeviceIds.add(deviceId);
+				if (logger.isErrorEnabled()) {
+					logger.error(String.format("Error while retrieve %s presentation info: %s", device.getName(), e.getMessage()), e);
+				}
+			}
+		}
+
+		/**
+		 * This method is used to retrieve device full status by send GET request to
+		 * https://api.smartthings.com/v1/devices/{deviceId}/status
+		 *
+		 * @param deviceId device ID
+		 * @throws ResourceNotReachableException If any error occurs
+		 */
+		private void retrieveDeviceFullStatus(String deviceId) {
+			try {
+				String request = SmartThingsURL.DEVICES
+						.concat(SmartThingsConstant.SLASH)
+						.concat(deviceId)
+						.concat(SmartThingsURL.STATUS);
+
+				ObjectNode objectNode = doGet(request, ObjectNode.class);
+
+				Optional<List<DetailViewPresentation>> detailViewPresentations = Optional.ofNullable(cachedDevices.get(deviceId).getPresentation().getDetailViewPresentations());
+				if (objectNode != null && detailViewPresentations.isPresent()) {
+					for (DetailViewPresentation detailViewPresentation : detailViewPresentations.get()) {
+						String value = objectNode.get("components").get("main").get(detailViewPresentation.getCapability()).asText();
+						switch (detailViewPresentation.getDisplayType()) {
+							case "slider":
+								detailViewPresentation.getSlider().setValue(value);
+								break;
+							case "switch":
+								detailViewPresentation.getStandbyPowerSwitch().setValue(value);
+								break;
+							case "push button":
+								detailViewPresentation.getPushButton().setValue(value);
+								break;
+							case "list":
+								detailViewPresentation.getDropdownList().setValue(value);
+								break;
+							default:
+								break;
+						}
+					}
+					cachedDevices.get(deviceId).getPresentation().setDetailViewPresentations(detailViewPresentations.get());
+				} else {
+					throw new ResourceNotReachableException(String.format("%s presentation info is empty", cachedDevices.get(deviceId)));
+				}
+			} catch (Exception e) {
+				failedMonitoringDeviceIds.add(deviceId);
+				if (logger.isErrorEnabled()) {
+					logger.error(String.format("Error while retrieve %s presentation info: %s", cachedDevices.get(deviceId).getName(), e.getMessage()), e);
+				}
+			}
+		}
+
+		/**
+		 * This method is used to map device info in DTO to Aggregated device
+		 *
+		 * @param device device info
+		 */
+		private void mapDevicesToAggregatedDevice(Device device) {
+			Objects.requireNonNull(device);
+			AggregatedDevice aggregatedDevice = new AggregatedDevice();
+			aggregatedDevice.setDeviceId(device.getDeviceId());
+			aggregatedDevice.setCategory(getDefaultValueForNullData(device.retrieveCategory(), SmartThingsConstant.NONE));
+			aggregatedDevice.setDeviceName(getDefaultValueForNullData(device.getName(), SmartThingsConstant.NONE));
+			aggregatedDevice.setDeviceOnline(convertDeviceStatusValue(device));
+			aggregatedDevices.put(device.getDeviceId(), aggregatedDevice);
+		}
+
+		//--------------------------------------------------------------------------------------------------------------------------------
+		//endregion
 
 		/**
 		 * Triggers main loop to stop
@@ -163,7 +351,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * Caching create room data
 	 */
-	private volatile Room cachedCreateRoom = new Room();
+	private Room cachedCreateRoom = new Room();
 
 	/**
 	 * Caching the list of scenes data
@@ -176,9 +364,14 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private ConcurrentHashMap<String, Device> cachedDevices = new ConcurrentHashMap<>();
 
 	/**
+	 * Caching the list of device Ids
+	 */
+	private List<String> deviceIds = new ArrayList<>();
+
+	/**
 	 * Caching the list of failed monitoring devices
 	 */
-	private Set<Device> failedMonitoringDevices = ConcurrentHashMap.newKeySet();
+	private Set<String> failedMonitoringDeviceIds = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * Runner service responsible for collecting data
@@ -305,9 +498,10 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			}
 			isEmergencyDelivery = false;
 
-			if (deviceStatisticsCollectionThreads == 0) {
+			if (currentPhase.get() == SmartThingsConstant.FIRST_MONITORING_CYCLE_OF_POLLING_INTERVAL) {
 				localPollingInterval = calculatingLocalPoolingInterval();
 				deviceStatisticsCollectionThreads = calculatingThreadQuantity();
+				deviceIds = pushFailedMonitoringDevicesIDToPriority();
 			}
 
 			if (currentPhase.get() == localPollingInterval) {
@@ -319,7 +513,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				executorService = Executors.newFixedThreadPool(deviceStatisticsCollectionThreads);
 			}
 			for (int threadNumber = 0; threadNumber < deviceStatisticsCollectionThreads; threadNumber++) {
-				devicesExecutionPool.add(executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader(threadNumber)));
+				executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader(threadNumber, deviceIds));
 			}
 		} finally {
 			reentrantLock.unlock();
@@ -389,11 +583,11 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			logger.warn("Start call retrieveMultipleStatistic");
 		}
 		if (validateApiToken() && executorService == null) {
-				// Due to the bug that after changing properties on fly - the adapter is destroyed but adapter is not initialized properly,
-				// so executor service is not running. We need to make sure executorService exists
-				executorService = Executors.newFixedThreadPool(8);
-				for (int i = 0; i < deviceStatisticsCollectionThreads; i++) {
-					executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader(i));
+			// Due to the bug that after changing properties on fly - the adapter is destroyed but adapter is not initialized properly,
+			// so executor service is not running. We need to make sure executorService exists
+			executorService = Executors.newFixedThreadPool(8);
+			for (int i = 0; i < deviceStatisticsCollectionThreads; i++) {
+				executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader(i, deviceIds));
 			}
 		}
 		return aggregatedDevices.values().stream().collect(Collectors.toList());
@@ -504,7 +698,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param stats store all statistics
 	 * @param hubId id of SmartThings hub
 	 * @param retryOnError retry if any error occurs
-	 *
 	 * @throws ResourceNotReachableException When getting the empty response
 	 * @throws ResourceNotReachableException If any error occurs
 	 */
@@ -543,7 +736,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param stats store all statistics
 	 * @param hubId id of SmartThings hub
 	 * @param retryOnError retry if any error occurs
-	 *
 	 * @throws ResourceNotReachableException When getting the empty response
 	 * @throws ResourceNotReachableException If any error occurs
 	 */
@@ -577,7 +769,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param stats store all statistics
 	 * @param advancedControllableProperties store all controllable properties
 	 * @param retryOnError retry if any error occurs
-	 *
 	 * @throws ResourceNotReachableException If any error occurs
 	 */
 	public void retrieveLocations(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, boolean retryOnError) {
@@ -623,7 +814,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param stats store all statistics
 	 * @param advancedControllableProperties store all controllable properties
 	 * @param retryOnError retry if any error occurs
-	 *
 	 * @throws ResourceNotReachableException When getting the empty response
 	 * @throws ResourceNotReachableException If any error occurs
 	 */
@@ -695,7 +885,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param stats store all statistics
 	 * @param advancedControllableProperties store all controllable properties
 	 * @param retryOnError retry if any error occurs
-	 *
 	 * @throws ResourceNotReachableException When getting the empty response
 	 * @throws ResourceNotReachableException If any error occurs
 	 */
@@ -748,7 +937,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 *
 	 * @param stats is the map that store all statistics
 	 * @param advancedControllableProperties is the list that store all controllable properties
-	 *
 	 */
 	private void retrieveInfo(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
 		retrieveLocations(stats, advancedControllableProperties, true);
@@ -766,7 +954,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * This method is used to retrieve list of device every 30 seconds by send GET request to https://api.smartthings.com/v1/devices?locationId={locationId}
 	 *
 	 * @param retryOnError retry if any error occurs
-	 *
 	 * @throws ResourceNotReachableException When getting the empty response
 	 * @throws ResourceNotReachableException If any error occurs
 	 */
@@ -781,162 +968,13 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			cachedDevices = (ConcurrentHashMap<String, Device>) responseDeviceList.getDevices().stream().collect(Collectors.toConcurrentMap(Device::getDeviceId, Function.identity()));
 
 		} catch (Exception e) {
-			if (retryOnError){
+			if (retryOnError) {
 				retrieveDevices(false);
 			}
 			if (logger.isErrorEnabled()) {
 				logger.error(String.format("Aggregated Device Data Retrieval-Error: %s with cause: %s", e.getMessage(), e.getCause().getMessage()), e);
 			}
 		}
-	}
-
-	//--------------------------------------------------------------------------------------------------------------------------------
-	//endregion
-
-	//region retrieve detail aggregated device info: device health, device presentation and device full status in worker thread
-	//--------------------------------------------------------------------------------------------------------------------------------
-
-	/**
-	 * Submit thread to get device detail info
-	 */
-	private void retrieveDeviceDetail(int currentThread) {
-		Set<String> presentationIds = cachedDevices.values().stream().map(Device::getPresentationId).collect(Collectors.toSet());
-		int currentPhaseIndex = currentPhase.get() - 1;
-
-		List<Device> devices1 = cachedDevices.values().stream().collect(Collectors.toList());
-		List<Device> devices = cachedDevices.values().stream()
-				.skip(currentPhaseIndex * SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD * deviceStatisticsCollectionThreads + currentThread * SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD)
-				.limit(SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD)
-				.collect(Collectors.toList());
-		try {
-			for (Device device : devices) {
-				Long startTime = System.currentTimeMillis();
-				retrieveDeviceHealth(device.getDeviceId());
-				retrieveDeviceFullStatus(device);
-
-				if (presentationIds.contains(device.getPresentationId())) {
-					retrieveDevicePresentation(device);
-					presentationIds.remove(device.getPresentationId());
-				}
-				mapDevicesToAggregatedDevice(cachedDevices.get(device.getDeviceId()));
-				if (logger.isDebugEnabled()) {
-					Long time = System.currentTimeMillis() - startTime;
-					logger.debug(String.format("Finished fetch %s details info in worker thread: %s", device.getName(), time));
-				}
-			}
-		} catch (Exception e) {
-			retrieveDeviceDetail(currentThread);
-			logger.error(String.format("Exception during retrieve '%s' data processing", e.getMessage()), e);
-		}
-	}
-
-	/**
-	 * This method is used to retrieve list of device health by send GET request to https://api.smartthings.com/v1/devices/{deviceId}/health
-	 *
-	 * @param deviceID id of device
-	 * @throws ResourceNotReachableException If any error occurs
-	 */
-	private void retrieveDeviceHealth(String deviceID) {
-		Objects.requireNonNull(deviceID);
-		try {
-			String request = SmartThingsURL.DEVICES
-					.concat(SmartThingsConstant.SLASH)
-					.concat(deviceID)
-					.concat(SmartThingsURL.DEVICE_HEALTH);
-
-			DeviceHealth deviceHealth = doGet(request, DeviceHealth.class);
-
-			if (deviceHealth != null) {
-				cachedDevices.get(deviceID).setState(deviceHealth.getState());
-			} else {
-				throw new ResourceNotReachableException(String.format("%s health info is empty", cachedDevices.get(deviceID).getName()));
-			}
-		} catch (Exception e) {
-			failedMonitoringDevices.add(cachedDevices.get(deviceID));
-			if (logger.isErrorEnabled()) {
-				logger.error(String.format("Error while retrieve %s health info: %s ", cachedDevices.get(deviceID).getName(), e.getMessage()), e);
-			}
-		}
-	}
-
-	/**
-	 * This method is used to retrieve list of device health by send GET request to
-	 * https://api.smartthings.com/v1/presentation?presentationId={presentationId}&manufacturerName={manufacturerName}
-	 *
-	 * @param device device info
-	 * @throws ResourceNotReachableException If any error occurs
-	 */
-	private void retrieveDevicePresentation(Device device) {
-		try {
-			String request = SmartThingsURL.PRESENTATION
-					.concat(SmartThingsConstant.QUESTION_MARK)
-					.concat(SmartThingsURL.PRESENTATION_ID)
-					.concat(device.getPresentationId())
-					.concat(SmartThingsConstant.AMPERSAND)
-					.concat(SmartThingsURL.MANUFACTURE_NAME)
-					.concat(device.getManufacturerName());
-
-			ObjectNode objectNode = doGet(request, ObjectNode.class);
-			DevicePresentation devicePresentation = objectMapper.readValue(objectNode.toString(), DevicePresentation.class);
-
-			if (devicePresentation != null) {
-				for (Device dv : cachedDevices.values()) {
-					if (device.getPresentationId().equals(dv.getPresentationId())) {
-						cachedDevices.get(dv.getDeviceId()).setPresentation(devicePresentation);
-					}
-				}
-			} else {
-				throw new ResourceNotReachableException(String.format("%s presentation info is empty", device.getName()));
-			}
-		} catch (Exception e) {
-			failedMonitoringDevices.add(device);
-			if (logger.isErrorEnabled()) {
-				logger.error(String.format("Error while retrieve %s presentation info: %s", device.getName(), e.getMessage()), e);
-			}
-		}
-	}
-
-	/**
-	 * This method is used to retrieve device full status by send GET request to
-	 * https://api.smartthings.com/v1/devices/{deviceId}/status
-	 *
-	 * @param device device info
-	 * @throws ResourceNotReachableException If any error occurs
-	 */
-	private void retrieveDeviceFullStatus(Device device) {
-		try {
-			String request = SmartThingsURL.DEVICES
-					.concat(SmartThingsConstant.SLASH)
-					.concat(device.getDeviceId())
-					.concat(SmartThingsURL.STATUS);
-
-			ObjectNode objectNode = doGet(request, ObjectNode.class);
-
-			if (objectNode != null) {
-			} else {
-				throw new ResourceNotReachableException(String.format("%s presentation info is empty", device.getName()));
-			}
-		} catch (Exception e) {
-			failedMonitoringDevices.add(device);
-			if (logger.isErrorEnabled()) {
-				logger.error(String.format("Error while retrieve %s presentation info: %s", device.getName(), e.getMessage()), e);
-			}
-		}
-	}
-
-	/**
-	 * This method is used to map device info in DTO to Aggregated device
-	 *
-	 * @param device device info
-	 */
-	private void mapDevicesToAggregatedDevice(Device device) {
-		Objects.requireNonNull(device);
-		AggregatedDevice aggregatedDevice = new AggregatedDevice();
-		aggregatedDevice.setDeviceId(device.getDeviceId());
-		aggregatedDevice.setCategory(getDefaultValueForNullData(device.retrieveCategory(), SmartThingsConstant.NONE));
-		aggregatedDevice.setDeviceName(getDefaultValueForNullData(device.getName(), SmartThingsConstant.NONE));
-		aggregatedDevice.setDeviceOnline(convertDeviceStatusValue(device));
-		aggregatedDevices.put(device.getDeviceId(), aggregatedDevice);
 	}
 
 	//--------------------------------------------------------------------------------------------------------------------------------
@@ -1174,6 +1212,23 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	//region populate device dashboard
 	//--------------------------------------------------------------------------------------------------------------------------------
 
+	/**
+	 * This method is used to populate scenes trigger group
+	 *
+	 * @param stats store all statistics
+	 * @param advancedControllableProperties store all controllable properties
+	 */
+	public void populateDeviceView(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
+
+		for (Device device : cachedDevices.values()) {
+			Optional<DetailViewPresentation> action = Optional.ofNullable(device.getPresentation().getDashboardPresentations().getActions().get(0));
+			if (action.isPresent()) {
+				action.get().getCapability();
+
+			}
+		}
+	}
+
 	//--------------------------------------------------------------------------------------------------------------------------------
 	//endregion
 
@@ -1267,7 +1322,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private int calculatingMinPoolingInterval() {
 		if (!cachedDevices.isEmpty()) {
 			return IntMath.divide(cachedDevices.size()
-					, (SmartThingsConstant.MAX_THREAD_QUANTITY * SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD)
+					, SmartThingsConstant.MAX_THREAD_QUANTITY * SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD
 					, RoundingMode.CEILING);
 		}
 		return SmartThingsConstant.MIN_POOLING_INTERVAL;
@@ -1284,7 +1339,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			return SmartThingsConstant.MIN_THREAD_QUANTITY;
 		}
 		if (cachedDevices.size() / localPollingInterval < SmartThingsConstant.MAX_THREAD_QUANTITY * SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD) {
-			return IntMath.divide(cachedDevices.size(), (localPollingInterval * SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD), RoundingMode.CEILING);
+			return IntMath.divide(cachedDevices.size(), localPollingInterval * SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD, RoundingMode.CEILING);
 		}
 		return SmartThingsConstant.MAX_THREAD_QUANTITY;
 	}
@@ -1389,4 +1444,20 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private String getDefaultValueForNullData(String value, String defaultValue) {
 		return StringUtils.isNullOrEmpty(value) ? defaultValue : value;
 	}
+
+	/**
+	 * push failed monitoring Device ID to priority in next poolingInterval
+	 *
+	 * @return String (none/value)
+	 */
+	private List<String> pushFailedMonitoringDevicesIDToPriority() {
+		if (failedMonitoringDeviceIds.isEmpty()) {
+			return cachedDevices.values().stream().map(Device::getDeviceId).collect(Collectors.toList());
+		}
+		List<String> deviceIds = cachedDevices.values().stream().map(Device::getDeviceId).filter(id -> !failedMonitoringDeviceIds.contains(id)).collect(Collectors.toList());
+		deviceIds.addAll(failedMonitoringDeviceIds);
+		failedMonitoringDeviceIds.clear();
+		return deviceIds;
+	}
+
 }
