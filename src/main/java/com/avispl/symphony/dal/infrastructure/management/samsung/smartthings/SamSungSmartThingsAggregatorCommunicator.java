@@ -87,52 +87,30 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @since 1.0.0
 	 */
 	class SamSungSmartThingsDeviceDataLoader implements Runnable {
-		private volatile boolean inProgress;
 		private volatile int threadIndex;
-		private List<String> deviceIds;
 
 		/**
 		 * Parameters constructors
 		 *
 		 * @param threadIndex index of thread
-		 * @param deviceIds list of device IDs
 		 */
-		public SamSungSmartThingsDeviceDataLoader(int threadIndex, List<String> deviceIds) {
-			inProgress = true;
+		public SamSungSmartThingsDeviceDataLoader(int threadIndex) {
 			this.threadIndex = threadIndex;
-			this.deviceIds = deviceIds;
 		}
 
 		@Override
 		public void run() {
-			mainloop:
-			while (inProgress) {
-				if (!inProgress) {
-					break mainloop;
-				}
 				if (logger.isDebugEnabled()) {
 					logger.debug("Fetching other than SmartThings device list" + threadIndex);
 				}
-				Long currentTime = System.currentTimeMillis();
 				if (!cachedDevices.isEmpty()) {
 					retrieveDeviceDetail(threadIndex);
-				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("finished for" + threadIndex + "   " + (System.currentTimeMillis() - currentTime));
-				}
-				if (!inProgress) {
-					break mainloop;
-				}
-				int aggregatedDevicesCount = aggregatedDevices.size();
-				if (aggregatedDevicesCount == 0) {
-					continue mainloop;
 				}
 				if (!aggregatedDevices.isEmpty()) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Aggregated devices after applying filter: " + aggregatedDevices);
 					}
 				}
-
 				if (logger.isDebugEnabled()) {
 					logger.debug("Finished collecting devices statistics cycle at " + new Date());
 				}
@@ -425,13 +403,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		//--------------------------------------------------------------------------------------------------------------------------------
 		//endregion
 
-		/**
-		 * Triggers main loop to stop
-		 */
-		public void stop() {
-			inProgress = false;
-		}
-	}
 
 	/**
 	 * Number of threads in a thread pool reserved for the device statistics collection
@@ -629,7 +600,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				executorService = Executors.newFixedThreadPool(deviceStatisticsCollectionThreads);
 			}
 			for (int threadNumber = 0; threadNumber < deviceStatisticsCollectionThreads; threadNumber++) {
-				executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader(threadNumber, deviceIds));
+				executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader(threadNumber));
 			}
 		} finally {
 			reentrantLock.unlock();
@@ -706,7 +677,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			// so executor service is not running. We need to make sure executorService exists
 			executorService = Executors.newFixedThreadPool(8);
 			for (int i = 0; i < deviceStatisticsCollectionThreads; i++) {
-				executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader(i, deviceIds));
+				executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader(i));
 			}
 		}
 		return aggregatedDevices.values().stream().collect(Collectors.toList());
@@ -727,11 +698,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		}
 
 		if (currentPhase.get() == localPollingInterval) {
-			if (deviceDataLoader != null) {
-				deviceDataLoader.stop();
-				deviceDataLoader = null;
-			}
-
 			if (executorService != null) {
 				executorService.shutdownNow();
 				executorService = null;
