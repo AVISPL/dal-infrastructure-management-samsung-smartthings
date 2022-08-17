@@ -1352,7 +1352,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				String request = SmartThingsURL.DEVICES
 						.concat(SmartThingsConstant.SLASH)
 						.concat(device.getDeviceId())
-						.concat(SmartThingsConstant.SLASH)
 						.concat(SmartThingsURL.COMMANDS);
 
 				HttpHeaders headers = new HttpHeaders();
@@ -1591,7 +1590,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @return Device device info
 	 */
 	private Device findDeviceByName(String name) {
-		for (Device device : cachedDevices.values()) {
+		for (Device device : cachedDevicesAfterPollingInterval.values()) {
 			if (StringUtils.isNotNullOrEmpty(name) && name.equals(device.getName())) {
 				return device;
 			}

@@ -160,4 +160,138 @@ class SamSungSmartThingsAggregatorCommunicatorTest {
 
 		Assertions.assertEquals(propertyValue, stats.get(propertyName));
 	}
+
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty device : Open window shade
+	 *
+	 * Expected: control successfully
+	 */
+	@Tag("RealDevice")
+	@Test
+	void testOpenWindowShade() throws Exception {
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
+
+		Map<String, String> stats = extendedStatistics.getStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+
+		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Shade 3";
+		String propertyValue = "1";
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
+
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty device : Open garage door
+	 *
+	 * Expected: control successfully
+	 */
+	@Tag("RealDevice")
+	@Test
+	void testOpenGarageDoor() throws Exception {
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
+
+		Map<String, String> stats = extendedStatistics.getStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+
+		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Garagedoor 1";
+		String propertyValue = "1";
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty device : Power on presence sensor
+	 *
+	 * Expected: control successfully
+	 */
+	@Tag("RealDevice")
+	@Test
+	void testPowerOnPresenceSensor() throws Exception {
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
+		;
+
+		Map<String, String> stats = extendedStatistics.getStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+
+		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Presence 1";
+		String propertyValue = "1";
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty device : Power on TV
+	 *
+	 * Expected: control successfully
+	 */
+	@Tag("RealDevice")
+	@Test
+	void testPowerOnTV() throws Exception {
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
+		;
+
+		Map<String, String> stats = extendedStatistics.getStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+
+		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "TVD";
+		String propertyValue = "1";
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty device : Power on light
+	 *
+	 * Expected: control successfully
+	 */
+	@Tag("RealDevice")
+	@Test
+	void testPowerOnLight() throws Exception {
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
+
+		Map<String, String> stats = extendedStatistics.getStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+
+		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "light 1";
+		String propertyValue = "1";
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
 }
