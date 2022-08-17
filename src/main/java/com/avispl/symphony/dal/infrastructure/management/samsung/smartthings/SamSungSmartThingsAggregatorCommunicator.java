@@ -144,6 +144,8 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		//--------------------------------------------------------------------------------------------------------------------------------
 
 		/**
+		 * @param  currentThread current thread index
+		 *
 		 * Submit thread to get device detail info
 		 */
 		private void retrieveDeviceDetail(int currentThread) {
@@ -404,6 +406,20 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			aggregatedDevice.setDeviceName(getDefaultValueForNullData(device.getName(), SmartThingsConstant.NONE));
 			aggregatedDevice.setDeviceOnline(convertDeviceStatusValue(device));
 			aggregatedDevices.put(device.getDeviceId(), aggregatedDevice);
+		}
+
+		/**
+		 * convert device Online/ Offline status to boolean
+		 *
+		 * @param device device info
+		 * @return boolean
+		 */
+		private boolean convertDeviceStatusValue(Device device) {
+			Objects.requireNonNull(device);
+			if (StringUtils.isNotNullOrEmpty(device.getState())) {
+				return SmartThingsConstant.ONLINE.equals(device.getState());
+			}
+			return false;
 		}
 
 		//--------------------------------------------------------------------------------------------------------------------------------
@@ -1649,20 +1665,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			}
 		}
 		return SmartThingsConstant.EMPTY;
-	}
-
-	/**
-	 * convert device Online/ Offline status to boolean
-	 *
-	 * @param device device info
-	 * @return boolean
-	 */
-	private boolean convertDeviceStatusValue(Device device) {
-		Objects.requireNonNull(device);
-		if (StringUtils.isNotNullOrEmpty(device.getState())) {
-			return SmartThingsConstant.ONLINE.equals(device.getState());
-		}
-		return false;
 	}
 
 	/**
