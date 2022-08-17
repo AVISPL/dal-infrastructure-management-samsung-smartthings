@@ -50,6 +50,10 @@ public class Device {
 	public Device() {
 	}
 
+	/**
+	 * parameter constructor for deep clone
+	 * @param device
+	 */
 	public Device(Device device) {
 		this.state = device.getState();
 		this.presentation = device.getPresentation();
