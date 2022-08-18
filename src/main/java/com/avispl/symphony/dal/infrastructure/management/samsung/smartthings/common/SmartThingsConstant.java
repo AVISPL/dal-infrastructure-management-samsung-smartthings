@@ -47,6 +47,7 @@ public class SmartThingsConstant {
 	public static final String MAIN = "main";
 	public static final String ONLINE = "ONLINE";
 	public static final String OFFLINE = "OFFLINE";
+	public static final String NO_ROOM_ASSIGNED = "No room assigned";
 	public static final String NONE = "None";
 	public static final String RATE_LIMIT_HEADER_KEY = "X-RateLimit-Reset";
 
@@ -54,7 +55,7 @@ public class SmartThingsConstant {
 	public static final int MAX_THREAD_QUANTITY = 8;
 	public static final int MIN_THREAD_QUANTITY = 1;
 	public static final int MAX_DEVICE_QUANTITY_PER_THREAD = 6;
-	public static final int MIN_POOLING_INTERVAL = 1;
+	public static final int MIN_POlLING_INTERVAL = 1;
 	public static final int CONVERT_POSITION_TO_INDEX = 1;
 	public static final int FIRST_MONITORING_CYCLE_OF_POLLING_INTERVAL = 0;
 

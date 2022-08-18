@@ -17,12 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -39,7 +37,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.math.IntMath;
-import javafx.beans.property.Property;
 
 import com.avispl.symphony.api.dal.control.Controller;
 import com.avispl.symphony.api.dal.dto.control.AdvancedControllableProperty;
@@ -71,9 +68,6 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DevicePresentation;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.Language;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.PoCode;
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.Alternative;
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.Command;
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.DropdownList;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.room.Room;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.room.RoomWrapper;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.sence.Scene;
@@ -81,21 +75,28 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto
 import com.avispl.symphony.dal.util.StringUtils;
 
 /**
- * SamSungSmartThingsAggregatorCommunicator
+ * SamsungSmartThingsAggregatorCommunicator
+ * An implementation of RestCommunicator to provide communication and interaction with SmartThings cloud and its aggregated devices
+ * Supported aggregated device categories are:
+ * <li>Light</li>
+ * <li>Presence Sensor</li>
+ * <li>Thermos stats</li>
+ * <li>Window Shade</li>
+ * <li>Television</li>
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/22/2022
  * @since 1.0.0
  */
-public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator implements Aggregator, Monitorable, Controller {
+public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator implements Aggregator, Monitorable, Controller {
 
 	/**
 	 * Process that is running constantly and triggers collecting data from Zoom API endpoints, based on the given timeouts and thresholds.
 	 *
-	 * @author Maksym.Rossiytsev
+	 * @author Kevin
 	 * @since 1.0.0
 	 */
-	class SamSungSmartThingsDeviceDataLoader implements Runnable {
+	class SamsungSmartThingsDeviceDataLoader implements Runnable {
 		private volatile int threadIndex;
 
 		/**
@@ -103,7 +104,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		 *
 		 * @param threadIndex index of thread
 		 */
-		public SamSungSmartThingsDeviceDataLoader(int threadIndex) {
+		public SamsungSmartThingsDeviceDataLoader(int threadIndex) {
 			this.threadIndex = threadIndex;
 		}
 
@@ -114,11 +115,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			}
 			if (!cachedDevices.isEmpty()) {
 				retrieveDeviceDetail(threadIndex);
-			}
-			if (!aggregatedDevices.isEmpty()) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Aggregated devices after applying filter: " + aggregatedDevices);
-				}
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Finished collecting devices statistics cycle at " + new Date());
@@ -432,6 +428,12 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private String apiToken;
 
 	/**
+	 * SmartThings current room in device dashboard
+	 */
+	private String currentRoomInDeviceDashBoard;
+
+
+	/**
 	 * Caching the list of locations
 	 */
 	private List<Location> cachedLocations = Collections.synchronizedList(new ArrayList<>());
@@ -477,25 +479,14 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private Set<String> failedMonitoringDeviceIds = ConcurrentHashMap.newKeySet();
 
 	/**
-	 * Runner service responsible for collecting data
-	 */
-	private SamSungSmartThingsDeviceDataLoader deviceDataLoader;
-
-	/**
 	 * List of aggregated devices
 	 */
 	private ConcurrentHashMap<String, AggregatedDevice> aggregatedDevices = new ConcurrentHashMap<>();
 
 	/**
-	 * Executor that runs all the async operations, that {@link #deviceDataLoader} is posting and
-	 * {@link #devicesExecutionPool} is keeping track of
+	 * Executor that runs all the async operations
 	 */
 	private static ExecutorService executorService;
-
-	/**
-	 * Pool for keeping all the async operations in, to track any operations in progress and cancel them if needed
-	 */
-	private List<Future> devicesExecutionPool = new ArrayList<>();
 
 	/**
 	 * ReentrantLock to prevent null pointer exception to localExtendedStatistics when controlProperty method is called before GetMultipleStatistics method.
@@ -504,7 +495,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 	// Adapter properties
 	private String locationFilter;
-	private String poolingInterval;
+	private String pollingInterval;
 	private String deviceTypesFilter;
 	private String devicesNamesFilter;
 	private String roomsFilter;
@@ -517,12 +508,12 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private ObjectMapper objectMapper = new ObjectMapper();
 
 	/**
-	 * Pooling interval which applied in adapter
+	 * Polling interval which applied in adapter
 	 */
-	private volatile int localPollingInterval = SmartThingsConstant.MIN_POOLING_INTERVAL;
+	private volatile int localPollingInterval = SmartThingsConstant.MIN_POlLING_INTERVAL;
 
 	/**
-	 * The current phase of monitoring cycle in pooling interval
+	 * The current phase of monitoring cycle in polling interval
 	 */
 	private final AtomicInteger currentPhase = new AtomicInteger(0);
 
@@ -545,21 +536,21 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * Retrieves {@code {@link #poolingInterval}}
+	 * Retrieves {@code {@link #pollingInterval }}
 	 *
-	 * @return value of {@link #poolingInterval}
+	 * @return value of {@link #pollingInterval}
 	 */
-	public String getPoolingInterval() {
-		return poolingInterval;
+	public String getPollingInterval() {
+		return pollingInterval;
 	}
 
 	/**
-	 * Sets {@code poolingInterval}
+	 * Sets {@code pollingInterval}
 	 *
-	 * @param poolingInterval the {@code java.lang.String} field
+	 * @param pollingInterval the {@code java.lang.String} field
 	 */
-	public void setPoolingInterval(String poolingInterval) {
-		this.poolingInterval = poolingInterval;
+	public void setPollingInterval(String pollingInterval) {
+		this.pollingInterval = pollingInterval;
 	}
 
 	/**
@@ -668,13 +659,13 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	@Override
 	public List<Statistics> getMultipleStatistics() throws Exception {
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("Getting statistics from the device X4 decoder at host %s with port %s", this.host, this.getPort()));
-		}
-		reentrantLock.lock();
-		try {
+			logger.debug(String.format("Getting statistics from the Samsung SmartThings aggregator at host %s with port %s", this.host, this.getPort()));
 			if (!validateApiToken()) {
 				throw new ResourceNotReachableException("Personal access token cannot be null or empty, please enter valid token in the password field.");
 			}
+		}
+		reentrantLock.lock();
+		try {
 			ExtendedStatistics extendedStatistics = new ExtendedStatistics();
 			Map<String, String> stats = new HashMap<>();
 			List<AdvancedControllableProperty> advancedControllableProperties = new ArrayList<>();
@@ -704,7 +695,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			isEmergencyDelivery = false;
 
 			if (currentPhase.get() == SmartThingsConstant.FIRST_MONITORING_CYCLE_OF_POLLING_INTERVAL) {
-				localPollingInterval = calculatingLocalPoolingInterval();
+				localPollingInterval = calculatingLocalPollingInterval();
 				deviceStatisticsCollectionThreads = calculatingThreadQuantity();
 				pushFailedMonitoringDevicesIDToPriority();
 			}
@@ -718,7 +709,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				executorService = Executors.newFixedThreadPool(deviceStatisticsCollectionThreads);
 			}
 			for (int threadNumber = 0; threadNumber < deviceStatisticsCollectionThreads; threadNumber++) {
-				executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader(threadNumber));
+				executorService.submit(new SamsungSmartThingsDeviceDataLoader(threadNumber));
 			}
 		} finally {
 			reentrantLock.unlock();
@@ -790,14 +781,6 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		if (logger.isWarnEnabled()) {
 			logger.warn("Start call retrieveMultipleStatistic");
 		}
-		if (validateApiToken() && executorService == null) {
-			// Due to the bug that after changing properties on fly - the adapter is destroyed but adapter is not initialized properly,
-			// so executor service is not running. We need to make sure executorService exists
-			executorService = Executors.newFixedThreadPool(8);
-			for (int i = 0; i < deviceStatisticsCollectionThreads; i++) {
-				executorService.submit(deviceDataLoader = new SamSungSmartThingsDeviceDataLoader(i));
-			}
-		}
 		return aggregatedDevices.values().stream().collect(Collectors.toList());
 	}
 
@@ -821,11 +804,11 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				executorService = null;
 			}
 
-			devicesExecutionPool.forEach(future -> future.cancel(true));
-			devicesExecutionPool.clear();
-
-			aggregatedDevices.clear();
+			cachedRooms.clear();
 			cachedDevices.clear();
+			cachedDevicesAfterPollingInterval.clear();
+			cachedLocations.clear();
+			aggregatedDevices.clear();
 			super.internalDestroy();
 		}
 	}
@@ -1081,7 +1064,8 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					createButton(stats, AggregatorGroupControllingMetric.CREATE_ROOM.getName() + CreateRoomMetric.CANCEL.getName(), SmartThingsConstant.CANCEL, SmartThingsConstant.CANCELING));
 		}
 		if (!isEditedForCreateRoom.booleanValue() || cachedCreateRoom.getName().isEmpty()) {
-			advancedControllableProperties.removeIf(advancedControllableProperty -> advancedControllableProperty.getName().equals(AggregatorGroupControllingMetric.CREATE_ROOM.getName() + CreateRoomMetric.CANCEL.getName()));
+			advancedControllableProperties.removeIf(
+					advancedControllableProperty -> advancedControllableProperty.getName().equals(AggregatorGroupControllingMetric.CREATE_ROOM.getName() + CreateRoomMetric.CANCEL.getName()));
 			stats.put(AggregatorGroupControllingMetric.CREATE_ROOM.getName() + CreateRoomMetric.EDITED.getName(), isEditedForCreateRoom.toString());
 		}
 	}
@@ -1139,9 +1123,9 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param stats store all statistics
 	 */
 	public void populatePollingInterval(Map<String, String> stats) {
-		Integer minPollingInterval = calculatingMinPoolingInterval();
+		Integer minPollingInterval = calculatingMinPollingInterval();
 
-		Long nextPollingInterval = System.currentTimeMillis() + localPollingInterval*1000;
+		Long nextPollingInterval = System.currentTimeMillis() + localPollingInterval * 1000;
 		Date date = new Date(nextPollingInterval);
 		Format format = new SimpleDateFormat("yyyy MM dd HH:mm:ss");
 
@@ -1444,33 +1428,47 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties store all controllable properties
 	 */
 	public void populateDeviceView(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
+		String currentRoomId = findRoomIdByName(currentRoomInDeviceDashBoard);
+		String currentRoomName = currentRoomInDeviceDashBoard;
+		if (StringUtils.isNotNullOrEmpty(currentRoomInDeviceDashBoard)) {
+			currentRoomName = SmartThingsConstant.NO_ROOM_ASSIGNED;
+		}
+		List<String> rooms = cachedRooms.stream().map(Room::getName).collect(Collectors.toList());
+		rooms.add(SmartThingsConstant.NO_ROOM_ASSIGNED);
+
+		addAdvanceControlProperties(advancedControllableProperties,
+				createDropdown(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + RoomManagementMetric.ROOM.getName(), rooms, currentRoomName));
+
 		for (Device device : cachedDevicesAfterPollingInterval.values()) {
-			Optional<List<DetailViewPresentation>> actions = Optional.ofNullable(device.getPresentation())
-					.map(DevicePresentation::getDashboardPresentations)
-					.map(DashboardPresentation::getActions);
+			String roomId = getDefaultValueForNullData(device.getRoomId(), SmartThingsConstant.EMPTY);
+			if (roomId == currentRoomId) {
+				Optional<List<DetailViewPresentation>> actions = Optional.ofNullable(device.getPresentation())
+						.map(DevicePresentation::getDashboardPresentations)
+						.map(DashboardPresentation::getActions);
 
-			if (actions.isPresent() && !actions.get().isEmpty()) {
-				DetailViewPresentation action = actions.get().get(0);
-				switch (action.getDisplayType()) {
-					case DeviceDisplayTypesMetric.STAND_BY_POWER_SWITCH:
-					case DeviceDisplayTypesMetric.TOGGLE_SWITCH:
-					case DeviceDisplayTypesMetric.SWITCH:
-						String onLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOn(), SmartThingsConstant.ON);
-						String offLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOff(), SmartThingsConstant.OFF);
-						String currentVale = getDefaultValueForNullData(action.getStandbyPowerSwitch().getValue(), SmartThingsConstant.OFF);
-						addAdvanceControlProperties(advancedControllableProperties,
-								createSwitch(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), currentVale, offLabel, onLabel));
+				if (actions.isPresent() && !actions.get().isEmpty()) {
+					DetailViewPresentation action = actions.get().get(0);
+					switch (action.getDisplayType()) {
+						case DeviceDisplayTypesMetric.STAND_BY_POWER_SWITCH:
+						case DeviceDisplayTypesMetric.TOGGLE_SWITCH:
+						case DeviceDisplayTypesMetric.SWITCH:
+							String onLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOn(), SmartThingsConstant.ON);
+							String offLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOff(), SmartThingsConstant.OFF);
+							String currentVale = getDefaultValueForNullData(action.getStandbyPowerSwitch().getValue(), SmartThingsConstant.OFF);
+							addAdvanceControlProperties(advancedControllableProperties,
+									createSwitch(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), currentVale, offLabel, onLabel));
 
-						break;
-					case DeviceDisplayTypesMetric.PUSH_BUTTON:
-						addAdvanceControlProperties(advancedControllableProperties,
-								createButton(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), SmartThingsConstant.PUSH, SmartThingsConstant.PUSHING));
-						break;
-					default:
-						if (logger.isWarnEnabled()) {
-							logger.warn(String.format("Unexpected device display type: %s", action.getDisplayType()));
-						}
-						break;
+							break;
+						case DeviceDisplayTypesMetric.PUSH_BUTTON:
+							addAdvanceControlProperties(advancedControllableProperties,
+									createButton(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), SmartThingsConstant.PUSH, SmartThingsConstant.PUSHING));
+							break;
+						default:
+							if (logger.isWarnEnabled()) {
+								logger.warn(String.format("Unexpected device display type: %s", action.getDisplayType()));
+							}
+							break;
+					}
 				}
 			}
 		}
@@ -1486,63 +1484,69 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @throws ResourceNotReachableException when fail to control
 	 */
 	private void deviceDashboardControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value) {
-		try {
-			Device device = findDeviceByName(controllableProperty);
-			if (device != null) {
-				String request = SmartThingsURL.DEVICES
-						.concat(SmartThingsConstant.SLASH)
-						.concat(device.getDeviceId())
-						.concat(SmartThingsURL.COMMANDS);
 
-				HttpHeaders headers = new HttpHeaders();
+		if (controllableProperty.equals(RoomManagementMetric.ROOM.getName())) {
+			currentRoomInDeviceDashBoard = value;
+			populateDeviceView(stats, advancedControllableProperties);
+		} else {
+			try {
+				Device device = findDeviceByName(controllableProperty);
+				if (device != null) {
+					String request = SmartThingsURL.DEVICES
+							.concat(SmartThingsConstant.SLASH)
+							.concat(device.getDeviceId())
+							.concat(SmartThingsURL.COMMANDS);
 
-				Optional<List<DetailViewPresentation>> actions = Optional.ofNullable(device.getPresentation())
-						.map(DevicePresentation::getDashboardPresentations)
-						.map(DashboardPresentation::getActions);
-				String command = SmartThingsConstant.EMPTY;
-				String requestBody = SmartThingsConstant.EMPTY;
+					HttpHeaders headers = new HttpHeaders();
 
-				if (actions.isPresent() && !actions.get().isEmpty()) {
-					DetailViewPresentation action = actions.get().get(0);
-					switch (action.getDisplayType()) {
-						case DeviceDisplayTypesMetric.STAND_BY_POWER_SWITCH:
-						case DeviceDisplayTypesMetric.TOGGLE_SWITCH:
-						case DeviceDisplayTypesMetric.SWITCH:
-							command = value.equals("1") ? action.getStandbyPowerSwitch().getCommand().getOn() : action.getStandbyPowerSwitch().getCommand().getOff();
-							break;
-						case DeviceDisplayTypesMetric.PUSH_BUTTON:
-							command = action.getPushButton().getCommand();
-							break;
-						default:
-							if (logger.isWarnEnabled()) {
-								logger.warn(String.format("Unexpected device display type: %s", action.getDisplayType()));
-							}
-							break;
+					Optional<List<DetailViewPresentation>> actions = Optional.ofNullable(device.getPresentation())
+							.map(DevicePresentation::getDashboardPresentations)
+							.map(DashboardPresentation::getActions);
+					String command = SmartThingsConstant.EMPTY;
+					String requestBody = SmartThingsConstant.EMPTY;
+
+					if (actions.isPresent() && !actions.get().isEmpty()) {
+						DetailViewPresentation action = actions.get().get(0);
+						switch (action.getDisplayType()) {
+							case DeviceDisplayTypesMetric.STAND_BY_POWER_SWITCH:
+							case DeviceDisplayTypesMetric.TOGGLE_SWITCH:
+							case DeviceDisplayTypesMetric.SWITCH:
+								command = value.equals("1") ? action.getStandbyPowerSwitch().getCommand().getOn() : action.getStandbyPowerSwitch().getCommand().getOff();
+								break;
+							case DeviceDisplayTypesMetric.PUSH_BUTTON:
+								command = action.getPushButton().getCommand();
+								break;
+							default:
+								if (logger.isWarnEnabled()) {
+									logger.warn(String.format("Unexpected device display type: %s", action.getDisplayType()));
+								}
+								break;
+						}
+						requestBody = device.contributeRequestBody(action.getCapability(), command);
 					}
-					requestBody = device.contributeRequestBody(action.getCapability(), command);
-				}
 
-				ResponseEntity<?> response = doRequest(request, HttpMethod.POST, headers, requestBody, String.class);
+					ResponseEntity<?> response = doRequest(request, HttpMethod.POST, headers, requestBody, String.class);
 
-				handleRateLimitExceed(response);
+					handleRateLimitExceed(response);
 
-				Optional<?> responseBody = Optional.ofNullable(response)
-						.map(HttpEntity::getBody);
-				if (response.getStatusCode().is2xxSuccessful() && responseBody.isPresent()) {
-					if (actions.isPresent() && actions.get().get(0).getDisplayType().toUpperCase().contains(DeviceDisplayTypesMetric.SWITCH.toUpperCase())) {
-						device.getPresentation().getDashboardPresentations().getActions().get(0).getStandbyPowerSwitch().setValue(command);
+					Optional<?> responseBody = Optional.ofNullable(response)
+							.map(HttpEntity::getBody);
+					if (response.getStatusCode().is2xxSuccessful() && responseBody.isPresent()) {
+						if (actions.isPresent() && actions.get().get(0).getDisplayType().toUpperCase().contains(DeviceDisplayTypesMetric.SWITCH.toUpperCase())) {
+							device.getPresentation().getDashboardPresentations().getActions().get(0).getStandbyPowerSwitch().setValue(command);
+						}
+					} else {
+						throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
 					}
+
+					populateDeviceView(stats, advancedControllableProperties);
+					isEmergencyDelivery = true;
 				} else {
-					throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
+					throw new ResourceNotReachableException(String.format("can not find device: %s", controllableProperty));
 				}
-
-				populateDeviceView(stats, advancedControllableProperties);
-				isEmergencyDelivery = true;
-			} else {
-				throw new ResourceNotReachableException(String.format("can not find device: %s", controllableProperty));
+			} catch (Exception e) {
+				throw new ResourceNotReachableException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 			}
-		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------------------------------------
@@ -1675,23 +1679,38 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		return new AdvancedControllableProperty(name, new Date(), toggle, statusCode);
 	}
 
+	/***
+	 * Create AdvancedControllableProperty preset instance
+	 * @param name name of the control
+	 * @param initialValue initial value of the control
+	 * @return AdvancedControllableProperty preset instance
+	 */
+	private AdvancedControllableProperty createDropdown(Map<String, String> stats, String name, List<String> values, String initialValue) {
+		stats.put(name, initialValue);
+		AdvancedControllableProperty.DropDown dropDown = new AdvancedControllableProperty.DropDown();
+		dropDown.setOptions(values.toArray(new String[0]));
+		dropDown.setLabels(values.toArray(new String[0]));
+
+		return new AdvancedControllableProperty(name, new Date(), dropDown, initialValue);
+	}
+
 	//--------------------------------------------------------------------------------------------------------------------------------
 	//endregion
 
 	/**
-	 * calculating minimum of pooling interval
+	 * calculating minimum of polling interval
 	 *
 	 * @throws ResourceNotReachableException when get limit rate exceed error
 	 */
-	private int calculatingLocalPoolingInterval() {
+	private int calculatingLocalPollingInterval() {
 
 		try {
-			int pollingIntervalValue = SmartThingsConstant.MIN_POOLING_INTERVAL;
-			if (StringUtils.isNotNullOrEmpty(poolingInterval)) {
-				pollingIntervalValue = Integer.parseInt(poolingInterval);
+			int pollingIntervalValue = SmartThingsConstant.MIN_POlLING_INTERVAL;
+			if (StringUtils.isNotNullOrEmpty(pollingInterval)) {
+				pollingIntervalValue = Integer.parseInt(pollingInterval);
 			}
 
-			int minPollingInterval = calculatingMinPoolingInterval();
+			int minPollingInterval = calculatingMinPollingInterval();
 			if (pollingIntervalValue < minPollingInterval) {
 				if (logger.isErrorEnabled()) {
 					logger.error(String.format("invalid pollingInterval value, pollingInterval must greater than: %s", minPollingInterval));
@@ -1700,27 +1719,27 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			}
 			return pollingIntervalValue;
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Unexpected pollingInterval value: %s", poolingInterval));
+			throw new ResourceNotReachableException(String.format("Unexpected pollingInterval value: %s", pollingInterval));
 		}
 	}
 
 	/**
-	 * calculating minimum of pooling interval
+	 * calculating minimum of polling interval
 	 *
 	 * @throws ResourceNotReachableException when get limit rate exceed error
 	 */
-	private int calculatingMinPoolingInterval() {
+	private int calculatingMinPollingInterval() {
 		if (!deviceIds.isEmpty()) {
 			return IntMath.divide(deviceIds.size()
 					, SmartThingsConstant.MAX_THREAD_QUANTITY * SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD
 					, RoundingMode.CEILING);
 		}
-		return SmartThingsConstant.MIN_POOLING_INTERVAL;
+		return SmartThingsConstant.MIN_POlLING_INTERVAL;
 	}
 
 
 	/**
-	 * calculating minimum of pooling interval
+	 * calculating minimum of polling interval
 	 *
 	 * @throws ResourceNotReachableException when get limit rate exceed error
 	 */
@@ -1826,6 +1845,23 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
+	 * Find room name by room name
+	 *
+	 * @param name Room ID
+	 * @return String Room năm
+	 */
+	private String findRoomIdByName(String name) {
+		Objects.requireNonNull(cachedRooms);
+		if (StringUtils.isNotNullOrEmpty(name)) {
+			Optional<Room> room = cachedRooms.stream().filter(r -> name.equals(r.getName())).findFirst();
+			if (room.isPresent()) {
+				return room.get().getRoomId();
+			}
+		}
+		return SmartThingsConstant.EMPTY;
+	}
+
+	/**
 	 * Find sceneId by name
 	 *
 	 * @param name scene name
@@ -1854,7 +1890,7 @@ public class SamSungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * push failed monitoring Device ID to priority in next poolingInterval
+	 * push failed monitoring Device ID to priority in next pollingInterval
 	 */
 	private void pushFailedMonitoringDevicesIDToPriority() {
 		if (!failedMonitoringDeviceIds.isEmpty()) {

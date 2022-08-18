@@ -22,18 +22,19 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.com
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.room.RoomManagementMetric;
 
 /**
- * SamSungSmartThingsAggregatorCommunicatorTest
+ * SamsungSmartThingsAggregatorCommunicatorTest
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/2/2022
  * @since 1.0.0
+ *
  */
-class SamSungSmartThingsAggregatorCommunicatorTest {
-	private SamSungSmartThingsAggregatorCommunicator communicator;
+class SamsungSmartThingsAggregatorCommunicatorTest {
+	private SamsungSmartThingsAggregatorCommunicator communicator;
 
 	@BeforeEach()
 	public void setUp() throws Exception {
-		communicator = new SamSungSmartThingsAggregatorCommunicator();
+		communicator = new SamsungSmartThingsAggregatorCommunicator();
 		communicator.setHost("api.smartthings.com");
 		communicator.setTrustAllCertificates(false);
 		communicator.setPort(443);
