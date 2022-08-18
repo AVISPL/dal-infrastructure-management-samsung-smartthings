@@ -64,6 +64,26 @@ class SamSungSmartThingsAggregatorCommunicatorTest {
 	}
 
 	/**
+	 * Test getMultipleStatistics with filter
+	 * Expect getMultipleStatistics successfully
+	 */
+	@Tag("RealDevice")
+	@Test
+	void testFilter() throws Exception {
+		communicator.setRoomsFilter("Dining");
+		communicator.setDeviceTypesFilter("Light");
+		communicator.setDevicesNamesFilter("light 1");
+		communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Map<String, String> stats = extendedStatistics.getStatistics();
+
+		Assert.assertNotNull(stats.get(AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "light 1"));
+	}
+
+	/**
 	 * Test SamSungSmartThingsAggregator.controlProperty location management : Change location name
 	 *
 	 * Expected: control successfully

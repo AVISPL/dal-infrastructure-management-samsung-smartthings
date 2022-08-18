@@ -235,7 +235,7 @@ public class Device {
 	 */
 	public String retrieveCategory() {
 		for (Component component : components) {
-			if (SmartThingsConstant.MAIN.equals(component.getName())) {
+			if (SmartThingsConstant.MAIN.equals(component.getId())) {
 				return component.retrieveCategory();
 			}
 		}
