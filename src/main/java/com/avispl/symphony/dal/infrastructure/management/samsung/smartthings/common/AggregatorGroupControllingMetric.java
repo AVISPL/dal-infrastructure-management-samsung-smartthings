@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * SmartThingsManagementGroupMetric
+ * AggregatorGroupControllingMetric
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022
