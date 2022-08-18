@@ -47,6 +47,9 @@ public class Device {
 	@JsonAlias("components")
 	private List<Component> components = new ArrayList<>();
 
+	/**
+	 * non-parameter constructor
+	 */
 	public Device() {
 	}
 

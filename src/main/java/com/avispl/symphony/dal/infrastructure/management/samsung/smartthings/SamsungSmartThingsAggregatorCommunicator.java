@@ -91,7 +91,7 @@ import com.avispl.symphony.dal.util.StringUtils;
 public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator implements Aggregator, Monitorable, Controller {
 
 	/**
-	 * Process that is running constantly and triggers collecting data from Zoom API endpoints, based on the given timeouts and thresholds.
+	 * Process is running constantly and triggers collecting data from SmartThings API endpoints base on getMultipleStatistic
 	 *
 	 * @author Kevin
 	 * @since 1.0.0
