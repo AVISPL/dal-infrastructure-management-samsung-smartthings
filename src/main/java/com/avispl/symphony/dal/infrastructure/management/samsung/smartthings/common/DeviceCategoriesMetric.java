@@ -14,6 +14,10 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.co
 public enum DeviceCategoriesMetric {
 
 	HUB("Hub", true),
+	LIGHT("Light", true),
+	THERMOSTAT("Thermostat", true),
+	PRESENCE_SENSOR("PresenceSensor", true),
+	WINDOW_SHADE("Blind", true),
 	TV("Television", true);
 
 	private final String name;

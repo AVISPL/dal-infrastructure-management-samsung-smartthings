@@ -23,7 +23,7 @@ public class Command {
 	@JsonAlias("on")
 	private String on;
 
-	@JsonAlias("of")
+	@JsonAlias("off")
 	private String off;
 
 	@JsonAlias("command")
