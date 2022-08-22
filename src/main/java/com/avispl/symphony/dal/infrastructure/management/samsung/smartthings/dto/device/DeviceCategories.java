@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Device Capabilities
+ * Device Categories
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/30/2022

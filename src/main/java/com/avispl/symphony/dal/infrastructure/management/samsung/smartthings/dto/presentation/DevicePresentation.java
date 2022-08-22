@@ -23,17 +23,18 @@ public class DevicePresentation {
 	@JsonAlias("mnmn")
 	private String manufacturerName;
 
-	@JsonAlias ("vid")
+	@JsonAlias("vid")
 	private String presentationId;
 
-	@JsonAlias ("dashboard")
+	@JsonAlias("dashboard")
 	private DashboardPresentation dashboardPresentations;
 
-	@JsonAlias ("detailView")
+	@JsonAlias("detailView")
 	private List<DetailViewPresentation> detailViewPresentations = new ArrayList<>();
 
 	@JsonAlias("language")
 	private List<Language> languages = new ArrayList<>();
+
 	/**
 	 * Retrieves {@code {@link #manufacturerName}}
 	 *
