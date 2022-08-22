@@ -54,13 +54,13 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	void testGetMultipleStatistics() throws Exception {
 		communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
-		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
-		Thread.sleep(30000);
 		communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
 		Map<String, String> stats = extendedStatistics.getStatistics();
 
 		Assert.assertEquals("000.043.00004", stats.get(HubInfoMetric.FIRMWARE_VERSION.getName()));
-		Assert.assertEquals("My home 1", stats.get(HubInfoMetric.CURRENT_LOCATION.getName()));
+		Assert.assertEquals("HomeHCM", stats.get(HubInfoMetric.CURRENT_LOCATION.getName()));
 		Assert.assertNotEquals(SmartThingsConstant.NONE, stats.get(HubInfoMetric.STATE.getName()));
 	}
 
@@ -73,7 +73,7 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	void testFilter() throws Exception {
 		communicator.setRoomsFilter("Dining");
 		communicator.setDeviceTypesFilter("Light");
-		communicator.setDevicesNamesFilter("light 1");
+		communicator.setDeviceNamesFilter("light 1");
 		communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
 		communicator.getMultipleStatistics().get(0);
@@ -121,11 +121,12 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 		Map<String, String> stats = extendedStatistics.getStatistics();
 		ControllableProperty controllableProperty = new ControllableProperty();
 
-		String propertyName = AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + "1";
-		String propertyValue = "Living Room 2";
+		String propertyName = AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + "13";
+		String propertyValue = "Living Room 5";
 		controllableProperty.setProperty(propertyName);
 		controllableProperty.setValue(propertyValue);
 		communicator.controlProperty(controllableProperty);
+		communicator.getMultipleStatistics();
 
 		Assertions.assertEquals(propertyValue, stats.get(propertyName));
 	}
@@ -144,11 +145,45 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 		Map<String, String> stats = extendedStatistics.getStatistics();
 		ControllableProperty controllableProperty = new ControllableProperty();
 
-		String propertyName = AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + "5" + RoomManagementMetric.DELETE_ROOM.getName();
+		String propertyName = AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + "16" + RoomManagementMetric.DELETE_ROOM.getName();
 		String propertyValue = "0";
 		controllableProperty.setProperty(propertyName);
 		controllableProperty.setValue(propertyValue);
 		communicator.controlProperty(controllableProperty);
+
+		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty loom management : Delete and edit room continuously
+	 *
+	 * Expected: control successfully
+	 */
+	@Tag("RealDevice")
+	@Test
+	void testDeleteAndEditRoomNameContinuously() throws Exception {
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Map<String, String> stats = extendedStatistics.getStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+
+		String propertyName = AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + "15" + RoomManagementMetric.DELETE_ROOM.getName();
+		String propertyValue = "0";
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		propertyName = AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + "14";
+		propertyValue = "Living Room 2";
+
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		communicator.getMultipleStatistics();
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
 
 		Assertions.assertEquals(propertyValue, stats.get(propertyName));
 	}
@@ -197,15 +232,14 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 		Thread.sleep(30000);
 		communicator.getMultipleStatistics();
 
-		Map<String, String> stats = extendedStatistics.getStatistics();
 		ControllableProperty controllableProperty = new ControllableProperty();
 
-		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Shade 3";
+		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Shade 1";
 		String propertyValue = "1";
 		controllableProperty.setProperty(propertyName);
 		controllableProperty.setValue(propertyValue);
 		communicator.controlProperty(controllableProperty);
-
+		Map<String, String> stats = extendedStatistics.getStatistics();
 		Assertions.assertEquals(propertyValue, stats.get(propertyName));
 	}
 
@@ -307,12 +341,75 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 		Map<String, String> stats = extendedStatistics.getStatistics();
 		ControllableProperty controllableProperty = new ControllableProperty();
 
-		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "light 1";
+		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Light 9";
 		String propertyValue = "1";
 		controllableProperty.setProperty(propertyName);
 		controllableProperty.setValue(propertyValue);
 		communicator.controlProperty(controllableProperty);
 
 		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty device : room dropdown
+	 *
+	 * Expected: control successfully
+	 */
+	@Tag("RealDevice")
+	@Test
+	void testDeviceDashBoardRoomDropDown() throws Exception {
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
+
+		Map<String, String> stats = extendedStatistics.getStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+
+		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "ActiveRoom";
+		String propertyValue = "Media room";
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Light 10";
+		propertyValue = "1";
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		communicator.getMultipleStatistics();
+		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty device : room dropdown
+	 *
+	 * Expected: control successfully
+	 */
+	@Tag("RealDevice")
+	@Test
+	void testLocationFilter() throws Exception {
+		communicator.setConfigManagement("true");
+		communicator.setLocationFilter("HomeHCM");
+		communicator.setDeviceNamesFilter("light 1");
+		communicator.setDeviceTypesFilter("Light");
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
+
+		Map<String, String> stats = extendedStatistics.getStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+
+		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "ActiveRoom";
+		String propertyValue = "Media room";
+		controllableProperty.setProperty(propertyName);
+		controllableProperty.setValue(propertyValue);
+		communicator.controlProperty(controllableProperty);
+
+		Assertions.assertNotNull(AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Light 10");
 	}
 }

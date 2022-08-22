@@ -50,12 +50,13 @@ public class SmartThingsConstant {
 	public static final String NO_ROOM_ASSIGNED = "No room assigned";
 	public static final String NONE = "None";
 	public static final String RATE_LIMIT_HEADER_KEY = "X-RateLimit-Reset";
+	public static final int MAX_ROOM_QUANTITY = 20;
 
 	// Thread metric
 	public static final int MAX_THREAD_QUANTITY = 8;
 	public static final int MIN_THREAD_QUANTITY = 1;
 	public static final int MAX_DEVICE_QUANTITY_PER_THREAD = 6;
-	public static final int MIN_POlLING_INTERVAL = 1;
+	public static final int MIN_POLLING_INTERVAL = 1;
 	public static final int CONVERT_POSITION_TO_INDEX = 1;
 	public static final int FIRST_MONITORING_CYCLE_OF_POLLING_INTERVAL = 0;
 

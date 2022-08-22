@@ -21,7 +21,10 @@ public enum AggregatorGroupControllingMetric {
 	SCENE("ScenesTrigger#"),
 	ROOM_MANAGEMENT("EditRoom#"),
 	CREATE_ROOM("CreateRoom#"),
-	AGGREGATED_DEVICE("AggregatedDevice#");
+	AGGREGATED_DEVICE("AggregatedDevice#"),
+
+	// message when control group is empty
+	MESSAGE("Message");
 
 	private final String name;
 

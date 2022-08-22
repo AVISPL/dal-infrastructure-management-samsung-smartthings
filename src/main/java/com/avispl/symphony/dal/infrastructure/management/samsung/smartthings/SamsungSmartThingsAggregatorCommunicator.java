@@ -132,7 +132,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * Submit thread to get device detail info
 	 */
 	private void retrieveDeviceDetail(int currentThread) {
-		Set<String> presentationIds = cachedDevices.values().stream().map(Device::getPresentationId).collect(Collectors.toSet());
 		int currentPhaseIndex = currentPhase.get() - SmartThingsConstant.CONVERT_POSITION_TO_INDEX;
 		int devicesPerPollingIntervalQuantity = IntMath.divide(cachedDevices.size(), localPollingInterval, RoundingMode.CEILING);
 
@@ -153,14 +152,9 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			for (String deviceId : deviceIdsInThread) {
 				Long startTime = System.currentTimeMillis();
 				retrieveDeviceHealth(deviceId);
-
-				String devicePresentationId = cachedDevices.get(deviceId).getPresentationId();
-				if (presentationIds.contains(devicePresentationId)) {
-					retrieveDevicePresentation(deviceId);
-					presentationIds.remove(devicePresentationId);
-				}
-
+				retrieveDevicePresentation(deviceId);
 				retrieveDeviceFullStatus(deviceId);
+
 				mapDevicesToAggregatedDevice(cachedDevices.get(deviceId));
 				if (logger.isDebugEnabled()) {
 					Long time = System.currentTimeMillis() - startTime;
@@ -168,7 +162,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				}
 			}
 		} catch (Exception e) {
-			retrieveDeviceDetail(currentThread);
 			logger.error(String.format("Exception during retrieve '%s' data processing", e.getMessage()), e);
 		}
 	}
@@ -192,12 +185,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			if (deviceHealth != null) {
 				cachedDevices.get(deviceID).setState(deviceHealth.getState());
 			} else {
-				throw new ResourceNotReachableException(String.format("%s health info is empty", cachedDevices.get(deviceID).getName()));
+				throw new ResourceNotReachableException(String.format("%s health info is empty", cachedDevicesAfterPollingInterval.get(deviceID).getName()));
 			}
 		} catch (Exception e) {
 			failedMonitoringDeviceIds.add(deviceID);
 			if (logger.isErrorEnabled()) {
-				logger.error(String.format("Error while retrieve %s health info: %s ", cachedDevices.get(deviceID).getName(), e.getMessage()), e);
+				logger.error(String.format("Error while retrieve %s health info: %s ", cachedDevicesAfterPollingInterval.get(deviceID).getName(), e.getMessage()), e);
 			}
 		}
 	}
@@ -224,19 +217,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			DevicePresentation devicePresentation = objectMapper.readValue(objectNode.toString(), DevicePresentation.class);
 
 			if (devicePresentation != null) {
-				cachedPresentations.put(device.getPresentationId().concat(device.getManufacturerName()), devicePresentation);
-				for (Device dv : cachedDevices.values()) {
-					if (device.getPresentationId().equals(dv.getPresentationId())) {
-						cachedDevices.get(dv.getDeviceId()).setPresentation(devicePresentation);
-					}
-				}
-			} else if (cachedPresentations.get(device.getPresentationId().concat(device.getManufacturerName())) != null) {
-				DevicePresentation cachedPresentation = cachedPresentations.get(device.getPresentationId().concat(device.getManufacturerName()));
-				for (Device dv : cachedDevices.values()) {
-					if (device.getPresentationId().equals(dv.getPresentationId())) {
-						cachedDevices.get(dv.getDeviceId()).setPresentation(cachedPresentation);
-					}
-				}
+				cachedPresentations.put(deviceId, devicePresentation);
+				cachedDevices.get(deviceId).setPresentation(devicePresentation);
+			} else if (cachedPresentations.get(deviceId) != null) {
+				DevicePresentation cachedPresentation = cachedPresentations.get(deviceId);
+				cachedDevices.get(deviceId).setPresentation(cachedPresentation);
 			} else {
 				throw new ResourceNotReachableException(String.format("%s presentation info is empty", device.getName()));
 			}
@@ -289,12 +274,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					cachedDevices.get(deviceId).getPresentation().getDashboardPresentations().setActions(dashboardActionsAfterMapping);
 				}
 			} else {
-				throw new ResourceNotReachableException(String.format("%s presentation info is empty", cachedDevices.get(deviceId).getName()));
+				throw new ResourceNotReachableException(String.format("%s presentation info is empty", cachedDevicesAfterPollingInterval.get(deviceId).getName()));
 			}
 		} catch (Exception e) {
 			failedMonitoringDeviceIds.add(deviceId);
 			if (logger.isErrorEnabled()) {
-				logger.error(String.format("Error while retrieve %s presentation info: %s", cachedDevices.get(deviceId).getName(), e.getMessage()), e);
+				logger.error(String.format("Error while retrieve %s presentation info: %s", cachedDevicesAfterPollingInterval.get(deviceId).getName(), e.getMessage()), e);
 			}
 		}
 	}
@@ -322,6 +307,16 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						.map(u -> u.get(SmartThingsConstant.VALUE))
 						.map(JsonNode::asText)
 						.orElse(SmartThingsConstant.NONE);
+				if (SmartThingsConstant.NONE.equals(value) || StringUtils.isNullOrEmpty(value)) {
+					value = Optional.ofNullable(response.elements().next())
+							.map(JsonNode::elements)
+							.map(Iterator::next)
+							.map(c -> c.get(detailViewPresentation.getCapability()))
+							.map(d -> d.get(detailViewPresentation.getCapability()))
+							.map(u -> u.get(SmartThingsConstant.VALUE))
+							.map(JsonNode::asText)
+							.orElse(SmartThingsConstant.NONE);
+				}
 			}
 
 			switch (detailViewPresentation.getDisplayType()) {
@@ -436,12 +431,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * Caching the list of locations
 	 */
-	private List<Location> cachedLocations = Collections.synchronizedList(new ArrayList<>());
+	private List<Location> cachedLocations = new ArrayList<>();
 
 	/**
 	 * Caching the list rooms data
 	 */
-	private List<Room> cachedRooms = Collections.synchronizedList(new ArrayList<>());
+	private List<Room> cachedRooms = new ArrayList<>();
 
 	/**
 	 * Caching create room data
@@ -451,7 +446,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * Caching the list of scenes data
 	 */
-	private List<Scene> cachedScenes = Collections.synchronizedList(new ArrayList<>());
+	private List<Scene> cachedScenes = new ArrayList<>();
 
 	/**
 	 * Caching the list of devices data
@@ -497,7 +492,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private String locationFilter;
 	private String pollingInterval;
 	private String deviceTypesFilter;
-	private String devicesNamesFilter;
+	private String deviceNamesFilter;
 	private String roomsFilter;
 	private String configManagement;
 
@@ -506,11 +501,14 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private boolean isEmergencyDelivery = false;
 	private Boolean isEditedForCreateRoom = false;
 	private ObjectMapper objectMapper = new ObjectMapper();
+	private Set<String> unusedDeviceControlKeys = new HashSet<>();
+	private Set<String> unusedRoomControlKeys = new HashSet<>();
+	private boolean isConfigManagement;
 
 	/**
 	 * Polling interval which applied in adapter
 	 */
-	private volatile int localPollingInterval = SmartThingsConstant.MIN_POlLING_INTERVAL;
+	private volatile int localPollingInterval = SmartThingsConstant.MIN_POLLING_INTERVAL;
 
 	/**
 	 * The current phase of monitoring cycle in polling interval
@@ -572,21 +570,21 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * Retrieves {@code {@link #devicesNamesFilter}}
+	 * Retrieves {@code {@link #deviceNamesFilter }}
 	 *
-	 * @return value of {@link #devicesNamesFilter}
+	 * @return value of {@link #deviceNamesFilter}
 	 */
-	public String getDevicesNamesFilter() {
-		return devicesNamesFilter;
+	public String getDeviceNamesFilter() {
+		return deviceNamesFilter;
 	}
 
 	/**
 	 * Sets {@code devicesNamesFilter}
 	 *
-	 * @param devicesNamesFilter the {@code java.lang.String} field
+	 * @param deviceNamesFilter the {@code java.lang.String} field
 	 */
-	public void setDevicesNamesFilter(String devicesNamesFilter) {
-		this.devicesNamesFilter = devicesNamesFilter;
+	public void setDeviceNamesFilter(String deviceNamesFilter) {
+		this.deviceNamesFilter = deviceNamesFilter;
 	}
 
 	/**
@@ -669,47 +667,59 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			ExtendedStatistics extendedStatistics = new ExtendedStatistics();
 			Map<String, String> stats = new HashMap<>();
 			List<AdvancedControllableProperty> advancedControllableProperties = new ArrayList<>();
+			isValidConfigManagement();
 
-			if (currentPhase.get() == localPollingInterval || currentPhase.get() == 0) {
-				cachedDevicesAfterPollingInterval = (ConcurrentHashMap<String, Device>) cachedDevices.values().stream().collect(Collectors.toConcurrentMap(Device::getDeviceId, Device::new));
-				retrieveInfo(stats, advancedControllableProperties);
-				filterDeviceIds();
-			}
+			if (!isEmergencyDelivery) {
 
-			if (!cachedDevices.isEmpty() && !isEmergencyDelivery) {
-				populateCreateRoomManagement(stats, advancedControllableProperties);
-				retrieveScenes(stats, advancedControllableProperties, true);
-
-				String hubId = findDeviceIdByCategory(DeviceCategoriesMetric.HUB.getName());
-				if (!hubId.isEmpty()) {
-					retrieveHubDetailInfo(stats, hubId, true);
-					retrieveHubHealth(stats, hubId, true);
+				// retrieve device and filter devices in first monitoring cycle of polling interval
+				if (currentPhase.get() == localPollingInterval || currentPhase.get() == 0) {
+					cachedDevicesAfterPollingInterval = (ConcurrentHashMap<String, Device>) cachedDevices.values().stream().collect(Collectors.toConcurrentMap(Device::getDeviceId, Device::new));
+					retrieveInfo();
+					filterDeviceIds();
 				}
-				populatePollingInterval(stats);
-				populateDeviceView(stats, advancedControllableProperties);
 
+				// populate edit location, create room, edit room group when configManagement is true
+				if (isConfigManagement) {
+					populateLocationsManagement(stats, advancedControllableProperties);
+					populateRoomManagement(stats, advancedControllableProperties);
+					populateCreateRoomManagement(stats, advancedControllableProperties);
+				}
+				retrieveScenes(true);
+				populateScenesManagement(stats, advancedControllableProperties);
+
+				// retrieve/ populate hub detail and submit threads to get devices when list of device is not empty
+				if (!cachedDevices.isEmpty()) {
+					String hubId = findDeviceIdByCategory(DeviceCategoriesMetric.HUB.getName());
+					if (!hubId.isEmpty()) {
+						retrieveHubDetailInfo(stats, hubId, true);
+						retrieveHubHealth(stats, hubId, true);
+					}
+					populatePollingInterval(stats);
+
+					// calculating polling interval and threads quantity
+					if (currentPhase.get() == SmartThingsConstant.FIRST_MONITORING_CYCLE_OF_POLLING_INTERVAL) {
+						localPollingInterval = calculatingLocalPollingInterval();
+						deviceStatisticsCollectionThreads = calculatingThreadQuantity();
+						pushFailedMonitoringDevicesIDToPriority();
+					}
+
+					if (currentPhase.get() == localPollingInterval) {
+						currentPhase.set(0);
+					}
+					currentPhase.incrementAndGet();
+
+					if (executorService == null) {
+						executorService = Executors.newFixedThreadPool(deviceStatisticsCollectionThreads);
+					}
+					for (int threadNumber = 0; threadNumber < deviceStatisticsCollectionThreads; threadNumber++) {
+						executorService.submit(new SamsungSmartThingsDeviceDataLoader(threadNumber));
+					}
+				}
+				populateDeviceView(stats, advancedControllableProperties);
 				extendedStatistics.setStatistics(stats);
 				extendedStatistics.setControllableProperties(advancedControllableProperties);
 				localExtendedStatistics = extendedStatistics;
-			}
-			isEmergencyDelivery = false;
-
-			if (currentPhase.get() == SmartThingsConstant.FIRST_MONITORING_CYCLE_OF_POLLING_INTERVAL) {
-				localPollingInterval = calculatingLocalPollingInterval();
-				deviceStatisticsCollectionThreads = calculatingThreadQuantity();
-				pushFailedMonitoringDevicesIDToPriority();
-			}
-
-			if (currentPhase.get() == localPollingInterval) {
-				currentPhase.set(0);
-			}
-			currentPhase.incrementAndGet();
-
-			if (executorService == null) {
-				executorService = Executors.newFixedThreadPool(deviceStatisticsCollectionThreads);
-			}
-			for (int threadNumber = 0; threadNumber < deviceStatisticsCollectionThreads; threadNumber++) {
-				executorService.submit(new SamsungSmartThingsDeviceDataLoader(threadNumber));
+				isEmergencyDelivery = false;
 			}
 		} finally {
 			reentrantLock.unlock();
@@ -896,13 +906,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			if (hub != null) {
 				stats.put(HubInfoMetric.NAME.getName(), hub.getName());
 				stats.put(HubInfoMetric.FIRMWARE_VERSION.getName(), hub.getFirmwareVersion());
-
-				String locationName = cachedLocations.get(0).getName();
-				Optional<Location> location = cachedLocations.stream().filter(l -> l.getLocationId().equals(locationIdFiltered)).findFirst();
-				if (location.isPresent()) {
-					locationName = location.get().getName();
-				}
-				stats.put(HubInfoMetric.CURRENT_LOCATION.getName(), locationName);
 			} else {
 				throw new ResourceNotReachableException("Hub information is empty");
 			}
@@ -952,12 +955,10 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * This method is used to retrieve locations info by send GET request to "https://api.smartthings.com/v1/locations"
 	 *
-	 * @param stats store all statistics
-	 * @param advancedControllableProperties store all controllable properties
 	 * @param retryOnError retry if any error occurs
 	 * @throws ResourceNotReachableException If any error occurs
 	 */
-	public void retrieveLocations(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, boolean retryOnError) {
+	public void retrieveLocations(boolean retryOnError) {
 		try {
 			String request = SmartThingsURL.LOCATIONS;
 
@@ -966,13 +967,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			if (locationWrapper != null && !locationWrapper.getLocations().isEmpty()) {
 				cachedLocations = locationWrapper.getLocations();
 				locationIdFiltered = findLocationByName(locationFilter).getLocationId();
-				populateLocationsManagement(stats, advancedControllableProperties);
 			} else {
 				throw new ResourceNotReachableException("Hub locations is empty");
 			}
 		} catch (Exception e) {
 			if (retryOnError) {
-				retrieveLocations(stats, advancedControllableProperties, false);
+				retrieveLocations(false);
 			}
 			if (logger.isErrorEnabled()) {
 				logger.error("Error while retrieve locations info: " + e.getMessage(), e);
@@ -990,20 +990,21 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	public void populateLocationsManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
 		for (int locationIndex = 0; locationIndex < cachedLocations.size(); locationIndex++) {
 			addAdvanceControlProperties(advancedControllableProperties, createText(stats, AggregatorGroupControllingMetric.LOCATION_MANAGEMENT.getName()
-					+ LocationManagementMetric.LOCATION.getName() + locationIndex, cachedLocations.get(locationIndex).getName()));
+					+ LocationManagementMetric.LOCATION.getName() + formatOrderNumber(locationIndex, Arrays.asList(cachedLocations.toArray())), cachedLocations.get(locationIndex).getName()));
 		}
+		String locationName = cachedLocations.stream().filter(l -> l.getLocationId().equals(locationIdFiltered)).map(Location::getName).findFirst()
+				.orElse(cachedLocations.get(0).getName());
+		stats.put(HubInfoMetric.CURRENT_LOCATION.getName(), locationName);
 	}
 
 	/**
 	 * This method is used to retrieve rooms info by send GET request to "https://api.smartthings.com/v1/locations/{locationId}/rooms"
 	 *
-	 * @param stats store all statistics
-	 * @param advancedControllableProperties store all controllable properties
 	 * @param retryOnError retry if any error occurs
 	 * @throws ResourceNotReachableException When getting the empty response
 	 * @throws ResourceNotReachableException If any error occurs
 	 */
-	public void retrieveRooms(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, boolean retryOnError) {
+	public void retrieveRooms(boolean retryOnError) {
 		try {
 			String request = SmartThingsURL.LOCATIONS
 					.concat(SmartThingsConstant.SLASH)
@@ -1015,13 +1016,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 			if (roomWrapper != null && !roomWrapper.getRooms().isEmpty()) {
 				cachedRooms = roomWrapper.getRooms();
-				populateRoomManagement(stats, advancedControllableProperties);
 			} else {
 				throw new ResourceNotReachableException("rooms is empty");
 			}
 		} catch (Exception e) {
 			if (retryOnError) {
-				retrieveRooms(stats, advancedControllableProperties, false);
+				retrieveRooms(false);
 			}
 			if (logger.isErrorEnabled()) {
 				logger.error("Error while retrieve rooms info: " + e.getMessage(), e);
@@ -1036,12 +1036,29 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties store all controllable properties
 	 */
 	public void populateRoomManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
+		boolean isEmptyRoomControl = true;
+
+		if (unusedRoomControlKeys != null) {
+			removeUnusedStatsAndControls(stats, advancedControllableProperties, unusedRoomControlKeys);
+		}
+
 		for (int roomIndex = 0; roomIndex < cachedRooms.size(); roomIndex++) {
-			addAdvanceControlProperties(advancedControllableProperties,
-					createText(stats, AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + roomIndex, cachedRooms.get(roomIndex).getName()));
-			addAdvanceControlProperties(advancedControllableProperties,
-					createButton(stats, AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + roomIndex + RoomManagementMetric.DELETE_ROOM.getName(),
-							SmartThingsConstant.DELETE, SmartThingsConstant.DELETING));
+			String editRoomKey = AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + formatOrderNumber(roomIndex, Arrays.asList(cachedRooms.toArray()));
+			String deleteRoomKey = AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + formatOrderNumber(roomIndex, Arrays.asList(cachedRooms.toArray()))
+					+ RoomManagementMetric.DELETE_ROOM.getName();
+
+			addAdvanceControlProperties(advancedControllableProperties, createText(stats, editRoomKey, cachedRooms.get(roomIndex).getName()));
+			addAdvanceControlProperties(advancedControllableProperties, createButton(stats, deleteRoomKey, SmartThingsConstant.DELETE, SmartThingsConstant.DELETING));
+			isEmptyRoomControl = false;
+
+			unusedRoomControlKeys.add(editRoomKey);
+			unusedRoomControlKeys.add(deleteRoomKey);
+		}
+		// populate message when location have no rooms after filtering
+		if (isEmptyRoomControl) {
+			stats.put(AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + AggregatorGroupControllingMetric.MESSAGE.getName(), "There is no room in this location");
+		} else {
+			stats.remove(AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + AggregatorGroupControllingMetric.MESSAGE.getName());
 		}
 	}
 
@@ -1063,9 +1080,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			addAdvanceControlProperties(advancedControllableProperties,
 					createButton(stats, AggregatorGroupControllingMetric.CREATE_ROOM.getName() + CreateRoomMetric.CANCEL.getName(), SmartThingsConstant.CANCEL, SmartThingsConstant.CANCELING));
 		}
-		if (!isEditedForCreateRoom.booleanValue() || cachedCreateRoom.getName().isEmpty()) {
+		if (!isEditedForCreateRoom.booleanValue() || StringUtils.isNullOrEmpty(cachedCreateRoom.getName())) {
+			isEditedForCreateRoom = false;
 			advancedControllableProperties.removeIf(
 					advancedControllableProperty -> advancedControllableProperty.getName().equals(AggregatorGroupControllingMetric.CREATE_ROOM.getName() + CreateRoomMetric.CANCEL.getName()));
+			stats.remove(AggregatorGroupControllingMetric.CREATE_ROOM.getName() + CreateRoomMetric.CANCEL.getName());
 			stats.put(AggregatorGroupControllingMetric.CREATE_ROOM.getName() + CreateRoomMetric.EDITED.getName(), isEditedForCreateRoom.toString());
 		}
 	}
@@ -1073,13 +1092,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * This method is used to retrieve scenes info by send GET request to "https://api.smartthings.com/v1/scene?locationId={locationId}"
 	 *
-	 * @param stats store all statistics
-	 * @param advancedControllableProperties store all controllable properties
 	 * @param retryOnError retry if any error occurs
 	 * @throws ResourceNotReachableException When getting the empty response
 	 * @throws ResourceNotReachableException If any error occurs
 	 */
-	public void retrieveScenes(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, boolean retryOnError) {
+	public void retrieveScenes(boolean retryOnError) {
 		try {
 			String request = SmartThingsURL.SCENE
 					.concat(SmartThingsConstant.QUESTION_MARK)
@@ -1090,16 +1107,15 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 			if (sceneWrapper != null && !sceneWrapper.getScenes().isEmpty()) {
 				cachedScenes = sceneWrapper.getScenes();
-				populateScenesManagement(stats, advancedControllableProperties);
 			} else {
-				throw new ResourceNotReachableException("rooms is empty");
+				throw new ResourceNotReachableException("scenes is empty");
 			}
 		} catch (Exception e) {
 			if (retryOnError) {
-				retrieveScenes(stats, advancedControllableProperties, false);
+				retrieveScenes(false);
 			}
 			if (logger.isErrorEnabled()) {
-				logger.error("Error while retrieve rooms info: " + e.getMessage(), e);
+				logger.error("Error while retrieve scene info: " + e.getMessage(), e);
 			}
 		}
 	}
@@ -1111,9 +1127,17 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties store all controllable properties
 	 */
 	public void populateScenesManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
+		boolean isEmptyScenesControl = true;
 		for (Scene scene : cachedScenes) {
 			addAdvanceControlProperties(advancedControllableProperties,
 					createButton(stats, AggregatorGroupControllingMetric.SCENE.getName().concat(scene.getSceneName()), SmartThingsConstant.RUN, SmartThingsConstant.RUNNING));
+			isEmptyScenesControl = false;
+		}
+		// populate message when location have no scene after filtering
+		if (isEmptyScenesControl) {
+			stats.put(AggregatorGroupControllingMetric.SCENE.getName() + AggregatorGroupControllingMetric.MESSAGE.getName(), "There is no scene in this location");
+		} else {
+			stats.remove(AggregatorGroupControllingMetric.SCENE.getName() + AggregatorGroupControllingMetric.MESSAGE.getName());
 		}
 	}
 
@@ -1127,7 +1151,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 		Long nextPollingInterval = System.currentTimeMillis() + localPollingInterval * 1000;
 		Date date = new Date(nextPollingInterval);
-		Format format = new SimpleDateFormat("yyyy MM dd HH:mm:ss");
+		Format format = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
 		stats.put(HubInfoMetric.MIN_POLLING_INTERVAL.getName(), minPollingInterval.toString());
 		stats.put(HubInfoMetric.NEXT_POLLING_INTERVAL.getName(), format.format(date));
@@ -1143,20 +1167,20 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * Retrieve aggregated devices and system information data -
 	 * and set next device/system collection iteration timestamp
-	 *
-	 * @param stats is the map that store all statistics
-	 * @param advancedControllableProperties is the list that store all controllable properties
 	 */
-	private void retrieveInfo(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
-		retrieveLocations(stats, advancedControllableProperties, true);
+	private void retrieveInfo() {
+		retrieveLocations(true);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("New fetched location list: %s", cachedLocations));
 		}
-		retrieveRooms(stats, advancedControllableProperties, true);
+		retrieveRooms(true);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("New fetched room list: %s", cachedRooms));
 		}
 		retrieveDevices(true);
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("New fetched device list: %s", cachedDevices));
+		}
 	}
 
 	/**
@@ -1254,7 +1278,8 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 */
 	private void roomControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value) {
 		try {
-			int roomIndex = Integer.parseInt(controllableProperty.substring(RoomManagementMetric.ROOM.getName().length(), RoomManagementMetric.ROOM.getName().length() + 1));
+			int roomIndex = Integer.parseInt(controllableProperty.substring(RoomManagementMetric.ROOM.getName().length(),
+					RoomManagementMetric.ROOM.getName().length() + String.valueOf(cachedRooms.size() - SmartThingsConstant.CONVERT_POSITION_TO_INDEX).length()));
 			for (int i = 0; i < cachedRooms.size(); i++) {
 				if (i == roomIndex) {
 					continue;
@@ -1264,7 +1289,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				}
 			}
 
-			RoomManagementMetric roomManagementMetric = RoomManagementMetric.getByName(controllableProperty, roomIndex);
+			RoomManagementMetric roomManagementMetric = RoomManagementMetric.getByName(controllableProperty, formatOrderNumber(roomIndex, Arrays.asList(cachedRooms.toArray())));
 
 			String request = SmartThingsURL.LOCATIONS
 					.concat(SmartThingsConstant.SLASH)
@@ -1294,8 +1319,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						throw new ResourceNotReachableException(String.format("Changing %s name fail, please try again later", controllableProperty));
 					}
 
-					addAdvanceControlProperties(advancedControllableProperties,
-							createText(stats, AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + roomIndex, value));
+					populateRoomManagement(stats, advancedControllableProperties);
 					isEmergencyDelivery = true;
 					break;
 				case DELETE_ROOM:
@@ -1306,6 +1330,9 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					if (!response.getStatusCode().is2xxSuccessful()) {
 						throw new ResourceNotReachableException(String.format("%s fail, please try again later", controllableProperty));
 					}
+					cachedRooms.remove(roomIndex);
+
+					populateRoomManagement(stats, advancedControllableProperties);
 					break;
 				default:
 					if (logger.isWarnEnabled()) {
@@ -1376,6 +1403,9 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				break;
 			case CREATE_ROOM:
 				isEditedForCreateRoom = false;
+				if (cachedRooms.size() >= SmartThingsConstant.MAX_ROOM_QUANTITY) {
+					throw new ResourceNotReachableException(String.format("Can not create more than %s room", SmartThingsConstant.MAX_ROOM_QUANTITY));
+				}
 				try {
 					String request = SmartThingsURL.LOCATIONS
 							.concat(SmartThingsConstant.SLASH)
@@ -1428,24 +1458,46 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties store all controllable properties
 	 */
 	public void populateDeviceView(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
-		String currentRoomId = findRoomIdByName(currentRoomInDeviceDashBoard);
-		String currentRoomName = currentRoomInDeviceDashBoard;
-		if (StringUtils.isNotNullOrEmpty(currentRoomInDeviceDashBoard)) {
-			currentRoomName = SmartThingsConstant.NO_ROOM_ASSIGNED;
+		Set<String> filteredRoom = convertUserInput(roomsFilter);
+		List<String> rooms;
+
+		// Get list room modes when applying filter
+		if (StringUtils.isNotNullOrEmpty(roomsFilter)) {
+			rooms = cachedRooms.stream().map(Room::getName).filter(filteredRoom::contains).collect(Collectors.toList());
+			if (filteredRoom.contains(SmartThingsConstant.NO_ROOM_ASSIGNED)) {
+				rooms.add(SmartThingsConstant.NO_ROOM_ASSIGNED);
+			}
+		} else {
+			// Get list room modes when do not applying filter
+			rooms = cachedRooms.stream().map(Room::getName).collect(Collectors.toList());
+			rooms.add(SmartThingsConstant.NO_ROOM_ASSIGNED);
 		}
-		List<String> rooms = cachedRooms.stream().map(Room::getName).collect(Collectors.toList());
-		rooms.add(SmartThingsConstant.NO_ROOM_ASSIGNED);
+		if (StringUtils.isNullOrEmpty(currentRoomInDeviceDashBoard) && !rooms.isEmpty()) {
+			currentRoomInDeviceDashBoard = rooms.get(0);
+		}
+		String currentRoomId = findRoomIdByName(currentRoomInDeviceDashBoard);
 
+		// remove unused control
+		if (!unusedDeviceControlKeys.isEmpty()) {
+			removeUnusedStatsAndControls(stats, advancedControllableProperties, unusedDeviceControlKeys);
+		}
+		boolean isEmptyDevicesControl = true;
+
+		// populate ActiveRoom dropdown list control
 		addAdvanceControlProperties(advancedControllableProperties,
-				createDropdown(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + RoomManagementMetric.ROOM.getName(), rooms, currentRoomName));
+				createDropdown(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + RoomManagementMetric.ACTIVE_ROOM.getName(), rooms, currentRoomInDeviceDashBoard));
 
+		// populate device control base on active room
 		for (Device device : cachedDevicesAfterPollingInterval.values()) {
+
+			// filter device by value of ActiveRoom dropdown list
 			String roomId = getDefaultValueForNullData(device.getRoomId(), SmartThingsConstant.EMPTY);
-			if (roomId == currentRoomId) {
+			if (roomId.equals(currentRoomId)) {
 				Optional<List<DetailViewPresentation>> actions = Optional.ofNullable(device.getPresentation())
 						.map(DevicePresentation::getDashboardPresentations)
 						.map(DashboardPresentation::getActions);
 
+				// populate control
 				if (actions.isPresent() && !actions.get().isEmpty()) {
 					DetailViewPresentation action = actions.get().get(0);
 					switch (action.getDisplayType()) {
@@ -1455,13 +1507,18 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 							String onLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOn(), SmartThingsConstant.ON);
 							String offLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOff(), SmartThingsConstant.OFF);
 							String currentVale = getDefaultValueForNullData(action.getStandbyPowerSwitch().getValue(), SmartThingsConstant.OFF);
+
 							addAdvanceControlProperties(advancedControllableProperties,
 									createSwitch(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), currentVale, offLabel, onLabel));
-
+							unusedDeviceControlKeys.add(AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName());
+							isEmptyDevicesControl = false;
 							break;
 						case DeviceDisplayTypesMetric.PUSH_BUTTON:
 							addAdvanceControlProperties(advancedControllableProperties,
 									createButton(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), SmartThingsConstant.PUSH, SmartThingsConstant.PUSHING));
+							unusedDeviceControlKeys.add(AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName());
+
+							isEmptyDevicesControl = false;
 							break;
 						default:
 							if (logger.isWarnEnabled()) {
@@ -1471,6 +1528,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					}
 				}
 			}
+		}
+		// populate message when room have no device after filtering
+		if (isEmptyDevicesControl) {
+			stats.put(AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + AggregatorGroupControllingMetric.MESSAGE.getName(), "There is no device in room or location");
+		} else {
+			stats.remove(AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + AggregatorGroupControllingMetric.MESSAGE.getName());
 		}
 	}
 
@@ -1485,10 +1548,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 */
 	private void deviceDashboardControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value) {
 
-		if (controllableProperty.equals(RoomManagementMetric.ROOM.getName())) {
+		// ActiveRoom dropdown control
+		if (controllableProperty.equals(RoomManagementMetric.ACTIVE_ROOM.getName())) {
 			currentRoomInDeviceDashBoard = value;
 			populateDeviceView(stats, advancedControllableProperties);
 		} else {
+			// devices control
 			try {
 				Device device = findDeviceByName(controllableProperty);
 				if (device != null) {
@@ -1499,12 +1564,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 					HttpHeaders headers = new HttpHeaders();
 
+					// contribute request body
 					Optional<List<DetailViewPresentation>> actions = Optional.ofNullable(device.getPresentation())
 							.map(DevicePresentation::getDashboardPresentations)
 							.map(DashboardPresentation::getActions);
 					String command = SmartThingsConstant.EMPTY;
 					String requestBody = SmartThingsConstant.EMPTY;
-
 					if (actions.isPresent() && !actions.get().isEmpty()) {
 						DetailViewPresentation action = actions.get().get(0);
 						switch (action.getDisplayType()) {
@@ -1531,9 +1596,35 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 					Optional<?> responseBody = Optional.ofNullable(response)
 							.map(HttpEntity::getBody);
+
+					// handle response when control device successful
 					if (response.getStatusCode().is2xxSuccessful() && responseBody.isPresent()) {
-						if (actions.isPresent() && actions.get().get(0).getDisplayType().toUpperCase().contains(DeviceDisplayTypesMetric.SWITCH.toUpperCase())) {
-							device.getPresentation().getDashboardPresentations().getActions().get(0).getStandbyPowerSwitch().setValue(command);
+						if (actions.isPresent() && !actions.get().isEmpty()) {
+							DetailViewPresentation action = actions.get().get(0);
+							switch (action.getDisplayType()) {
+								case DeviceDisplayTypesMetric.STAND_BY_POWER_SWITCH:
+								case DeviceDisplayTypesMetric.TOGGLE_SWITCH:
+								case DeviceDisplayTypesMetric.SWITCH:
+									String onLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOn(), SmartThingsConstant.ON);
+									String offLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOff(), SmartThingsConstant.OFF);
+
+									action.getStandbyPowerSwitch().setValue(command);
+									device.getPresentation().getDashboardPresentations().getActions().set(0, action);
+									cachedDevicesAfterPollingInterval.put(device.getDeviceId(), device);
+
+									addAdvanceControlProperties(advancedControllableProperties,
+											createSwitch(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), command, offLabel, onLabel));
+									break;
+								case DeviceDisplayTypesMetric.PUSH_BUTTON:
+									addAdvanceControlProperties(advancedControllableProperties,
+											createButton(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), SmartThingsConstant.PUSH, SmartThingsConstant.PUSHING));
+									break;
+								default:
+									if (logger.isWarnEnabled()) {
+										logger.warn(String.format("Unexpected device display type: %s", action.getDisplayType()));
+									}
+									break;
+							}
 						}
 					} else {
 						throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
@@ -1564,8 +1655,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				.filter(DeviceCategoriesMetric::isImplement)
 				.map(DeviceCategoriesMetric::getName)
 				.collect(Collectors.toSet());
+		Set<String> filteredNames = convertUserInput(deviceNamesFilter);
 		Set<String> filteredRooms = convertUserInput(roomsFilter);
-		Set<String> filteredNames = convertUserInput(devicesNamesFilter);
+		if (filteredRooms.contains(SmartThingsConstant.NO_ROOM_ASSIGNED)) {
+			filteredRooms.remove(SmartThingsConstant.NO_ROOM_ASSIGNED);
+			filteredRooms.add(SmartThingsConstant.EMPTY);
+		}
 
 		for (Device device : cachedDevices.values()) {
 			if (!supportedCategories.contains(device.retrieveCategory())) {
@@ -1694,6 +1789,20 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		return new AdvancedControllableProperty(name, new Date(), dropDown, initialValue);
 	}
 
+	/**
+	 * This method is used to remove unused statistics/AdvancedControllableProperty from {@link SamsungSmartThingsAggregatorCommunicator#localExtendedStatistics}
+	 *
+	 * @param stats Map of statistics that contains statistics to be removed
+	 * @param controls Set of controls that contains AdvancedControllableProperty to be removed
+	 * @param listKeys list key of statistics to be removed
+	 */
+	private void removeUnusedStatsAndControls(Map<String, String> stats, List<AdvancedControllableProperty> controls, Set<String> listKeys) {
+		for (String key : listKeys) {
+			stats.remove(key);
+			controls.removeIf(advancedControllableProperty -> advancedControllableProperty.getName().equals(key));
+		}
+	}
+
 	//--------------------------------------------------------------------------------------------------------------------------------
 	//endregion
 
@@ -1705,7 +1814,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private int calculatingLocalPollingInterval() {
 
 		try {
-			int pollingIntervalValue = SmartThingsConstant.MIN_POlLING_INTERVAL;
+			int pollingIntervalValue = SmartThingsConstant.MIN_POLLING_INTERVAL;
 			if (StringUtils.isNotNullOrEmpty(pollingInterval)) {
 				pollingIntervalValue = Integer.parseInt(pollingInterval);
 			}
@@ -1734,7 +1843,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					, SmartThingsConstant.MAX_THREAD_QUANTITY * SmartThingsConstant.MAX_DEVICE_QUANTITY_PER_THREAD
 					, RoundingMode.CEILING);
 		}
-		return SmartThingsConstant.MIN_POlLING_INTERVAL;
+		return SmartThingsConstant.MIN_POLLING_INTERVAL;
 	}
 
 
@@ -1898,5 +2007,28 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			deviceIds.addAll(failedMonitoringDeviceIds);
 			failedMonitoringDeviceIds.clear();
 		}
+	}
+
+	/**
+	 * This method is used to format order number base on size of objects
+	 *
+	 * @param index index number
+	 * @param objects list of object
+	 * @return String location
+	 */
+	private String formatOrderNumber(int index, List<Object> objects) {
+		Integer digitsQuantityOfRoomsQuantity = String.valueOf(objects.size() - 1).length();
+		String roomIdFormat = "%0".concat(digitsQuantityOfRoomsQuantity.toString()).concat("d");
+		return String.format(roomIdFormat, index);
+	}
+
+
+	/**
+	 * This method is used to validate input config management from user
+	 *
+	 * @return boolean is configManagement
+	 */
+	public void isValidConfigManagement() {
+		isConfigManagement = StringUtils.isNotNullOrEmpty(this.configManagement) && this.configManagement.equalsIgnoreCase("true");
 	}
 }
