@@ -185,13 +185,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			if (deviceHealth != null) {
 				cachedDevices.get(deviceID).setState(deviceHealth.getState());
 			} else {
-				throw new ResourceNotReachableException(String.format("%s health info is empty", cachedDevicesAfterPollingInterval.get(deviceID).getName()));
+				logger.error(String.format("%s health info is empty", cachedDevicesAfterPollingInterval.get(deviceID).getName()));
 			}
 		} catch (Exception e) {
 			failedMonitoringDeviceIds.add(deviceID);
-			if (logger.isErrorEnabled()) {
-				logger.error(String.format("Error while retrieve %s health info: %s ", cachedDevicesAfterPollingInterval.get(deviceID).getName(), e.getMessage()), e);
-			}
+			logger.error(String.format("Error while retrieve %s health info: %s ", cachedDevicesAfterPollingInterval.get(deviceID).getName(), e.getMessage()), e);
 		}
 	}
 
@@ -223,13 +221,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				DevicePresentation cachedPresentation = cachedPresentations.get(deviceId);
 				cachedDevices.get(deviceId).setPresentation(cachedPresentation);
 			} else {
-				throw new ResourceNotReachableException(String.format("%s presentation info is empty", device.getName()));
+				logger.error(String.format("%s presentation info is empty", device.getName()));
 			}
 		} catch (Exception e) {
 			failedMonitoringDeviceIds.add(deviceId);
-			if (logger.isErrorEnabled()) {
-				logger.error(String.format("Error while retrieve %s presentation info: %s", device.getName(), e.getMessage()), e);
-			}
+			logger.error(String.format("Error while retrieve %s presentation info: %s", device.getName(), e.getMessage()), e);
 		}
 	}
 
@@ -274,13 +270,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					cachedDevices.get(deviceId).getPresentation().getDashboardPresentations().setActions(dashboardActionsAfterMapping);
 				}
 			} else {
-				throw new ResourceNotReachableException(String.format("%s presentation info is empty", cachedDevicesAfterPollingInterval.get(deviceId).getName()));
+				logger.error(String.format("%s presentation info is empty", cachedDevicesAfterPollingInterval.get(deviceId).getName()));
 			}
 		} catch (Exception e) {
 			failedMonitoringDeviceIds.add(deviceId);
-			if (logger.isErrorEnabled()) {
-				logger.error(String.format("Error while retrieve %s presentation info: %s", cachedDevicesAfterPollingInterval.get(deviceId).getName(), e.getMessage()), e);
-			}
+			logger.error(String.format("Error while retrieve %s presentation info: %s", cachedDevicesAfterPollingInterval.get(deviceId).getName(), e.getMessage()), e);
 		}
 	}
 
@@ -719,8 +713,8 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				extendedStatistics.setStatistics(stats);
 				extendedStatistics.setControllableProperties(advancedControllableProperties);
 				localExtendedStatistics = extendedStatistics;
-				isEmergencyDelivery = false;
 			}
+			isEmergencyDelivery = false;
 		} finally {
 			reentrantLock.unlock();
 		}
@@ -907,15 +901,13 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				stats.put(HubInfoMetric.NAME.getName(), hub.getName());
 				stats.put(HubInfoMetric.FIRMWARE_VERSION.getName(), hub.getFirmwareVersion());
 			} else {
-				throw new ResourceNotReachableException("Hub information is empty");
+				logger.error("Hub information is empty");
 			}
 		} catch (Exception e) {
 			if (retryOnError) {
 				retrieveHubDetailInfo(stats, hubId, false);
 			}
-			if (this.logger.isErrorEnabled()) {
-				logger.error("Error while retrieve hub info: " + e.getMessage(), e);
-			}
+			logger.error("Error while retrieve hub info: " + e.getMessage(), e);
 		}
 	}
 
@@ -940,15 +932,13 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			if (hub != null) {
 				stats.put(HubInfoMetric.STATE.getName(), hub.getState());
 			} else {
-				throw new ResourceNotReachableException("Hub health info is empty");
+				logger.error("Hub health info is empty");
 			}
 		} catch (Exception e) {
 			if (retryOnError) {
 				retrieveHubHealth(stats, hubId, false);
 			}
-			if (logger.isErrorEnabled()) {
-				logger.error("Error while retrieve hub info: " + e.getMessage(), e);
-			}
+			logger.error("Error while retrieve hub info: " + e.getMessage(), e);
 		}
 	}
 
@@ -965,18 +955,17 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			LocationWrapper locationWrapper = doGet(request, LocationWrapper.class);
 
 			if (locationWrapper != null && !locationWrapper.getLocations().isEmpty()) {
+				cachedLocations.clear();
 				cachedLocations = locationWrapper.getLocations();
 				locationIdFiltered = findLocationByName(locationFilter).getLocationId();
 			} else {
-				throw new ResourceNotReachableException("Hub locations is empty");
+				logger.error("Locations is empty");
 			}
 		} catch (Exception e) {
 			if (retryOnError) {
 				retrieveLocations(false);
 			}
-			if (logger.isErrorEnabled()) {
-				logger.error("Error while retrieve locations info: " + e.getMessage(), e);
-			}
+			logger.error("Error while retrieve locations info: " + e.getMessage(), e);
 
 		}
 	}
@@ -1017,15 +1006,13 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			if (roomWrapper != null && !roomWrapper.getRooms().isEmpty()) {
 				cachedRooms = roomWrapper.getRooms();
 			} else {
-				throw new ResourceNotReachableException("rooms is empty");
+				logger.error("rooms is empty");
 			}
 		} catch (Exception e) {
 			if (retryOnError) {
 				retrieveRooms(false);
 			}
-			if (logger.isErrorEnabled()) {
-				logger.error("Error while retrieve rooms info: " + e.getMessage(), e);
-			}
+			logger.error("Error while retrieve rooms info: " + e.getMessage(), e);
 		}
 	}
 
@@ -1108,15 +1095,13 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			if (sceneWrapper != null && !sceneWrapper.getScenes().isEmpty()) {
 				cachedScenes = sceneWrapper.getScenes();
 			} else {
-				throw new ResourceNotReachableException("scenes is empty");
+				logger.error("scenes is empty");
 			}
 		} catch (Exception e) {
 			if (retryOnError) {
 				retrieveScenes(false);
 			}
-			if (logger.isErrorEnabled()) {
-				logger.error("Error while retrieve scene info: " + e.getMessage(), e);
-			}
+			logger.error("Error while retrieve scene info: " + e.getMessage(), e);
 		}
 	}
 
@@ -1204,9 +1189,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			if (retryOnError) {
 				retrieveDevices(false);
 			}
-			if (logger.isErrorEnabled()) {
-				logger.error(String.format("Aggregated Device Data Retrieval-Error: %s with cause: %s", e.getMessage(), e.getCause().getMessage()), e);
-			}
+			logger.error(String.format("Aggregated Device Data Retrieval-Error: %s with cause: %s", e.getMessage(), e.getCause().getMessage()), e);
 		}
 	}
 
@@ -1821,9 +1804,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 			int minPollingInterval = calculatingMinPollingInterval();
 			if (pollingIntervalValue < minPollingInterval) {
-				if (logger.isErrorEnabled()) {
-					logger.error(String.format("invalid pollingInterval value, pollingInterval must greater than: %s", minPollingInterval));
-				}
+				logger.error(String.format("invalid pollingInterval value, pollingInterval must greater than: %s", minPollingInterval));
 				return minPollingInterval;
 			}
 			return pollingIntervalValue;
