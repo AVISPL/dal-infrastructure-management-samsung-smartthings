@@ -899,7 +899,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 			if (hub != null) {
 				stats.put(HubInfoMetric.NAME.getName(), hub.getName());
-				stats.put(HubInfoMetric.FIRMWARE_VERSION.getName(), hub.getFirmwareVersion());
+				stats.put(HubInfoMetric.FIRMWARE_VERSION.getName(), getDefaultValueForNullData(hub.getFirmwareVersion(), SmartThingsConstant.EMPTY));
 			} else {
 				logger.error("Hub information is empty");
 			}
@@ -930,7 +930,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			Hub hub = doGet(request, Hub.class);
 
 			if (hub != null) {
-				stats.put(HubInfoMetric.STATE.getName(), hub.getState());
+				stats.put(HubInfoMetric.STATE.getName(), getDefaultValueForNullData(hub.getState(), SmartThingsConstant.NONE));
 			} else {
 				logger.error("Hub health info is empty");
 			}
@@ -979,7 +979,8 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	public void populateLocationsManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
 		for (int locationIndex = 0; locationIndex < cachedLocations.size(); locationIndex++) {
 			addAdvanceControlProperties(advancedControllableProperties, createText(stats, AggregatorGroupControllingMetric.LOCATION_MANAGEMENT.getName()
-					+ LocationManagementMetric.LOCATION.getName() + formatOrderNumber(locationIndex, Arrays.asList(cachedLocations.toArray())), cachedLocations.get(locationIndex).getName()));
+							+ LocationManagementMetric.LOCATION.getName() + formatOrderNumber(locationIndex, Arrays.asList(cachedLocations.toArray())),
+					getDefaultValueForNullData(cachedLocations.get(locationIndex).getName(), SmartThingsConstant.NONE)));
 		}
 		String locationName = cachedLocations.stream().filter(l -> l.getLocationId().equals(locationIdFiltered)).map(Location::getName).findFirst()
 				.orElse(cachedLocations.get(0).getName());
@@ -1034,7 +1035,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			String deleteRoomKey = AggregatorGroupControllingMetric.ROOM_MANAGEMENT.getName() + RoomManagementMetric.ROOM.getName() + formatOrderNumber(roomIndex, Arrays.asList(cachedRooms.toArray()))
 					+ RoomManagementMetric.DELETE_ROOM.getName();
 
-			addAdvanceControlProperties(advancedControllableProperties, createText(stats, editRoomKey, cachedRooms.get(roomIndex).getName()));
+			addAdvanceControlProperties(advancedControllableProperties, createText(stats, editRoomKey, getDefaultValueForNullData(cachedRooms.get(roomIndex).getName(), SmartThingsConstant.NONE)));
 			addAdvanceControlProperties(advancedControllableProperties, createButton(stats, deleteRoomKey, SmartThingsConstant.DELETE, SmartThingsConstant.DELETING));
 			isEmptyRoomControl = false;
 
@@ -1114,9 +1115,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	public void populateScenesManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
 		boolean isEmptyScenesControl = true;
 		for (Scene scene : cachedScenes) {
-			addAdvanceControlProperties(advancedControllableProperties,
-					createButton(stats, AggregatorGroupControllingMetric.SCENE.getName().concat(scene.getSceneName()), SmartThingsConstant.RUN, SmartThingsConstant.RUNNING));
-			isEmptyScenesControl = false;
+			if (StringUtils.isNotNullOrEmpty(scene.getSceneName())) {
+				addAdvanceControlProperties(advancedControllableProperties,
+						createButton(stats, AggregatorGroupControllingMetric.SCENE.getName().concat(scene.getSceneName()), SmartThingsConstant.RUN, SmartThingsConstant.RUNNING));
+				isEmptyScenesControl = false;
+			}
 		}
 		// populate message when location have no scene after filtering
 		if (isEmptyScenesControl) {
