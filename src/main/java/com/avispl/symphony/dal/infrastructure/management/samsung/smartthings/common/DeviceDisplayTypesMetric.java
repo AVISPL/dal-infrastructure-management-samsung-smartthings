@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2022 AVI-SPL, Inc. All Rights Reserved.
  */
-
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
 
 /**
@@ -13,6 +12,9 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.co
  */
 public class DeviceDisplayTypesMetric {
 
+	/**
+	 * private constructor to prevent instance initialization
+	 */
 	private DeviceDisplayTypesMetric() {
 	}
 

@@ -1,9 +1,7 @@
 /*
  * Copyright (c) 2022 AVI-SPL, Inc. All Rights Reserved.
  */
-
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.room;
-
 import java.util.Arrays;
 import java.util.Optional;
 

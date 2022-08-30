@@ -3,7 +3,6 @@
  */
 
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation;
-
 import java.util.ArrayList;
 import java.util.List;
 

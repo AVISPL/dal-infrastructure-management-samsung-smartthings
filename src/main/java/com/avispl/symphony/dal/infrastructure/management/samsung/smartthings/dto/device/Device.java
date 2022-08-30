@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2022 AVI-SPL, Inc. All Rights Reserved.
  */
-
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device;
 
 import java.util.ArrayList;
@@ -10,7 +9,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.ColorControlMetric;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceColorControllingConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.SmartThingsConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DevicePresentation;
 
@@ -293,12 +292,12 @@ public class Device {
 	public String contributeRequestBodyForColorCommand(String hue, String saturation) {
 		StringBuilder request = new StringBuilder();
 		request.append("{\"commands\":[{")
-				.append("\"capability\":\"").append(ColorControlMetric.COLOR_CONTROL).append("\",")
-				.append("\"command\":\"").append(ColorControlMetric.COLOR_CONTROL_SET_HUE).append("\",")
+				.append("\"capability\":\"").append(AggregatedDeviceColorControllingConstant.COLOR_CONTROL).append("\",")
+				.append("\"command\":\"").append(AggregatedDeviceColorControllingConstant.COLOR_CONTROL_SET_HUE).append("\",")
 				.append("\"arguments\":[").append(hue).append("]},")
 				.append("{")
-				.append("\"capability\":\"").append(ColorControlMetric.COLOR_CONTROL).append("\",")
-				.append("\"command\":\"").append(ColorControlMetric.COLOR_CONTROL_SET_SATURATION).append("\",")
+				.append("\"capability\":\"").append(AggregatedDeviceColorControllingConstant.COLOR_CONTROL).append("\",")
+				.append("\"command\":\"").append(AggregatedDeviceColorControllingConstant.COLOR_CONTROL_SET_SATURATION).append("\",")
 				.append("\"arguments\":[").append(saturation).append("]")
 				.append("}]}");
 		return request.toString();

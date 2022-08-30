@@ -1,13 +1,12 @@
 /*
  * Copyright (c) 2022 AVI-SPL, Inc. All Rights Reserved.
  */
-
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * HSB/ RGB color
+ * HSB color data
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/24/2022
@@ -17,11 +16,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class ColorDevicePresentation {
 	private float hue;
 	private float saturation;
-	private float brightness = 1;
-
-	private int red;
-	private int green;
-	private int blue;
 
 	private String currentColor;
 
@@ -78,78 +72,6 @@ public class ColorDevicePresentation {
 	 */
 	public void setSaturation(float saturation) {
 		this.saturation = saturation;
-	}
-
-	/**
-	 * Retrieves {@code {@link #brightness}}
-	 *
-	 * @return value of {@link #brightness}
-	 */
-	public float getBrightness() {
-		return brightness;
-	}
-
-	/**
-	 * Sets {@code brightness}
-	 *
-	 * @param brightness the {@code float} field
-	 */
-	public void setBrightness(float brightness) {
-		this.brightness = brightness;
-	}
-
-	/**
-	 * Retrieves {@code {@link #red}}
-	 *
-	 * @return value of {@link #red}
-	 */
-	public int getRed() {
-		return red;
-	}
-
-	/**
-	 * Sets {@code red}
-	 *
-	 * @param red the {@code int} field
-	 */
-	public void setRed(int red) {
-		this.red = red;
-	}
-
-	/**
-	 * Retrieves {@code {@link #green}}
-	 *
-	 * @return value of {@link #green}
-	 */
-	public int getGreen() {
-		return green;
-	}
-
-	/**
-	 * Sets {@code green}
-	 *
-	 * @param green the {@code int} field
-	 */
-	public void setGreen(int green) {
-		this.green = green;
-	}
-
-	/**
-	 * Retrieves {@code {@link #blue}}
-	 *
-	 * @return value of {@link #blue}
-	 */
-	public int getBlue() {
-		return blue;
-	}
-
-	/**
-	 * Sets {@code blue}
-	 *
-	 * @param blue the {@code int} field
-	 */
-	public void setBlue(int blue) {
-		this.blue = blue;
 	}
 
 	/**

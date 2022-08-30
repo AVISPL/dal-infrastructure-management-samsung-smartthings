@@ -1,14 +1,13 @@
 /*
  * Copyright (c) 2022 AVI-SPL, Inc. All Rights Reserved.
  */
-
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * AggregatorGroupControllingMetric
+ * Aggregator Group Controlling Metric
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022
