@@ -10,6 +10,8 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.ColorDevicePresentation;
+
 /**
  * Device Presentation define how the SmartThings app (or other clients) should present the Attributes and Commands of a Device in the user interface
  *
@@ -19,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DevicePresentation {
+
+	private ColorDevicePresentation color = new ColorDevicePresentation();
 
 	@JsonAlias("mnmn")
 	private String manufacturerName;
@@ -34,6 +38,24 @@ public class DevicePresentation {
 
 	@JsonAlias("language")
 	private List<Language> languages = new ArrayList<>();
+
+	/**
+	 * Retrieves {@code {@link #color}}
+	 *
+	 * @return value of {@link #color}
+	 */
+	public ColorDevicePresentation getColor() {
+		return color;
+	}
+
+	/**
+	 * Sets {@code color}
+	 *
+	 * @param color the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.Color} field
+	 */
+	public void setColor(ColorDevicePresentation color) {
+		this.color = color;
+	}
 
 	/**
 	 * Retrieves {@code {@link #manufacturerName}}

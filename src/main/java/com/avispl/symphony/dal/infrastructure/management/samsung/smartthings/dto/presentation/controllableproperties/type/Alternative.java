@@ -23,6 +23,9 @@ public class Alternative {
 	@JsonAlias("value")
 	private String value;
 
+	@JsonAlias("type")
+	private String type;
+
 	/**
 	 * Retrieves {@code {@link #key}}
 	 *
@@ -57,5 +60,23 @@ public class Alternative {
 	 */
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	/**
+	 * Retrieves {@code {@link #type}}
+	 *
+	 * @return value of {@link #type}
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * Sets {@code type}
+	 *
+	 * @param type the {@code java.lang.String} field
+	 */
+	public void setType(String type) {
+		this.type = type;
 	}
 }
