@@ -49,9 +49,9 @@ import com.avispl.symphony.api.dal.error.ResourceNotReachableException;
 import com.avispl.symphony.api.dal.monitor.Monitorable;
 import com.avispl.symphony.api.dal.monitor.aggregator.Aggregator;
 import com.avispl.symphony.dal.communicator.RestCommunicator;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceColorControllingConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceControllingMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatorGroupControllingMetric;
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.ColorControlMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.DeviceCategoriesMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.DeviceDisplayTypesMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.HubInfoMetric;
@@ -308,26 +308,26 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 			// map specific controllable property status to device
 			switch (detailViewPresentation.getCapability()) {
-				case ColorControlMetric.COLOR_CONTROL:
+				case AggregatedDeviceColorControllingConstant.COLOR_CONTROL:
 					if (detailViewPresentation.getDisplayType().equals(DeviceDisplayTypesMetric.NUMBER_FIELD)) {
-						if (ColorControlMetric.COLOR_CONTROL_SET_HUE.equals(detailViewPresentation.getNumberField().getCommand())) {
+						if (AggregatedDeviceColorControllingConstant.COLOR_CONTROL_SET_HUE.equals(detailViewPresentation.getNumberField().getCommand())) {
 							value = Optional.ofNullable(response.elements().next())
 									.map(JsonNode::elements)
 									.map(Iterator::next)
 									.map(c -> c.get(detailViewPresentation.getCapability()))
-									.map(d -> d.get(ColorControlMetric.COLOR_CONTROL_HUE))
+									.map(d -> d.get(AggregatedDeviceColorControllingConstant.COLOR_CONTROL_HUE))
 									.map(u -> u.get(SmartThingsConstant.VALUE))
 									.map(JsonNode::asText)
 									.orElse(SmartThingsConstant.NONE);
 							devicePresentation.getColor().setHue(Float.parseFloat(value));
 							continue;
 						}
-						if (ColorControlMetric.COLOR_CONTROL_SET_SATURATION.equals(detailViewPresentation.getNumberField().getCommand())) {
+						if (AggregatedDeviceColorControllingConstant.COLOR_CONTROL_SET_SATURATION.equals(detailViewPresentation.getNumberField().getCommand())) {
 							value = Optional.ofNullable(response.elements().next())
 									.map(JsonNode::elements)
 									.map(Iterator::next)
 									.map(c -> c.get(detailViewPresentation.getCapability()))
-									.map(d -> d.get(ColorControlMetric.COLOR_CONTROL_SATURATION))
+									.map(d -> d.get(AggregatedDeviceColorControllingConstant.COLOR_CONTROL_SATURATION))
 									.map(u -> u.get(SmartThingsConstant.VALUE))
 									.map(JsonNode::asText)
 									.orElse(SmartThingsConstant.NONE);
@@ -837,7 +837,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						}
 						throw new IllegalStateException(String.format("Controlling group %s is not supported.", managementGroupMetric.getName()));
 				}
-			} else if (cachedDevices.get(deviceId) != null) {
+			} else if (cachedDevices.get(deviceId) != null && cachedAggregatedDevices != null) {
 				AggregatedDeviceControllingMetric aggregatedDeviceControllingMetric = AggregatedDeviceControllingMetric.getByName(property);
 				Map<String, String> aggregatedDeviceProperties = cachedAggregatedDevices.get(deviceId).getProperties();
 				List<AdvancedControllableProperty> aggregatedDeviceControllableProperties = cachedAggregatedDevices.get(deviceId).getControllableProperties();
@@ -1752,6 +1752,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			}
 		}
 	}
+
 	//--------------------------------------------------------------------------------------------------------------------------------
 	//endregion
 
@@ -1775,13 +1776,14 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 				// populate specific controllable property of detail view
 				switch (detailViewPresentation.getCapability()) {
-					case ColorControlMetric.COLOR_CONTROL:
+					case AggregatedDeviceColorControllingConstant.COLOR_CONTROL:
 						ColorDevicePresentation colorDevicePresentation = Optional.ofNullable(device.getPresentation())
-								.map(DevicePresentation::getColor).orElse(new ColorDevicePresentation(ColorControlMetric.HUE_COORDINATE, ColorControlMetric.MIN_SATURATION, ColorControlMetric.CUSTOM_COLOR));
+								.map(DevicePresentation::getColor).orElse(new ColorDevicePresentation(AggregatedDeviceColorControllingConstant.HUE_COORDINATE, AggregatedDeviceColorControllingConstant.MIN_SATURATION,
+										AggregatedDeviceColorControllingConstant.CUSTOM_COLOR));
 
 						// populate color dropdown control
 						List<String> colorModes = commonColors.keySet().stream().collect(Collectors.toList());
-						colorModes.add(ColorControlMetric.CUSTOM_COLOR);
+						colorModes.add(AggregatedDeviceColorControllingConstant.CUSTOM_COLOR);
 						String currentColor = Optional.ofNullable(colorDevicePresentation.getCurrentColor()).orElse(SmartThingsConstant.EMPTY);
 
 						if (currentColor.isEmpty()) {
@@ -1795,22 +1797,25 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						String currentHueControlLabel = AggregatedDeviceControllingMetric.HUE_CONTROL.getName() + AggregatedDeviceControllingMetric.CURRENT_VALUE.getName();
 						String saturationLabel = AggregatedDeviceControllingMetric.SATURATION_CONTROL.getName();
 						String currentSaturationControlLabel = AggregatedDeviceControllingMetric.SATURATION_CONTROL.getName() + AggregatedDeviceControllingMetric.CURRENT_VALUE.getName();
-						if (ColorControlMetric.CUSTOM_COLOR.equals(currentColor)) {
-							String hueLabelStart = String.valueOf(ColorControlMetric.MIN_HUE);
-							String hueLabelEnd = String.valueOf(ColorControlMetric.MAX_HUE);
-							String saturationLabelStart = String.valueOf(ColorControlMetric.MIN_HUE);
-							String saturationLabelEnd = String.valueOf(ColorControlMetric.MAX_HUE);
+						if (AggregatedDeviceColorControllingConstant.CUSTOM_COLOR.equals(currentColor)) {
+							String hueLabelStart = String.valueOf(AggregatedDeviceColorControllingConstant.MIN_HUE);
+							String hueLabelEnd = String.valueOf(AggregatedDeviceColorControllingConstant.MAX_HUE);
+							String saturationLabelStart = String.valueOf(AggregatedDeviceColorControllingConstant.MIN_SATURATION);
+							String saturationLabelEnd = String.valueOf(AggregatedDeviceColorControllingConstant.MAX_SATURATION);
 							String colorName = getColorNameByHueAndSaturation(colorDevicePresentation.getHue(), colorDevicePresentation.getSaturation());
 
 							addAdvanceControlProperties(advancedControllableProperties,
-									createSlider(stats, hueControlLabel, hueLabelStart, hueLabelEnd, ColorControlMetric.MIN_HUE, ColorControlMetric.MAX_HUE,
+									createSlider(stats, hueControlLabel, hueLabelStart, hueLabelEnd, AggregatedDeviceColorControllingConstant.MIN_HUE, AggregatedDeviceColorControllingConstant.MAX_HUE,
 											convertHueToRadianValue(colorDevicePresentation.getHue())));
 							addAdvanceControlProperties(advancedControllableProperties,
-									createSlider(stats, saturationLabel, saturationLabelStart, saturationLabelEnd, ColorControlMetric.MIN_SATURATION, ColorControlMetric.MAX_SATURATION,
+									createSlider(stats, saturationLabel, saturationLabelStart, saturationLabelEnd, AggregatedDeviceColorControllingConstant.MIN_SATURATION,
+											AggregatedDeviceColorControllingConstant.MAX_SATURATION,
 											colorDevicePresentation.getSaturation()));
 							stats.put(currentHueControlLabel, String.valueOf(colorDevicePresentation.getHue()));
-							stats.put(currentSaturationControlLabel, String.valueOf(colorDevicePresentation.getHue()));
+							stats.put(currentSaturationControlLabel, String.valueOf(colorDevicePresentation.getSaturation()));
 							stats.put(AggregatedDeviceControllingMetric.CURRENT_COLOR_CONTROL.getName(), colorName);
+							stats.put(AggregatedDeviceControllingMetric.VALUE_CONTROL.getName()
+									, String.valueOf(AggregatedDeviceColorControllingConstant.DEFAULT_BRIGHTNESS * AggregatedDeviceColorControllingConstant.ONE_HUNDRED_PERCENT));
 						} else {
 							Set<String> unusedKeys = new HashSet<>();
 							unusedKeys.add(hueControlLabel);
@@ -1818,6 +1823,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 							unusedKeys.add(currentHueControlLabel);
 							unusedKeys.add(currentSaturationControlLabel);
 							unusedKeys.add(AggregatedDeviceControllingMetric.CURRENT_COLOR_CONTROL.getName());
+							unusedKeys.add(AggregatedDeviceControllingMetric.VALUE_CONTROL.getName());
 							removeUnusedStatsAndControls(stats, advancedControllableProperties, unusedKeys);
 						}
 						continue;
@@ -1836,32 +1842,32 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param saturation color saturation value
 	 */
 	private String getDefaultColorNameByHueAndSaturation(float hue, float saturation) {
-		Color color = Color.getHSBColor(convertHueToPercentValue(hue), convertSaturationToPercentValue(saturation), ColorControlMetric.DEFAULT_BRIGHTNESS);
+		Color color = Color.getHSBColor(convertHueToPercentValue(hue), convertSaturationToPercentValue(saturation), AggregatedDeviceColorControllingConstant.DEFAULT_BRIGHTNESS);
 		if (color.equals(Color.RED)) {
-			return ColorControlMetric.RED;
+			return AggregatedDeviceColorControllingConstant.RED;
 		}
 		if (color.equals(Color.CYAN)) {
-			return ColorControlMetric.CYAN;
+			return AggregatedDeviceColorControllingConstant.CYAN;
 		}
 		if (color.equals(Color.GREEN)) {
-			return ColorControlMetric.GREEN;
+			return AggregatedDeviceColorControllingConstant.GREEN;
 		}
 		if (color.equals(Color.ORANGE)) {
-			return ColorControlMetric.ORANGE;
+			return AggregatedDeviceColorControllingConstant.ORANGE;
 		}
 		if (color.equals(Color.PINK)) {
-			return ColorControlMetric.PINK;
+			return AggregatedDeviceColorControllingConstant.PINK;
 		}
 		if (color.equals(Color.BLUE)) {
-			return ColorControlMetric.BLUE;
+			return AggregatedDeviceColorControllingConstant.BLUE;
 		}
 		if (color.equals(Color.WHITE)) {
-			return ColorControlMetric.WHITE;
+			return AggregatedDeviceColorControllingConstant.WHITE;
 		}
 		if (color.equals(Color.YELLOW)) {
-			return ColorControlMetric.YELLOW;
+			return AggregatedDeviceColorControllingConstant.YELLOW;
 		}
-		return ColorControlMetric.CUSTOM_COLOR;
+		return AggregatedDeviceColorControllingConstant.CUSTOM_COLOR;
 	}
 
 	/**
@@ -2005,6 +2011,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					device.setRoomId(roomID);
 					populateCommonDeviceControl(stats, advancedControllableProperties, device);
 					cachedDevicesAfterPollingInterval.put(deviceId, device);
+					isEmergencyDelivery = true;
 				} else {
 					throw new ResourceNotReachableException(String.format("can not assign device to room %s", value));
 				}
@@ -2016,6 +2023,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		}
 	}
 
+	//--------------------------------------------------------------------------------------------------------------------------------
+	//endregion
+
+	//region perform aggregated device color control
+	//--------------------------------------------------------------------------------------------------------------------------------
 
 	/**
 	 * This method is used for calling color dropdown control for aggregated device:
@@ -2033,7 +2045,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 		if (color != null) {
 			float[] hsvColor = color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
-			String hue = String.valueOf(hsvColor[0] * ColorControlMetric.ONE_HUNDRED_PERCENT);
+			String hue = String.valueOf(hsvColor[0] * AggregatedDeviceColorControllingConstant.ONE_HUNDRED_PERCENT);
 			String saturation = String.valueOf(convertSaturationToSmartThingsValue(hsvColor[1]));
 
 			sendColorControlRequest(controllableProperty, device, hue, saturation);
@@ -2041,13 +2053,16 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			device.getPresentation().getColor().setCurrentColor(value);
 			device.getPresentation().getColor().setHue(Float.parseFloat(hue));
 			device.getPresentation().getColor().setSaturation(Float.parseFloat(saturation));
+			isEmergencyDelivery = true;
 		} else {
 			ColorDevicePresentation colorDevicePresentation = Optional.ofNullable(device.getPresentation()).map(DevicePresentation::getColor)
-					.orElse(new ColorDevicePresentation(ColorControlMetric.HUE_COORDINATE, ColorControlMetric.MIN_SATURATION, ColorControlMetric.CUSTOM_COLOR));
-			colorDevicePresentation.setCurrentColor(ColorControlMetric.CUSTOM_COLOR);
+					.orElse(new ColorDevicePresentation(AggregatedDeviceColorControllingConstant.HUE_COORDINATE, AggregatedDeviceColorControllingConstant.MIN_SATURATION,
+							AggregatedDeviceColorControllingConstant.CUSTOM_COLOR));
+			colorDevicePresentation.setCurrentColor(AggregatedDeviceColorControllingConstant.CUSTOM_COLOR);
 			device.getPresentation().setColor(colorDevicePresentation);
 		}
 		cachedDevicesAfterPollingInterval.put(deviceId, device);
+		cachedDevices.put(deviceId, device);
 		populateAggregatedDeviceView(stats, advancedControllableProperties, device);
 	}
 
@@ -2064,13 +2079,16 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			String deviceId) {
 		Device device = cachedDevicesAfterPollingInterval.get(deviceId);
 
-		float saturation = Optional.ofNullable(device.getPresentation()).map(DevicePresentation::getColor).map(ColorDevicePresentation::getSaturation).orElse(ColorControlMetric.MIN_SATURATION);
+		float saturation = Optional.ofNullable(device.getPresentation()).map(DevicePresentation::getColor).map(ColorDevicePresentation::getSaturation)
+				.orElse(AggregatedDeviceColorControllingConstant.MIN_SATURATION);
 
 		sendColorControlRequest(controllableProperty, device, hue.toString(), String.valueOf(saturation));
 
 		device.getPresentation().getColor().setHue(Float.parseFloat(hue.toString()));
 		cachedDevicesAfterPollingInterval.put(deviceId, device);
+		cachedDevices.put(deviceId, device);
 		populateAggregatedDeviceView(stats, advancedControllableProperties, device);
+		isEmergencyDelivery = true;
 	}
 
 	/**
@@ -2085,13 +2103,15 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private void aggregatedDeviceColorSaturationControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, Float saturation,
 			String deviceId) {
 		Device device = cachedDevicesAfterPollingInterval.get(deviceId);
-		float hue = Optional.ofNullable(device.getPresentation()).map(DevicePresentation::getColor).map(ColorDevicePresentation::getHue).orElse(ColorControlMetric.MIN_HUE);
+		float hue = Optional.ofNullable(device.getPresentation()).map(DevicePresentation::getColor).map(ColorDevicePresentation::getHue).orElse(AggregatedDeviceColorControllingConstant.MIN_HUE);
 
 		sendColorControlRequest(controllableProperty, device, String.valueOf(hue), saturation.toString());
 
 		device.getPresentation().getColor().setSaturation(Float.parseFloat(saturation.toString()));
 		cachedDevicesAfterPollingInterval.put(deviceId, device);
+		cachedDevices.put(deviceId, device);
 		populateAggregatedDeviceView(stats, advancedControllableProperties, device);
+		isEmergencyDelivery = true;
 	}
 
 	/**
@@ -2135,7 +2155,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @return Float hue value
 	 */
 	private Float convertHueToRadianValue(float hue) {
-		return hue * ColorControlMetric.MAX_HUE / ColorControlMetric.ONE_HUNDRED_PERCENT;
+		return hue * AggregatedDeviceColorControllingConstant.MAX_HUE / AggregatedDeviceColorControllingConstant.ONE_HUNDRED_PERCENT;
 	}
 
 	/**
@@ -2145,7 +2165,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @return Float saturation value
 	 */
 	private Float convertHueToPercentValue(float hue) {
-		return hue / ColorControlMetric.ONE_HUNDRED_PERCENT;
+		return hue / AggregatedDeviceColorControllingConstant.ONE_HUNDRED_PERCENT;
 	}
 
 	/**
@@ -2155,7 +2175,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @return Float saturation value
 	 */
 	private Float convertSaturationToPercentValue(float saturation) {
-		return saturation / ColorControlMetric.ONE_HUNDRED_PERCENT;
+		return saturation / AggregatedDeviceColorControllingConstant.ONE_HUNDRED_PERCENT;
 	}
 
 	/**
@@ -2165,7 +2185,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @return Float hue value
 	 */
 	private Float convertHueToSmartThingsValue(float hue) {
-		return hue * ColorControlMetric.ONE_HUNDRED_PERCENT / ColorControlMetric.MAX_HUE;
+		return hue * AggregatedDeviceColorControllingConstant.ONE_HUNDRED_PERCENT / AggregatedDeviceColorControllingConstant.MAX_HUE;
 	}
 
 	/**
@@ -2175,7 +2195,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @return Float saturation value
 	 */
 	private Float convertSaturationToSmartThingsValue(float saturation) {
-		return saturation * ColorControlMetric.ONE_HUNDRED_PERCENT;
+		return saturation * AggregatedDeviceColorControllingConstant.ONE_HUNDRED_PERCENT;
 	}
 
 	/**
@@ -2185,48 +2205,54 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param saturation color saturation value
 	 */
 	private String getColorNameByHueAndSaturation(float hue, float saturation) {
-		Color color = Color.getHSBColor(convertHueToPercentValue(hue), convertSaturationToPercentValue(saturation), ColorControlMetric.DEFAULT_BRIGHTNESS);
+		Color color = Color.getHSBColor(convertHueToPercentValue(hue), convertSaturationToPercentValue(saturation), AggregatedDeviceColorControllingConstant.DEFAULT_BRIGHTNESS);
 		String colorName =
 				SmartThingsConstant.LEFT_PARENTHESES + color.getRed() + SmartThingsConstant.COMMA + color.getGreen() + SmartThingsConstant.COMMA + color.getBlue() + SmartThingsConstant.RIGHT_PARENTHESES;
 		hue = convertHueToRadianValue(hue);
-		if (hue >= ColorControlMetric.HUE_COORDINATE && hue < ColorControlMetric.REDS_RANGE) {
-			return ColorControlMetric.REDS + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.HUE_COORDINATE && hue < AggregatedDeviceColorControllingConstant.REDS_RANGE) {
+			return AggregatedDeviceColorControllingConstant.REDS + colorName;
 		}
-		if (hue >= ColorControlMetric.REDS_RANGE && hue < ColorControlMetric.ORANGES_RANGE) {
-			return ColorControlMetric.ORANGES + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.REDS_RANGE && hue < AggregatedDeviceColorControllingConstant.ORANGES_RANGE) {
+			return AggregatedDeviceColorControllingConstant.ORANGES + colorName;
 		}
-		if (hue >= ColorControlMetric.ORANGES_RANGE && hue < ColorControlMetric.YELLOWS_RANGE) {
-			return ColorControlMetric.YELLOWS + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.ORANGES_RANGE && hue < AggregatedDeviceColorControllingConstant.YELLOWS_RANGE) {
+			return AggregatedDeviceColorControllingConstant.YELLOWS + colorName;
 		}
-		if (hue >= ColorControlMetric.YELLOWS_RANGE && hue < ColorControlMetric.YELLOW_GREENS_RANGE) {
-			return ColorControlMetric.YELLOW_GREENS + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.YELLOWS_RANGE && hue < AggregatedDeviceColorControllingConstant.YELLOW_GREENS_RANGE) {
+			return AggregatedDeviceColorControllingConstant.YELLOW_GREENS + colorName;
 		}
-		if (hue >= ColorControlMetric.YELLOW_GREENS_RANGE && hue < ColorControlMetric.GREENS_RANGE) {
-			return ColorControlMetric.GREENS + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.YELLOW_GREENS_RANGE && hue < AggregatedDeviceColorControllingConstant.GREENS_RANGE) {
+			return AggregatedDeviceColorControllingConstant.GREENS + colorName;
 		}
-		if (hue >= ColorControlMetric.GREENS_RANGE && hue < ColorControlMetric.BLUE_GREENS_RANGE) {
-			return ColorControlMetric.BLUE_GREENS + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.GREENS_RANGE && hue < AggregatedDeviceColorControllingConstant.BLUE_GREENS_RANGE) {
+			return AggregatedDeviceColorControllingConstant.BLUE_GREENS + colorName;
 		}
-		if (hue >= ColorControlMetric.BLUE_GREENS_RANGE && hue < ColorControlMetric.BLUES_RANGE) {
-			return ColorControlMetric.BLUES + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.BLUE_GREENS_RANGE && hue < AggregatedDeviceColorControllingConstant.BLUES_RANGE) {
+			return AggregatedDeviceColorControllingConstant.BLUES + colorName;
 		}
-		if (hue >= ColorControlMetric.BLUES_RANGE && hue < ColorControlMetric.BLUE_VIOLETS_RANGE) {
-			return ColorControlMetric.BLUE_VIOLETS + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.BLUES_RANGE && hue < AggregatedDeviceColorControllingConstant.BLUE_VIOLETS_RANGE) {
+			return AggregatedDeviceColorControllingConstant.BLUE_VIOLETS + colorName;
 		}
-		if (hue >= ColorControlMetric.BLUE_VIOLETS_RANGE && hue < ColorControlMetric.VIOLETS_RANGE) {
-			return ColorControlMetric.VIOLETS + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.BLUE_VIOLETS_RANGE && hue < AggregatedDeviceColorControllingConstant.VIOLETS_RANGE) {
+			return AggregatedDeviceColorControllingConstant.VIOLETS + colorName;
 		}
-		if (hue >= ColorControlMetric.VIOLETS_RANGE && hue < ColorControlMetric.MAUVES_RANGE) {
-			return ColorControlMetric.MAUVES + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.VIOLETS_RANGE && hue < AggregatedDeviceColorControllingConstant.MAUVES_RANGE) {
+			return AggregatedDeviceColorControllingConstant.MAUVES + colorName;
 		}
-		if (hue >= ColorControlMetric.MAUVES_RANGE && hue < ColorControlMetric.MAUVE_PINKS_RANGE) {
-			return ColorControlMetric.MAUVE_PINKS + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.MAUVES_RANGE && hue < AggregatedDeviceColorControllingConstant.MAUVE_PINKS_RANGE) {
+			return AggregatedDeviceColorControllingConstant.MAUVE_PINKS + colorName;
 		}
-		if (hue >= ColorControlMetric.MAUVES_RANGE && hue < ColorControlMetric.PINKS_RANGE) {
-			return ColorControlMetric.PINKS + colorName;
+		if (hue >= AggregatedDeviceColorControllingConstant.MAUVES_RANGE && hue < AggregatedDeviceColorControllingConstant.PINKS_RANGE) {
+			return AggregatedDeviceColorControllingConstant.PINKS + colorName;
 		}
 		return colorName;
 	}
+
+	//--------------------------------------------------------------------------------------------------------------------------------
+	//endregion
+
+	//region perform aggregated device common control
+	//--------------------------------------------------------------------------------------------------------------------------------
 
 	/**
 	 * This method is used for calling control device dashboard properties:
@@ -3043,21 +3069,21 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @return boolean is configManagement
 	 */
 	public void isValidConfigManagement() {
-		isConfigManagement = StringUtils.isNotNullOrEmpty(this.configManagement) && this.configManagement.equalsIgnoreCase("true");
+		isConfigManagement = StringUtils.isNotNullOrEmpty(this.configManagement) && this.configManagement.equalsIgnoreCase(SmartThingsConstant.IS_VALID_CONFIG_MANAGEMENT);
 	}
 
 	/**
 	 * This method is used to init Map<colorName, colorCode> of common color
 	 */
 	public void initCommonColors() {
-		commonColors.put(ColorControlMetric.BLUE, Color.BLUE);
-		commonColors.put(ColorControlMetric.CYAN, Color.CYAN);
-		commonColors.put(ColorControlMetric.GREEN, Color.BLUE);
-		commonColors.put(ColorControlMetric.ORANGE, Color.ORANGE);
-		commonColors.put(ColorControlMetric.PINK, Color.PINK);
-		commonColors.put(ColorControlMetric.RED, Color.RED);
-		commonColors.put(ColorControlMetric.WHITE, Color.WHITE);
-		commonColors.put(ColorControlMetric.YELLOW, Color.YELLOW);
+		commonColors.put(AggregatedDeviceColorControllingConstant.BLUE, Color.BLUE);
+		commonColors.put(AggregatedDeviceColorControllingConstant.CYAN, Color.CYAN);
+		commonColors.put(AggregatedDeviceColorControllingConstant.GREEN, Color.GREEN);
+		commonColors.put(AggregatedDeviceColorControllingConstant.ORANGE, Color.ORANGE);
+		commonColors.put(AggregatedDeviceColorControllingConstant.PINK, Color.PINK);
+		commonColors.put(AggregatedDeviceColorControllingConstant.RED, Color.RED);
+		commonColors.put(AggregatedDeviceColorControllingConstant.WHITE, Color.WHITE);
+		commonColors.put(AggregatedDeviceColorControllingConstant.YELLOW, Color.YELLOW);
 	}
 
 	/**
@@ -3066,16 +3092,17 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	public void mapAggregatedDevicesToCache() {
 		for (AggregatedDevice aggregatedDevice : aggregatedDevices.values()) {
 
-			AggregatedDevice cachedAggregatedDevice = cachedAggregatedDevices.get(aggregatedDevice.getDeviceId());
+			String deviceId = aggregatedDevice.getDeviceId();
+			AggregatedDevice cachedAggregatedDevice = cachedAggregatedDevices.get(deviceId);
 			if (cachedAggregatedDevice == null) {
 				cachedAggregatedDevice = new AggregatedDevice();
 			}
 			cachedAggregatedDevice.setDeviceName(aggregatedDevice.getDeviceName());
-			cachedAggregatedDevice.setDeviceId(aggregatedDevice.getDeviceId());
+			cachedAggregatedDevice.setDeviceId(deviceId);
 			cachedAggregatedDevice.setCategory(aggregatedDevice.getCategory());
 			cachedAggregatedDevice.setDeviceOnline(aggregatedDevice.getDeviceOnline());
 			if (cachedDevicesAfterPollingInterval != null) {
-				Device device = cachedDevicesAfterPollingInterval.get(aggregatedDevice.getDeviceId());
+				Device device = cachedDevicesAfterPollingInterval.get(deviceId);
 				if (device != null) {
 					Map<String, String> properties = new HashMap<>();
 					List<AdvancedControllableProperty> controllableProperties = new ArrayList<>();

@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * DeviceWrapper
+ * Device Wrapper
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/27/2022

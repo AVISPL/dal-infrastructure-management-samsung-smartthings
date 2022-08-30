@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2022 AVI-SPL, Inc. All Rights Reserved.
  */
-
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
 
 /**
@@ -13,6 +12,9 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.co
  */
 public class SmartThingsURL {
 
+	/**
+	 * private constructor to prevent instance initialization
+	 */
 	private SmartThingsURL() {
 	}
 
@@ -23,7 +25,6 @@ public class SmartThingsURL {
 	public static final String LOCATIONS = "locations";
 	public static final String ROOMS = "rooms";
 	public static final String DEVICES = "devices";
-	public static final String CAPABILITIES = "capabilities";
 	public static final String PRESENTATION = "presentation";
 	public static final String SCENE = "scenes";
 	public static final String EXECUTE = "/execute";

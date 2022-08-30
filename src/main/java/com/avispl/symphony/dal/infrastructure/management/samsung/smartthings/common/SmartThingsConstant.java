@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2022 AVI-SPL, Inc. All Rights Reserved.
  */
-
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
 
 /**
@@ -13,23 +12,19 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.co
  */
 public class SmartThingsConstant {
 
+	/**
+	 * private constructor to prevent instance initialization
+	 */
 	private SmartThingsConstant() {
 	}
 
 	public static final String HASH = "#";
-	public static final char AT_SIGN = '@';
 	public static final String COMMA = ",";
 	public static final String QUESTION_MARK = "?";
 	public static final String AMPERSAND = "&";
-	public static final String EQUAL_SIGN = "=";
-	public static final String DOUBLE_QUOTATION = "\"";
 	public static final String SLASH = "/";
-	public static final String NEXT_LINE = "\n";
-	public static final String COLON = ":";
-	public static final String DASH = "-";
 	public static final String RIGHT_PARENTHESES = ")";
 	public static final String LEFT_PARENTHESES = "(";
-	public static final String HTTPS = "https://";
 	public static final String EMPTY = "";
 	public static final String ON = "On";
 	public static final String OFF = "Off";
@@ -50,8 +45,8 @@ public class SmartThingsConstant {
 	public static final String NO_ROOM_ASSIGNED = "No room assigned";
 	public static final String NONE = "None";
 	public static final String RATE_LIMIT_HEADER_KEY = "X-RateLimit-Reset";
+	public static final String IS_VALID_CONFIG_MANAGEMENT = "true";
 	public static final int MAX_ROOM_QUANTITY = 20;
-	public static final float DEFAULT_CONTROL_VALUE = 0;
 
 	// Thread metric
 	public static final int MAX_THREAD_QUANTITY = 8;
@@ -65,6 +60,4 @@ public class SmartThingsConstant {
 	public static final String VALUE = "value";
 	public static final String UNIT = "unit";
 	public static final String ENG_LOCALE = "en";
-	public static final String ACTIVE = "active";
-
 }
