@@ -51,6 +51,7 @@ public class SmartThingsConstant {
 	public static final String NONE = "None";
 	public static final String RATE_LIMIT_HEADER_KEY = "X-RateLimit-Reset";
 	public static final int MAX_ROOM_QUANTITY = 20;
+	public static final float DEFAULT_CONTROL_VALUE = 0;
 
 	// Thread metric
 	public static final int MAX_THREAD_QUANTITY = 8;
@@ -64,5 +65,6 @@ public class SmartThingsConstant {
 	public static final String VALUE = "value";
 	public static final String UNIT = "unit";
 	public static final String ENG_LOCALE = "en";
+	public static final String ACTIVE = "active";
 
 }

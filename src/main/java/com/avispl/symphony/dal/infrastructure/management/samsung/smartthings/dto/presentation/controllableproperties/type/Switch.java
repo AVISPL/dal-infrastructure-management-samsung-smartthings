@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * Created on 8/11/2022
  * @since 1.0.0
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(value = "value", ignoreUnknown = true)
 public class Switch {
 
 	private String value;

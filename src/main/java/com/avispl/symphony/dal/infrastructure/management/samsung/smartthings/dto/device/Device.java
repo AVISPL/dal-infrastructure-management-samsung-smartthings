@@ -10,6 +10,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.ColorControlMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.SmartThingsConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DevicePresentation;
 
@@ -246,16 +247,75 @@ public class Device {
 	}
 
 	/**
-	 * This method is used to create request body for device control:
+	 * This method is used to create request body for device control of non-parameter command:
+	 *
+	 * @param capability device capability
+	 * @param command control command
 	 *
 	 * @return String JSON request body
 	 */
-	public String contributeRequestBody(String capability, String command) {
+	public String contributeRequestBodyForNonParamCommand(String capability, String command) {
 		StringBuilder request = new StringBuilder();
 		request.append("{\"commands\":[{")
 				.append("\"capability\":\"").append(capability).append("\",")
 				.append("\"command\":\"").append(command).append("\"")
 				.append("}]}");
+		return request.toString();
+	}
+
+	/**
+	 * This method is used to create request body for device control of parameter command:
+	 *
+	 * @param capability device capability
+	 * @param command control command
+	 * @param arguments control arguments
+	 *
+	 * @return String JSON request body
+	 */
+	public String contributeRequestBodyForParameterCommand(String capability, String command, String arguments) {
+		StringBuilder request = new StringBuilder();
+		request.append("{\"commands\":[{")
+				.append("\"capability\":\"").append(capability).append("\",")
+				.append("\"command\":\"").append(command).append("\",")
+				.append("\"arguments\":[").append(arguments).append("]")
+				.append("}]}");
+		return request.toString();
+	}
+
+	/**
+	 * This method is used to create request body for color device control
+	 *
+	 * @param hue hue control arguments
+	 * @param saturation saturation control arguments
+	 *
+	 * @return String JSON request body
+	 */
+	public String contributeRequestBodyForColorCommand(String hue, String saturation) {
+		StringBuilder request = new StringBuilder();
+		request.append("{\"commands\":[{")
+				.append("\"capability\":\"").append(ColorControlMetric.COLOR_CONTROL).append("\",")
+				.append("\"command\":\"").append(ColorControlMetric.COLOR_CONTROL_SET_HUE).append("\",")
+				.append("\"arguments\":[").append(hue).append("]},")
+				.append("{")
+				.append("\"capability\":\"").append(ColorControlMetric.COLOR_CONTROL).append("\",")
+				.append("\"command\":\"").append(ColorControlMetric.COLOR_CONTROL_SET_SATURATION).append("\",")
+				.append("\"arguments\":[").append(saturation).append("]")
+				.append("}]}");
+		return request.toString();
+	}
+
+	/**
+	 * This method is used to create request body for updateDevice:
+	 *
+	 * @param roomId room ID
+	 *
+	 * @return String JSON request body
+	 */
+	public String contributeRequestBodyForUpdateDevice(String roomId) {
+		StringBuilder request = new StringBuilder();
+		request.append("{")
+				.append("\"roomId\":\"").append(roomId).append("\"")
+				.append("}");
 		return request.toString();
 	}
 

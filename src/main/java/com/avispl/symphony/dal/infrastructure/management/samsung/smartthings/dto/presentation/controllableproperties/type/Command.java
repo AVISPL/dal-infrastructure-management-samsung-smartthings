@@ -32,6 +32,9 @@ public class Command {
 	@JsonAlias("argumentType")
 	private String argumentType;
 
+	@JsonAlias("name")
+	private String name;
+
 	@JsonAlias ("alternatives")
 	private List<Alternative> alternatives = new ArrayList<>();
 
@@ -105,6 +108,24 @@ public class Command {
 	 */
 	public void setArgumentType(String argumentType) {
 		this.argumentType = argumentType;
+	}
+
+	/**
+	 * Retrieves {@code {@link #name}}
+	 *
+	 * @return value of {@link #name}
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * Sets {@code name}
+	 *
+	 * @param name the {@code java.lang.String} field
+	 */
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	/**

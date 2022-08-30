@@ -20,6 +20,7 @@ public class DeviceDisplayTypesMetric {
 	public static final String STAND_BY_POWER_SWITCH = "standbyPowerSwitch";
 	public static final String TOGGLE_SWITCH = "toggleSwitch";
 	public static final String SLIDER = "slider";
+	public static final String SWITCH_LEVEL = "switchLevel";
 	public static final String PUSH_BUTTON = "pushButton";
 	public static final String LIST = "list";
 	public static final String NUMBER_FIELD = "numberField";

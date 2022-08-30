@@ -17,14 +17,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * Created on 8/11/2022
  * @since 1.0.0
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(value = "value", ignoreUnknown = true)
 public class Slider {
 
 	private String value;
 	private String unit;
 
 	@JsonAlias("range")
-	private List<Double> range = new ArrayList<>();
+	private List<Float> range = new ArrayList<>();
 
 	@JsonAlias("command")
 	private String command;
@@ -55,7 +55,7 @@ public class Slider {
 	 *
 	 * @return value of {@link #range}
 	 */
-	public List<Double> getRange() {
+	public List<Float> getRange() {
 		return range;
 	}
 
@@ -64,7 +64,7 @@ public class Slider {
 	 *
 	 * @param range the {@code java.util.List<java.lang.Double>} field
 	 */
-	public void setRange(List<Double> range) {
+	public void setRange(List<Float> range) {
 		this.range = range;
 	}
 
