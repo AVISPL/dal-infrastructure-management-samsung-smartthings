@@ -1,29 +1,32 @@
 /*
  * Copyright (c) 2022 AVI-SPL, Inc. All Rights Reserved.
  */
-
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
 
 /**
- * Specific color control
+ * Aggregated Color Controlling Metric
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/1/2022
  * @since 1.0.0
  */
-public class ColorControlMetric {
-	private ColorControlMetric() {
+public class AggregatedDeviceColorControllingConstant {
+
+	/**
+	 * private constructor to prevent instance initialization
+	 */
+	private AggregatedDeviceColorControllingConstant() {
 	}
 
 	public static final String COLOR_CONTROL = "colorControl";
 
-	// control command for specific control
+	// control command for color control
 	public static final String COLOR_CONTROL_HUE = "hue";
 	public static final String COLOR_CONTROL_SET_HUE = "setHue";
 	public static final String COLOR_CONTROL_SATURATION = "saturation";
 	public static final String COLOR_CONTROL_SET_SATURATION = "setSaturation";
 
-	// color name
+	// color names
 	public static final String BLUE = "Blue";
 	public static final String CYAN = "Cyan";
 	public static final String GREEN = "Green";
@@ -34,21 +37,21 @@ public class ColorControlMetric {
 	public static final String YELLOW = "Yellow";
 	public static final String CUSTOM_COLOR = "CustomColor";
 
-	// Color Section
-	public static final String REDS = "Reds";
-	public static final String ORANGES = "Oranges";
-	public static final String YELLOWS = "Yellows";
-	public static final String YELLOW_GREENS = "Yellow Greens";
-	public static final String GREENS = "Greens";
-	public static final String BLUE_GREENS = "Blue Greens";
-	public static final String BLUES = "Blues";
-	public static final String BLUE_VIOLETS = "Blue Violets";
-	public static final String VIOLETS = "Violets";
-	public static final String MAUVES = "Mauves";
-	public static final String MAUVE_PINKS = "Mauve Pinks";
-	public static final String PINKS = "Pinks";
+	// Color Sections
+	public static final String RED_SECTION = "Red";
+	public static final String ORANGE_SECTION = "Orange";
+	public static final String YELLOW_SECTION = "Yellow";
+	public static final String YELLOW_GREEN_SECTION = "Yellow Green";
+	public static final String GREEN_SECTION = "Green";
+	public static final String BLUE_GREEN_SECTION = "Blue Green";
+	public static final String BLUE_SECTION = "Blue";
+	public static final String BLUE_VIOLET_SECTION = "Blue Violet";
+	public static final String VIOLET_SECTION = "Violet";
+	public static final String MAUVE_SECTION = "Mauve";
+	public static final String MAUVE_PINK_SECTION = "Mauve Pink";
+	public static final String PINK_SECTION = "Pink";
 
-	// Color section value range
+	// Color section value ranges
 	public static final float HUE_COORDINATE = 0;
 	public static final float REDS_RANGE = 30;
 	public static final float ORANGES_RANGE = 60;
@@ -63,6 +66,7 @@ public class ColorControlMetric {
 	public static final float MAUVE_PINKS_RANGE = 330;
 	public static final float PINKS_RANGE = 360;
 
+	// Color limitation values
 	public static final float MAX_HUE = 360;
 	public static final float MIN_HUE = 0;
 	public static final float MAX_SATURATION = 100;

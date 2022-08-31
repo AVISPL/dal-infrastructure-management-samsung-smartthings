@@ -20,7 +20,7 @@ public class LocationParent {
 	private String id;
 
 	/**
-	 * Retrieves {@code {@link #id}}
+	 * Retrieves {@code #id}}
 	 *
 	 * @return value of {@link #id}
 	 */

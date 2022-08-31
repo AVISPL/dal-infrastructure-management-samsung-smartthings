@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Location Wrapper
+ * Location Wrapper contains list of locations info
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022
@@ -23,7 +23,7 @@ public class LocationWrapper {
 	private List<Location> locations = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code {@link #locations}}
+	 * Retrieves {@code #locations}}
 	 *
 	 * @return value of {@link #locations}
 	 */
@@ -39,5 +39,4 @@ public class LocationWrapper {
 	public void setLocations(List<Location> locations) {
 		this.locations = locations;
 	}
-
 }

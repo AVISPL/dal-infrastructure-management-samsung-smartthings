@@ -34,7 +34,7 @@ public class Component {
 	private List<DeviceCategories> categories = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code {@link #id}}
+	 * Retrieves {@code #id}}
 	 *
 	 * @return value of {@link #id}
 	 */
@@ -52,7 +52,7 @@ public class Component {
 	}
 
 	/**
-	 * Retrieves {@code {@link #name}}
+	 * Retrieves {@code #name}}
 	 *
 	 * @return value of {@link #name}
 	 */
@@ -70,7 +70,7 @@ public class Component {
 	}
 
 	/**
-	 * Retrieves {@code {@link #capabilities}}
+	 * Retrieves {@code #capabilities}}
 	 *
 	 * @return value of {@link #capabilities}
 	 */
@@ -88,7 +88,7 @@ public class Component {
 	}
 
 	/**
-	 * Retrieves {@code {@link #categories}}
+	 * Retrieves {@code #categories}}
 	 *
 	 * @return value of {@link #categories}
 	 */

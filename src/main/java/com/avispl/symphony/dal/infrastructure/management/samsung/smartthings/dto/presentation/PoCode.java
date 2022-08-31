@@ -23,7 +23,7 @@ public class PoCode {
 	private String po;
 
 	/**
-	 * Retrieves {@code {@link #label}}
+	 * Retrieves {@code #label}}
 	 *
 	 * @return value of {@link #label}
 	 */
@@ -41,7 +41,7 @@ public class PoCode {
 	}
 
 	/**
-	 * Retrieves {@code {@link #po}}
+	 * Retrieves {@code #po}}
 	 *
 	 * @return value of {@link #po}
 	 */

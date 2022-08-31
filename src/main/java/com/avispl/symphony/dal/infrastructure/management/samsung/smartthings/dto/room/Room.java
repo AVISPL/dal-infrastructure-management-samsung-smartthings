@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.avispl.symphony.dal.util.StringUtils;
 
 /**
- * Rom
+ * Room
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022
@@ -28,7 +28,7 @@ public class Room {
 	private String name;
 
 	/**
-	 * Retrieves {@code {@link #roomId}}
+	 * Retrieves {@code #roomId}}
 	 *
 	 * @return value of {@link #roomId}
 	 */
@@ -46,7 +46,7 @@ public class Room {
 	}
 
 	/**
-	 * Retrieves {@code {@link #locationId}}
+	 * Retrieves {@code #locationId}}
 	 *
 	 * @return value of {@link #locationId}
 	 */
@@ -64,7 +64,7 @@ public class Room {
 	}
 
 	/**
-	 * Retrieves {@code {@link #name}}
+	 * Retrieves {@code #name}}
 	 *
 	 * @return value of {@link #name}
 	 */

@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * SceneWrapper
+ * SceneWrapper contains list of scenes info
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022
@@ -23,7 +23,7 @@ public class SceneWrapper {
 	private List<Scene> scenes = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code {@link #scenes}}
+	 * Retrieves {@code #scenes}}
 	 *
 	 * @return value of {@link #scenes}
 	 */

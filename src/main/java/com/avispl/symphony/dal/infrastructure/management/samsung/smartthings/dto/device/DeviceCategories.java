@@ -20,7 +20,7 @@ public class DeviceCategories {
 	private String name;
 
 	/**
-	 * Retrieves {@code {@link #name}}
+	 * Retrieves {@code #name}}
 	 *
 	 * @return value of {@link #name}
 	 */

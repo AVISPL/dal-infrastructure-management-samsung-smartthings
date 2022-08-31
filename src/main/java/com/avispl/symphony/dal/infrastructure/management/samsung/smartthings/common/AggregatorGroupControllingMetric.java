@@ -37,12 +37,12 @@ public enum AggregatorGroupControllingMetric {
 	}
 
 	/**
-	 * retrieve {@code {@link #name}}
+	 * Retrieves {@code #name}}
 	 *
 	 * @return value of {@link #name}
 	 */
 	public String getName() {
-		return this.name;
+		return name;
 	}
 
 	/**

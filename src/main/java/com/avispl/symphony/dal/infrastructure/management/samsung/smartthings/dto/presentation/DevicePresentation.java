@@ -39,7 +39,7 @@ public class DevicePresentation {
 	private List<Language> languages = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code {@link #color}}
+	 * Retrieves {@code #color}}
 	 *
 	 * @return value of {@link #color}
 	 */
@@ -50,14 +50,14 @@ public class DevicePresentation {
 	/**
 	 * Sets {@code color}
 	 *
-	 * @param color the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.Color} field
+	 * @param color the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.ColorDevicePresentation} field
 	 */
 	public void setColor(ColorDevicePresentation color) {
 		this.color = color;
 	}
 
 	/**
-	 * Retrieves {@code {@link #manufacturerName}}
+	 * Retrieves {@code #manufacturerName}}
 	 *
 	 * @return value of {@link #manufacturerName}
 	 */
@@ -75,7 +75,7 @@ public class DevicePresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #presentationId}}
+	 * Retrieves {@code #presentationId}}
 	 *
 	 * @return value of {@link #presentationId}
 	 */
@@ -93,7 +93,7 @@ public class DevicePresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #dashboardPresentations}}
+	 * Retrieves {@code #dashboardPresentations}}
 	 *
 	 * @return value of {@link #dashboardPresentations}
 	 */
@@ -104,14 +104,14 @@ public class DevicePresentation {
 	/**
 	 * Sets {@code dashboardPresentations}
 	 *
-	 * @param dashboardPresentations the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DashboardPresentation>} field
+	 * @param dashboardPresentations the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DashboardPresentation} field
 	 */
 	public void setDashboardPresentations(DashboardPresentation dashboardPresentations) {
 		this.dashboardPresentations = dashboardPresentations;
 	}
 
 	/**
-	 * Retrieves {@code {@link #detailViewPresentations}}
+	 * Retrieves {@code #detailViewPresentations}}
 	 *
 	 * @return value of {@link #detailViewPresentations}
 	 */
@@ -129,7 +129,7 @@ public class DevicePresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #languages}}
+	 * Retrieves {@code #languages}}
 	 *
 	 * @return value of {@link #languages}
 	 */

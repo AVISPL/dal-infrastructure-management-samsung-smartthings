@@ -23,7 +23,7 @@ public class DeviceCapability {
 	private String version;
 
 	/**
-	 * Retrieves {@code {@link #id}}
+	 * Retrieves {@code #id}}
 	 *
 	 * @return value of {@link #id}
 	 */
@@ -41,7 +41,7 @@ public class DeviceCapability {
 	}
 
 	/**
-	 * Retrieves {@code {@link #version}}
+	 * Retrieves {@code #version}}
 	 *
 	 * @return value of {@link #version}
 	 */

@@ -31,7 +31,7 @@ public class TextOrNumber {
 	private String argumentType;
 
 	/**
-	 * Retrieves {@code {@link #value}}
+	 * Retrieves {@code #value}}
 	 *
 	 * @return value of {@link #value}
 	 */
@@ -49,7 +49,7 @@ public class TextOrNumber {
 	}
 
 	/**
-	 * Retrieves {@code {@link #range}}
+	 * Retrieves {@code #range}}
 	 *
 	 * @return value of {@link #range}
 	 */
@@ -67,7 +67,7 @@ public class TextOrNumber {
 	}
 
 	/**
-	 * Retrieves {@code {@link #command}}
+	 * Retrieves {@code #command}}
 	 *
 	 * @return value of {@link #command}
 	 */
@@ -85,7 +85,7 @@ public class TextOrNumber {
 	}
 
 	/**
-	 * Retrieves {@code {@link #argumentType}}
+	 * Retrieves {@code #argumentType}}
 	 *
 	 * @return value of {@link #argumentType}
 	 */

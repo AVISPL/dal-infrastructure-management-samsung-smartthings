@@ -23,7 +23,7 @@ public class DashboardPresentation {
 	private List<DetailViewPresentation> actions = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code {@link #actions}}
+	 * Retrieves {@code #actions}}
 	 *
 	 * @return value of {@link #actions}
 	 */

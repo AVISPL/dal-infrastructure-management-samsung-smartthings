@@ -23,7 +23,7 @@ public class State {
 	private List<Alternative> alternatives = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code {@link #alternatives}}
+	 * Retrieves {@code #alternatives}}
 	 *
 	 * @return value of {@link #alternatives}
 	 */
