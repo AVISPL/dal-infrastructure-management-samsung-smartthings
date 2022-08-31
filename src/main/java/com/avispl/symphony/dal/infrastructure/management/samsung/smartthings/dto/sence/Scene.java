@@ -26,7 +26,7 @@ public class Scene {
 	private String locationId;
 
 	/**
-	 * Retrieves {@code {@link #sceneId}}
+	 * Retrieves {@code #sceneId}}
 	 *
 	 * @return value of {@link #sceneId}
 	 */
@@ -44,7 +44,7 @@ public class Scene {
 	}
 
 	/**
-	 * Retrieves {@code {@link #sceneName}}
+	 * Retrieves {@code #sceneName}}
 	 *
 	 * @return value of {@link #sceneName}
 	 */
@@ -62,7 +62,7 @@ public class Scene {
 	}
 
 	/**
-	 * Retrieves {@code {@link #locationId}}
+	 * Retrieves {@code #locationId}}
 	 *
 	 * @return value of {@link #locationId}
 	 */

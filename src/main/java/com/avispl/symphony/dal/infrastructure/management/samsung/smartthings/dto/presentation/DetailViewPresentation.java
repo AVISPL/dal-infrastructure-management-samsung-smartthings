@@ -53,7 +53,7 @@ public class DetailViewPresentation {
 	private TextOrNumber textField;
 
 	/**
-	 * Retrieves {@code {@link #capability}}
+	 * Retrieves {@code #capability}}
 	 *
 	 * @return value of {@link #capability}
 	 */
@@ -71,7 +71,7 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #label}}
+	 * Retrieves {@code #label}}
 	 *
 	 * @return value of {@link #label}
 	 */
@@ -89,7 +89,7 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #displayType}}
+	 * Retrieves {@code #displayType}}
 	 *
 	 * @return value of {@link #displayType}
 	 */
@@ -107,7 +107,7 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #standbyPowerSwitch}}
+	 * Retrieves {@code #standbyPowerSwitch}}
 	 *
 	 * @return value of {@link #standbyPowerSwitch}
 	 */
@@ -125,7 +125,7 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #dropdownList}}
+	 * Retrieves {@code #dropdownList}}
 	 *
 	 * @return value of {@link #dropdownList}
 	 */
@@ -143,7 +143,7 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #pushButton}}
+	 * Retrieves {@code #pushButton}}
 	 *
 	 * @return value of {@link #pushButton}
 	 */
@@ -161,7 +161,7 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #slider}}
+	 * Retrieves {@code #slider}}
 	 *
 	 * @return value of {@link #slider}
 	 */
@@ -179,7 +179,7 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #state}}
+	 * Retrieves {@code #state}}
 	 *
 	 * @return value of {@link #state}
 	 */
@@ -197,7 +197,7 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #numberField}}
+	 * Retrieves {@code #numberField}}
 	 *
 	 * @return value of {@link #numberField}
 	 */
@@ -215,7 +215,7 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Retrieves {@code {@link #textField}}
+	 * Retrieves {@code #textField}}
 	 *
 	 * @return value of {@link #textField}
 	 */

@@ -32,7 +32,7 @@ public class Slider {
 	private String argumentType;
 
 	/**
-	 * Retrieves {@code {@link #value}}
+	 * Retrieves {@code #value}}
 	 *
 	 * @return value of {@link #value}
 	 */
@@ -50,25 +50,7 @@ public class Slider {
 	}
 
 	/**
-	 * Retrieves {@code {@link #range}}
-	 *
-	 * @return value of {@link #range}
-	 */
-	public List<Float> getRange() {
-		return range;
-	}
-
-	/**
-	 * Sets {@code range}
-	 *
-	 * @param range the {@code java.util.List<java.lang.Double>} field
-	 */
-	public void setRange(List<Float> range) {
-		this.range = range;
-	}
-
-	/**
-	 * Retrieves {@code {@link #unit}}
+	 * Retrieves {@code #unit}}
 	 *
 	 * @return value of {@link #unit}
 	 */
@@ -86,7 +68,25 @@ public class Slider {
 	}
 
 	/**
-	 * Retrieves {@code {@link #command}}
+	 * Retrieves {@code #range}}
+	 *
+	 * @return value of {@link #range}
+	 */
+	public List<Float> getRange() {
+		return range;
+	}
+
+	/**
+	 * Sets {@code range}
+	 *
+	 * @param range the {@code java.util.List<java.lang.Float>} field
+	 */
+	public void setRange(List<Float> range) {
+		this.range = range;
+	}
+
+	/**
+	 * Retrieves {@code #command}}
 	 *
 	 * @return value of {@link #command}
 	 */
@@ -104,7 +104,7 @@ public class Slider {
 	}
 
 	/**
-	 * Retrieves {@code {@link #argumentType}}
+	 * Retrieves {@code #argumentType}}
 	 *
 	 * @return value of {@link #argumentType}
 	 */

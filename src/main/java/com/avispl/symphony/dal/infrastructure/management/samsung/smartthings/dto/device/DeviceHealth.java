@@ -23,7 +23,7 @@ public class DeviceHealth {
 	private String deviceId;
 
 	/**
-	 * Retrieves {@code {@link #state}}
+	 * Retrieves {@code #state}}
 	 *
 	 * @return value of {@link #state}
 	 */
@@ -41,7 +41,7 @@ public class DeviceHealth {
 	}
 
 	/**
-	 * Retrieves {@code {@link #deviceId}}
+	 * Retrieves {@code #deviceId}}
 	 *
 	 * @return value of {@link #deviceId}
 	 */

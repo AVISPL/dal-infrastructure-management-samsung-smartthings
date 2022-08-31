@@ -25,6 +25,8 @@ public class SmartThingsConstant {
 	public static final String SLASH = "/";
 	public static final String RIGHT_PARENTHESES = ")";
 	public static final String LEFT_PARENTHESES = "(";
+	public static final String PERCENT_UNIT = "(%)";
+	public static final String DEGREES_UNIT = "(degrees)";
 	public static final String EMPTY = "";
 	public static final String ON = "On";
 	public static final String OFF = "Off";

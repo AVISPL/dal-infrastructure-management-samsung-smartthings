@@ -38,7 +38,7 @@ public class Command {
 	private List<Alternative> alternatives = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code {@link #on}}
+	 * Retrieves {@code #on}}
 	 *
 	 * @return value of {@link #on}
 	 */
@@ -56,7 +56,7 @@ public class Command {
 	}
 
 	/**
-	 * Retrieves {@code {@link #off}}
+	 * Retrieves {@code #off}}
 	 *
 	 * @return value of {@link #off}
 	 */
@@ -74,7 +74,7 @@ public class Command {
 	}
 
 	/**
-	 * Retrieves {@code {@link #controlCommand }}
+	 * Retrieves {@code #controlCommand}}
 	 *
 	 * @return value of {@link #controlCommand}
 	 */
@@ -83,7 +83,7 @@ public class Command {
 	}
 
 	/**
-	 * Sets {@code command}
+	 * Sets {@code controlCommand}
 	 *
 	 * @param controlCommand the {@code java.lang.String} field
 	 */
@@ -92,7 +92,7 @@ public class Command {
 	}
 
 	/**
-	 * Retrieves {@code {@link #argumentType}}
+	 * Retrieves {@code #argumentType}}
 	 *
 	 * @return value of {@link #argumentType}
 	 */
@@ -110,7 +110,7 @@ public class Command {
 	}
 
 	/**
-	 * Retrieves {@code {@link #name}}
+	 * Retrieves {@code #name}}
 	 *
 	 * @return value of {@link #name}
 	 */
@@ -128,7 +128,7 @@ public class Command {
 	}
 
 	/**
-	 * Retrieves {@code {@link #alternatives}}
+	 * Retrieves {@code #alternatives}}
 	 *
 	 * @return value of {@link #alternatives}
 	 */

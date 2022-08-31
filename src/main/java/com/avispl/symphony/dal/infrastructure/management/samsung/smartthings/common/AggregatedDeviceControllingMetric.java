@@ -1,14 +1,12 @@
 /*
  * Copyright (c) 2022 AVI-SPL, Inc. All Rights Reserved.
  */
-
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
-
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * AggregatedDeviceControllingMetric
+ * Aggregated Device Controlling Metric
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/25/2022
@@ -20,10 +18,11 @@ public enum AggregatedDeviceControllingMetric {
 	ROOM_MANAGEMENT("Room"),
 	STATUS("Status"),
 	AGGREGATED_DEVICE("AggregatedDevice"),
-	COLOR_CONTROL("ColorControl"),
-	HUE_CONTROL("ColorControlHue"),
-	SATURATION_CONTROL("ColorControlSaturation"),
-	CURRENT_COLOR_CONTROL("ColorControlCurrentColor"),
+	COLOR_CONTROL("ColourControl"),
+	HUE_CONTROL("ColourHue"),
+	SATURATION_CONTROL("ColourSaturation"),
+	VALUE_CONTROL("ColourValue"),
+	CURRENT_COLOR_CONTROL("ColourCurrentColor"),
 	CURRENT_VALUE("CurrentValue");
 
 	private final String name;
@@ -38,12 +37,12 @@ public enum AggregatedDeviceControllingMetric {
 	}
 
 	/**
-	 * retrieve {@code {@link #name}}
+	 * Retrieves {@code #name}}
 	 *
 	 * @return value of {@link #name}
 	 */
 	public String getName() {
-		return this.name;
+		return name;
 	}
 
 	/**

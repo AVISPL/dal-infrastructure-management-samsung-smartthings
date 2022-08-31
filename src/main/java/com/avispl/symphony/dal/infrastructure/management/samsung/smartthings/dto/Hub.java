@@ -29,7 +29,7 @@ public class Hub {
 	private String state;
 
 	/**
-	 * Retrieves {@code {@link #name}}
+	 * Retrieves {@code #name}}
 	 *
 	 * @return value of {@link #name}
 	 */
@@ -47,7 +47,7 @@ public class Hub {
 	}
 
 	/**
-	 * Retrieves {@code {@link #serialNumber}}
+	 * Retrieves {@code #serialNumber}}
 	 *
 	 * @return value of {@link #serialNumber}
 	 */
@@ -65,7 +65,7 @@ public class Hub {
 	}
 
 	/**
-	 * Retrieves {@code {@link #firmwareVersion}}
+	 * Retrieves {@code #firmwareVersion}}
 	 *
 	 * @return value of {@link #firmwareVersion}
 	 */
@@ -83,20 +83,20 @@ public class Hub {
 	}
 
 	/**
+	 * Retrieves {@code #state}}
+	 *
+	 * @return value of {@link #state}
+	 */
+	public String getState() {
+		return state;
+	}
+
+	/**
 	 * Sets {@code state}
 	 *
 	 * @param state the {@code java.lang.String} field
 	 */
 	public void setState(String state) {
 		this.state = state;
-	}
-
-	/**
-	 * Retrieves {@code {@link #state}}
-	 *
-	 * @return value of {@link #state}
-	 */
-	public String getState() {
-		return state;
 	}
 }

@@ -26,7 +26,7 @@ public class Alternative {
 	private String type;
 
 	/**
-	 * Retrieves {@code {@link #key}}
+	 * Retrieves {@code #key}}
 	 *
 	 * @return value of {@link #key}
 	 */
@@ -44,7 +44,7 @@ public class Alternative {
 	}
 
 	/**
-	 * Retrieves {@code {@link #value}}
+	 * Retrieves {@code #value}}
 	 *
 	 * @return value of {@link #value}
 	 */
@@ -62,7 +62,7 @@ public class Alternative {
 	}
 
 	/**
-	 * Retrieves {@code {@link #type}}
+	 * Retrieves {@code #type}}
 	 *
 	 * @return value of {@link #type}
 	 */

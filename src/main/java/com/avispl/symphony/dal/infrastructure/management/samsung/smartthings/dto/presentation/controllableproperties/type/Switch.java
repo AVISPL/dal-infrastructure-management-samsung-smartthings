@@ -22,7 +22,7 @@ public class Switch {
 	private Command command;
 
 	/**
-	 * Retrieves {@code {@link #value}}
+	 * Retrieves {@code #value}}
 	 *
 	 * @return value of {@link #value}
 	 */
@@ -40,7 +40,7 @@ public class Switch {
 	}
 
 	/**
-	 * Retrieves {@code {@link #command}}
+	 * Retrieves {@code #command}}
 	 *
 	 * @return value of {@link #command}
 	 */

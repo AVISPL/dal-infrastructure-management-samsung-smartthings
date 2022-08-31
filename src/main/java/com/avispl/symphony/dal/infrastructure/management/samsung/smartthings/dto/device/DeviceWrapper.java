@@ -24,7 +24,7 @@ public class DeviceWrapper {
 	private List<Device> devices = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code {@link #devices}}
+	 * Retrieves {@code #devices}}
 	 *
 	 * @return value of {@link #devices}
 	 */

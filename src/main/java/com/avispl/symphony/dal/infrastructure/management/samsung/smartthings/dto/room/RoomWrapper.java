@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * RoomWrapper
+ * RoomWrapper contains list of rooms info
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022
@@ -23,7 +23,7 @@ public class RoomWrapper {
 	private List<Room> rooms = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code {@link #rooms }}
+	 * Retrieves {@code #rooms}}
 	 *
 	 * @return value of {@link #rooms}
 	 */

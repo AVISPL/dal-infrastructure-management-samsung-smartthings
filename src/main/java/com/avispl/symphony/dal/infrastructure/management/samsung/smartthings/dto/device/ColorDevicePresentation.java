@@ -14,8 +14,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ColorDevicePresentation {
-	private float hue;
-	private float saturation;
+	private Float hue;
+	private Float saturation;
 
 	private String currentColor;
 
@@ -32,50 +32,50 @@ public class ColorDevicePresentation {
 	 * @param saturation saturation value
 	 * @param currentColor current color name
 	 */
-	public ColorDevicePresentation(float hue, float saturation, String currentColor) {
+	public ColorDevicePresentation(Float hue, Float saturation, String currentColor) {
 		this.hue = hue;
 		this.saturation = saturation;
 		this.currentColor = currentColor;
 	}
 
 	/**
-	 * Retrieves {@code {@link #hue}}
+	 * Retrieves {@code #hue}}
 	 *
 	 * @return value of {@link #hue}
 	 */
-	public float getHue() {
+	public Float getHue() {
 		return hue;
 	}
 
 	/**
 	 * Sets {@code hue}
 	 *
-	 * @param hue the {@code float} field
+	 * @param hue the {@code java.lang.Float} field
 	 */
-	public void setHue(float hue) {
+	public void setHue(Float hue) {
 		this.hue = hue;
 	}
 
 	/**
-	 * Retrieves {@code {@link #saturation}}
+	 * Retrieves {@code #saturation}}
 	 *
 	 * @return value of {@link #saturation}
 	 */
-	public float getSaturation() {
+	public Float getSaturation() {
 		return saturation;
 	}
 
 	/**
 	 * Sets {@code saturation}
 	 *
-	 * @param saturation the {@code float} field
+	 * @param saturation the {@code java.lang.Float} field
 	 */
-	public void setSaturation(float saturation) {
+	public void setSaturation(Float saturation) {
 		this.saturation = saturation;
 	}
 
 	/**
-	 * Retrieves {@code {@link #currentColor}}
+	 * Retrieves {@code #currentColor}}
 	 *
 	 * @return value of {@link #currentColor}
 	 */
@@ -91,6 +91,4 @@ public class ColorDevicePresentation {
 	public void setCurrentColor(String currentColor) {
 		this.currentColor = currentColor;
 	}
-
-
 }

@@ -22,7 +22,7 @@ public class DropdownList {
 	private Command command;
 
 	/**
-	 * Retrieves {@code {@link #value}}
+	 * Retrieves {@code #value}}
 	 *
 	 * @return value of {@link #value}
 	 */
@@ -40,7 +40,7 @@ public class DropdownList {
 	}
 
 	/**
-	 * Retrieves {@code {@link #command}}
+	 * Retrieves {@code #command}}
 	 *
 	 * @return value of {@link #command}
 	 */
@@ -56,6 +56,4 @@ public class DropdownList {
 	public void setCommand(Command command) {
 		this.command = command;
 	}
-
-
 }

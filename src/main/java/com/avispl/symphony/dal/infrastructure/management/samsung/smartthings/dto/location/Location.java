@@ -28,7 +28,7 @@ public class Location {
 	private LocationParent locationParent;
 
 	/**
-	 * Retrieves {@code {@link #locationId}}
+	 * Retrieves {@code #locationId}}
 	 *
 	 * @return value of {@link #locationId}
 	 */
@@ -46,7 +46,7 @@ public class Location {
 	}
 
 	/**
-	 * Retrieves {@code {@link #name}}
+	 * Retrieves {@code #name}}
 	 *
 	 * @return value of {@link #name}
 	 */
@@ -64,7 +64,7 @@ public class Location {
 	}
 
 	/**
-	 * Retrieves {@code {@link #locationParent}}
+	 * Retrieves {@code #locationParent}}
 	 *
 	 * @return value of {@link #locationParent}
 	 */

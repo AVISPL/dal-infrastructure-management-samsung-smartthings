@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Device Capabilities Wrapper
+ * Device Capabilities Wrapper contains list of device capabilities info
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/30/2022
@@ -23,7 +23,7 @@ public class DeviceCapabilityWrapper {
 	List<DeviceCapability> deviceCapabilities = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code {@link #deviceCapabilities }}
+	 * Retrieves {@code #deviceCapabilities}}
 	 *
 	 * @return value of {@link #deviceCapabilities}
 	 */
@@ -32,9 +32,9 @@ public class DeviceCapabilityWrapper {
 	}
 
 	/**
-	 * Sets {@code capabilities}
+	 * Sets {@code deviceCapabilities}
 	 *
-	 * @param deviceCapabilities the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.DeviceCapabilities>} field
+	 * @param deviceCapabilities the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.DeviceCapability>} field
 	 */
 	public void setDeviceCapabilities(List<DeviceCapability> deviceCapabilities) {
 		this.deviceCapabilities = deviceCapabilities;
