@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Aggregated Device Controlling Metric
+ * AggregatedDeviceControllingMetric defined the enum for unique controllable properties of aggregated device
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/25/2022

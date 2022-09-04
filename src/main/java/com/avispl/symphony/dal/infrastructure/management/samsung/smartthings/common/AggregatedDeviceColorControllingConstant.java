@@ -4,7 +4,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
 
 /**
- * Aggregated Color Controlling Metric
+ * AggregatedColorControllingMetric defined the constants for monitoring and controlling location group
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/1/2022

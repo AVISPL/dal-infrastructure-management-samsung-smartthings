@@ -4,7 +4,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.room;
 
 /**
- * Room Management Metric
+ * RoomManagementMetric defined the enum for monitoring and controlling EditRoom group
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022

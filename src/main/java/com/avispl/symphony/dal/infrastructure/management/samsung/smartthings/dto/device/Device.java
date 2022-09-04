@@ -14,7 +14,7 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.com
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DevicePresentation;
 
 /**
- * Aggregated device
+ * Aggregated device info
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022

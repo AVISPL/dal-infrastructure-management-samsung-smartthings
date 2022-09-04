@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Device Categories
+ * Device Categories define the kind of device that is being interacted with.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/30/2022

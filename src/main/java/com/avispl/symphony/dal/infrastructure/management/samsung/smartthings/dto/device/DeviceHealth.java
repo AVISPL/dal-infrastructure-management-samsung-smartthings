@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Device Health contain status of devices
+ * Device Health service tracks connected devices and hubs to SmartThings.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/31/2022

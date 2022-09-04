@@ -4,7 +4,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
 
 /**
- * Hub Info Metric
+ * Hub Info Metric defined the enum for monitoring Hub
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022

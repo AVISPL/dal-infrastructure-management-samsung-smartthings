@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Device Wrapper
+ * Device Wrapper contains list of devices info
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/27/2022

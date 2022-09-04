@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Device Capabilities
+ * DeviceCapabilities contain capability ID and Version for getting Attributes and Commands. Attributes represent the state of information or properties of the Device, while Commands allow for the control of device functions.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/30/2022

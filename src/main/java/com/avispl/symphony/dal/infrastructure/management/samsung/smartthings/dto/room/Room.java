@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.avispl.symphony.dal.util.StringUtils;
 
 /**
- * Room
+ * Room are a subgroup that exists inside a Location
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Scene
+ * Scene allowing user to define one or more actions that will occur by tapping scene trigger.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022

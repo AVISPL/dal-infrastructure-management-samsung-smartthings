@@ -4,7 +4,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
 
 /**
- * Device Category Metric
+ * DeviceCategoryMetric defined the enum for supported device categories
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/1/2022
