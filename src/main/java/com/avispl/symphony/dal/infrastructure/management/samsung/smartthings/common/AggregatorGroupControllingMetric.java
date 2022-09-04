@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Aggregator Group Controlling Metric
+ * Aggregator Group Controlling Metric defined the enum for monitoring and controlling aggregator group
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022

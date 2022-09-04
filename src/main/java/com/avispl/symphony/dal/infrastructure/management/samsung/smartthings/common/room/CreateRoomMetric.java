@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Create Room Metric
+ * CreateRoomMetric defined the enum for monitoring and controlling CreateRoom group
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022

@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.avispl.symphony.dal.util.StringUtils;
 
 /**
- * Location
+ * Location is used for grouping hubs, devices, and scenes together into a logical group.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 7/26/2022
@@ -23,9 +23,6 @@ public class Location {
 
 	@JsonAlias("name")
 	private String name;
-
-	@JsonAlias("parent")
-	private LocationParent locationParent;
 
 	/**
 	 * Retrieves {@code #locationId}}
@@ -64,24 +61,6 @@ public class Location {
 	}
 
 	/**
-	 * Retrieves {@code #locationParent}}
-	 *
-	 * @return value of {@link #locationParent}
-	 */
-	public LocationParent getLocationParent() {
-		return locationParent;
-	}
-
-	/**
-	 * Sets {@code locationParent}
-	 *
-	 * @param locationParent the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.location.LocationParent} field
-	 */
-	public void setLocationParent(LocationParent locationParent) {
-		this.locationParent = locationParent;
-	}
-
-	/**
 	 * This method is used to create request body for location control:
 	 *
 	 * @return String JSON request body
@@ -99,7 +78,6 @@ public class Location {
 		return "Location{" +
 				"locationId='" + locationId + '\'' +
 				", name='" + name + '\'' +
-				", locationParent=" + locationParent +
 				'}';
 	}
 }

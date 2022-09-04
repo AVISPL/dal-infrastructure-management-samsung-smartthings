@@ -29,7 +29,9 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.com
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/2/2022
  * @since 1.0.0
+ *
  */
+@Tag ("RealDevice")
 class SamsungSmartThingsAggregatorCommunicatorTest {
 	private SamsungSmartThingsAggregatorCommunicator communicator;
 
@@ -50,7 +52,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 * Test getMultipleStatistics get all current hub information
 	 * Expect getMultipleStatistics successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testGetMultipleStatisticsRetrieveHubInfoSuccessfully() throws Exception {
 		communicator.getMultipleStatistics().get(0);
@@ -67,7 +68,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 * Test getMultipleStatistics get all current location information
 	 * Expect getMultipleStatistics successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testGetMultipleStatisticsRetrieveLocationSuccessfully() throws Exception {
 		communicator.getMultipleStatistics().get(0);
@@ -84,7 +84,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 * Test getMultipleStatistics get all current hub state information
 	 * Expect getMultipleStatistics successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testGetMultipleStatisticsRetrieveHubStateSuccessfully() throws Exception {
 		communicator.getMultipleStatistics().get(0);
@@ -101,7 +100,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 * Test getMultipleStatistics with filter
 	 * Expect getMultipleStatistics successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testFilter() throws Exception {
 		communicator.setRoomsFilter("Dining");
@@ -122,7 +120,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testUpdateLocationName() throws Exception {
 		communicator.getMultipleStatistics();
@@ -145,7 +142,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testUpdateRoomName() throws Exception {
 		communicator.getMultipleStatistics();
@@ -169,7 +165,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testDeleteRoomName() throws Exception {
 		communicator.getMultipleStatistics();
@@ -192,7 +187,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testDeleteAndEditRoomNameContinuously() throws Exception {
 		communicator.getMultipleStatistics();
@@ -226,7 +220,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testCreateRoom() throws Exception {
 		communicator.getMultipleStatistics();
@@ -255,7 +248,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testOpenWindowShade() throws Exception {
 		communicator.getMultipleStatistics();
@@ -281,7 +273,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testOpenGarageDoor() throws Exception {
 		communicator.getMultipleStatistics();
@@ -307,7 +298,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testPowerOnPresenceSensor() throws Exception {
 		communicator.getMultipleStatistics();
@@ -334,7 +324,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testPowerOnTV() throws Exception {
 		communicator.getMultipleStatistics();
@@ -361,7 +350,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testPowerOnLight() throws Exception {
 		communicator.getMultipleStatistics();
@@ -387,7 +375,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testDeviceDashBoardRoomDropDown() throws Exception {
 		communicator.getMultipleStatistics();
@@ -420,7 +407,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testLocationFilter() throws Exception {
 		communicator.setConfigManagement("true");
@@ -441,7 +427,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testLocationAndDeviceFilter() throws Exception {
 		communicator.setConfigManagement("true");
@@ -470,7 +455,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testFilterAndEditRoomName() throws Exception {
 		communicator.setConfigManagement("true");
@@ -525,7 +509,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testRetrieveMultipleStatistics() throws Exception {
 		communicator.getMultipleStatistics();
@@ -543,7 +526,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testAggregatedDeviceSwitchControl() throws Exception {
 		communicator.getMultipleStatistics();
@@ -574,7 +556,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testAggregatedDeviceSliderControl() throws Exception {
 		communicator.getMultipleStatistics();
@@ -606,7 +587,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testAggregatedDeviceRoomControl() throws Exception {
 		communicator.getMultipleStatistics();
@@ -638,7 +618,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testAggregatedDeviceTextControl() throws Exception {
 		communicator.getMultipleStatistics();
@@ -669,7 +648,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testAggregatedDeviceDropdownListControl() throws Exception {
 		communicator.getMultipleStatistics();
@@ -700,7 +678,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testAggregatedDeviceColorControl() throws Exception {
 		communicator.getMultipleStatistics();
@@ -734,7 +711,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testAggregatedDeviceCustomColorControl() throws Exception {
 		communicator.getMultipleStatistics();
@@ -765,7 +741,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testAggregatedDeviceHueControl() throws Exception {
 		communicator.getMultipleStatistics();
@@ -806,7 +781,6 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 *
 	 * Expected: control successfully
 	 */
-	@Tag("RealDevice")
 	@Test
 	void testAggregatedDeviceSaturationControl() throws Exception {
 		communicator.getMultipleStatistics();

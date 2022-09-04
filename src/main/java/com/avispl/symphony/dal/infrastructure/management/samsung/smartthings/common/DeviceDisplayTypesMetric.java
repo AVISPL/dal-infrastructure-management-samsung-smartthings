@@ -4,7 +4,7 @@
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
 
 /**
- * Device Type Metric
+ * DeviceTypeMetric defined the constant for display type of controllable properties ( switch, slider, button,...)
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/1/2022
