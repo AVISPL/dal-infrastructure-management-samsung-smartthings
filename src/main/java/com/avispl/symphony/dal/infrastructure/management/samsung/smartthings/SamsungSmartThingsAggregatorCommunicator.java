@@ -51,6 +51,7 @@ import com.avispl.symphony.api.dal.monitor.aggregator.Aggregator;
 import com.avispl.symphony.dal.communicator.RestCommunicator;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceColorControllingConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceControllingMetric;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceThermostatControllingConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatorGroupControllingMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.DeviceCategoriesMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.DeviceDisplayTypesMetric;
@@ -131,13 +132,170 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		// Finished collecting
 	}
 
+	/**
+	 * Number of threads in a thread pool reserved for the device statistics collection
+	 */
+	private volatile int deviceStatisticsCollectionThreads;
+
+	/**
+	 * SmartThings personal access token
+	 */
+	private String apiToken;
+
+	/**
+	 * SmartThings current room in device dashboard
+	 */
+	private String currentRoomInDeviceDashBoard;
+
+
+	/**
+	 * Caching the list of locations
+	 */
+	private List<Location> cachedLocations = new ArrayList<>();
+
+	/**
+	 * Caching the list rooms data
+	 */
+	private List<Room> cachedRooms = new ArrayList<>();
+
+	/**
+	 * Caching create room data
+	 */
+	private Room cachedCreateRoom = new Room();
+
+	/**
+	 * Caching the list of scenes data
+	 */
+	private List<Scene> cachedScenes = new ArrayList<>();
+
+	/**
+	 * Caching the list of devices data
+	 */
+	private ConcurrentHashMap<String, Device> cachedDevices = new ConcurrentHashMap<>();
+
+	/**
+	 * Caching the list of devices data
+	 */
+	private ConcurrentHashMap<String, DevicePresentation> cachedPresentations = new ConcurrentHashMap<>();
+
+	/**
+	 * Caching the list of devices data after polling interval
+	 */
+	private ConcurrentHashMap<String, Device> cachedDevicesAfterPollingInterval = new ConcurrentHashMap<>();
+
+	/**
+	 * Caching the list of device Ids
+	 */
+	private Set<String> deviceIds = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * Caching the list of failed monitoring devices
+	 */
+	private Set<String> failedMonitoringDeviceIds = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * Map of aggregated devices
+	 */
+	private ConcurrentHashMap<String, AggregatedDevice> aggregatedDevices = new ConcurrentHashMap<>();
+
+	/**
+	 * Map of aggregated devices
+	 */
+	private ConcurrentHashMap<String, AggregatedDevice> cachedAggregatedDevices = new ConcurrentHashMap<>();
+
+	/**
+	 * Map of controllablePropertiesName after converted to TitleCase
+	 */
+	private Map<String, String> controllablePropertyNames = new HashMap<>();
+
+	/**
+	 * Executor that runs all the async operations
+	 */
+	private static ExecutorService executorService;
+
+	/**
+	 * ReentrantLock to prevent null pointer exception to localExtendedStatistics when controlProperty method is called before GetMultipleStatistics method.
+	 */
+	private final ReentrantLock reentrantLock = new ReentrantLock();
+
+	/**
+	 * store locationFilter adapter properties
+	 */
+	private String locationFilter;
+
+	/**
+	 * store pollingInterval adapter properties
+	 */
+	private String pollingInterval;
+
+	/**
+	 * store deviceTypesFilter adapter properties
+	 */
+	private String deviceTypesFilter;
+
+	/**
+	 * store deviceNamesFilter adapter properties
+	 */
+	private String deviceNamesFilter;
+
+	/**
+	 * store roomsFilter adapter properties
+	 */
+	private String roomsFilter;
+
+	/**
+	 * store configManagement adapter properties
+	 */
+	private String configManagement;
+
+	/**
+	 * configManagement in boolean value
+	 */
+	private boolean isConfigManagement;
+
+	/**
+	 * set of unused Devices controllable properties keys
+	 */
+	private Set<String> unusedDeviceControlKeys = new HashSet<>();
+
+	/**
+	 * set of unused EditRoom controllable properties keys
+	 */
+	private Set<String> unusedRoomControlKeys = new HashSet<>();
+
+	/**
+	 * location ID after filtering
+	 */
+	private String locationIdFiltered;
+
+	private ExtendedStatistics localExtendedStatistics;
+	private boolean isEmergencyDelivery = false;
+	private Boolean isEditedForCreateRoom = false;
+	private ObjectMapper objectMapper = new ObjectMapper();
+
+
+	/**
+	 * Stored common color
+	 */
+	private static Map<String, Color> commonColors = new HashMap<>();
+
+	/**
+	 * Polling interval which applied in adapter
+	 */
+	private volatile int localPollingInterval = SmartThingsConstant.MIN_POLLING_INTERVAL;
+
+	/**
+	 * The current phase of monitoring cycle in polling interval
+	 */
+	private final AtomicInteger currentPhase = new AtomicInteger(0);
+
 	//region retrieve detail aggregated device info: device health, device presentation and device full status in worker thread
 	//--------------------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * @param currentThread current thread index
-	 *
 	 * Submit thread to get device detail info
+	 *
+	 * @param currentThread current thread index
 	 */
 	private void retrieveDeviceDetail(int currentThread) {
 		int currentPhaseIndex = currentPhase.get() - SmartThingsConstant.CONVERT_POSITION_TO_INDEX;
@@ -398,8 +556,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				case DeviceDisplayTypesMetric.TEXT_FIELD:
 					detailViewPresentation.getTextField().setValue(value);
 					break;
-				case DeviceDisplayTypesMetric.STATE:
-					break;
 				default:
 					if (logger.isWarnEnabled()) {
 						logger.warn(String.format("Unexpected device display type: %s", detailViewPresentation.getDisplayType()));
@@ -464,125 +620,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	//endregion
-
-
-	/**
-	 * Number of threads in a thread pool reserved for the device statistics collection
-	 */
-	private volatile int deviceStatisticsCollectionThreads;
-
-	/**
-	 * SmartThings personal access token
-	 */
-	private String apiToken;
-
-	/**
-	 * SmartThings current room in device dashboard
-	 */
-	private String currentRoomInDeviceDashBoard;
-
-
-	/**
-	 * Caching the list of locations
-	 */
-	private List<Location> cachedLocations = new ArrayList<>();
-
-	/**
-	 * Caching the list rooms data
-	 */
-	private List<Room> cachedRooms = new ArrayList<>();
-
-	/**
-	 * Caching create room data
-	 */
-	private Room cachedCreateRoom = new Room();
-
-	/**
-	 * Caching the list of scenes data
-	 */
-	private List<Scene> cachedScenes = new ArrayList<>();
-
-	/**
-	 * Caching the list of devices data
-	 */
-	private ConcurrentHashMap<String, Device> cachedDevices = new ConcurrentHashMap<>();
-
-	/**
-	 * Caching the list of devices data
-	 */
-	private ConcurrentHashMap<String, DevicePresentation> cachedPresentations = new ConcurrentHashMap<>();
-
-	/**
-	 * Caching the list of devices data after polling interval
-	 */
-	private ConcurrentHashMap<String, Device> cachedDevicesAfterPollingInterval = new ConcurrentHashMap<>();
-
-	/**
-	 * Caching the list of device Ids
-	 */
-	private Set<String> deviceIds = ConcurrentHashMap.newKeySet();
-
-	/**
-	 * Caching the list of failed monitoring devices
-	 */
-	private Set<String> failedMonitoringDeviceIds = ConcurrentHashMap.newKeySet();
-
-	/**
-	 * Map of aggregated devices
-	 */
-	private ConcurrentHashMap<String, AggregatedDevice> aggregatedDevices = new ConcurrentHashMap<>();
-
-	/**
-	 * Map of aggregated devices
-	 */
-	private ConcurrentHashMap<String, AggregatedDevice> cachedAggregatedDevices = new ConcurrentHashMap<>();
-
-	/**
-	 * Map of controllablePropertiesName after converted to TitleCase
-	 */
-	private Map<String, String> controllablePropertyNames = new HashMap<>();
-
-	/**
-	 * Executor that runs all the async operations
-	 */
-	private static ExecutorService executorService;
-
-	/**
-	 * ReentrantLock to prevent null pointer exception to localExtendedStatistics when controlProperty method is called before GetMultipleStatistics method.
-	 */
-	private final ReentrantLock reentrantLock = new ReentrantLock();
-
-	// Adapter properties
-	private String locationFilter;
-	private String pollingInterval;
-	private String deviceTypesFilter;
-	private String deviceNamesFilter;
-	private String roomsFilter;
-	private String configManagement;
-
-	private String locationIdFiltered;
-	private ExtendedStatistics localExtendedStatistics;
-	private boolean isEmergencyDelivery = false;
-	private Boolean isEditedForCreateRoom = false;
-	private ObjectMapper objectMapper = new ObjectMapper();
-	private Set<String> unusedDeviceControlKeys = new HashSet<>();
-	private Set<String> unusedRoomControlKeys = new HashSet<>();
-	private boolean isConfigManagement;
-
-	/**
-	 * Stored common color
-	 */
-	private static Map<String, Color> commonColors = new HashMap<>();
-
-	/**
-	 * Polling interval which applied in adapter
-	 */
-	private volatile int localPollingInterval = SmartThingsConstant.MIN_POLLING_INTERVAL;
-
-	/**
-	 * The current phase of monitoring cycle in polling interval
-	 */
-	private final AtomicInteger currentPhase = new AtomicInteger(0);
 
 	/**
 	 * Retrieves {@code #locationFilter}}
@@ -844,8 +881,14 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						}
 						throw new IllegalStateException(String.format("Controlling group %s is not supported.", managementGroupMetric.getName()));
 				}
-			} else if (cachedDevices.get(deviceId) != null && cachedAggregatedDevices != null) {
+			} else if (cachedAggregatedDevices.get(deviceId) != null) {
 				AggregatedDeviceControllingMetric aggregatedDeviceControllingMetric = AggregatedDeviceControllingMetric.getByName(property);
+				if (cachedAggregatedDevices.get(deviceId) == null) {
+					throw new ResourceNotReachableException("device is null");
+				}
+				if (cachedAggregatedDevices.get(deviceId).getProperties() == null) {
+					throw new ResourceNotReachableException("properties is null");
+				}
 				Map<String, String> aggregatedDeviceProperties = cachedAggregatedDevices.get(deviceId).getProperties();
 				List<AdvancedControllableProperty> aggregatedDeviceControllableProperties = cachedAggregatedDevices.get(deviceId).getControllableProperties();
 				switch (aggregatedDeviceControllingMetric) {
@@ -1950,6 +1993,20 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					currentValue = detailViewPresentation.getDropdownList().getValue();
 					if (StringUtils.isNullOrEmpty(currentValue)) {
 						break;
+					}
+					if (AggregatedDeviceThermostatControllingConstant.THERMOSTAT_FAN_MODE.equals(detailViewPresentation.getCapability())) {
+						dropdownListModes.clear();
+						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_FAN_MODE_AUTO);
+						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_FAN_MODE_CIRCULATE);
+						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_FAN_MODE_ON);
+					}
+					if (AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE.equals(detailViewPresentation.getCapability())) {
+						dropdownListModes.clear();
+						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE_OFF);
+						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE_HEAT);
+						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE_AUTO);
+						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE_COOL);
+						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE_EMERGENCY);
 					}
 					addAdvanceControlProperties(advancedControllableProperties,
 							createDropdown(stats, convertToTitleCaseIteratingChars(detailViewPresentation.getLabel()), dropdownListModes, currentValue));
