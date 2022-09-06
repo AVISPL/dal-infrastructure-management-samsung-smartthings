@@ -23,7 +23,7 @@ public class DeviceCapability {
 	private String version;
 
 	/**
-	 * Retrieves {@code #id}}
+	 * Retrieves {@link #id}
 	 *
 	 * @return value of {@link #id}
 	 */
@@ -32,16 +32,16 @@ public class DeviceCapability {
 	}
 
 	/**
-	 * Sets {@code id}
+	 * Sets {@link #id} value
 	 *
-	 * @param id the {@code java.lang.String} field
+	 * @param id new value of {@link #id}
 	 */
 	public void setId(String id) {
 		this.id = id;
 	}
 
 	/**
-	 * Retrieves {@code #version}}
+	 * Retrieves {@link #version}
 	 *
 	 * @return value of {@link #version}
 	 */
@@ -50,9 +50,9 @@ public class DeviceCapability {
 	}
 
 	/**
-	 * Sets {@code version}
+	 * Sets {@link #version} value
 	 *
-	 * @param version the {@code java.lang.String} field
+	 * @param version new value of {@link #version}
 	 */
 	public void setVersion(String version) {
 		this.version = version;

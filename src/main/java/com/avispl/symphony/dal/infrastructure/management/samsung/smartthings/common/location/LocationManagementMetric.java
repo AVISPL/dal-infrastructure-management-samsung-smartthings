@@ -26,7 +26,7 @@ public enum LocationManagementMetric {
 	}
 
 	/**
-	 * Retrieves {@code #name}}
+	 * Retrieves {@link #name}
 	 *
 	 * @return value of {@link #name}
 	 */

@@ -55,7 +55,6 @@ public class Device {
 
 	/**
 	 * parameter constructor for deep clone
-	 * @param device
 	 */
 	public Device(Device device) {
 		this.state = device.getState();
@@ -70,7 +69,7 @@ public class Device {
 	}
 
 	/**
-	 * Retrieves {@code #state}}
+	 * Retrieves {@link #state}
 	 *
 	 * @return value of {@link #state}
 	 */
@@ -79,16 +78,16 @@ public class Device {
 	}
 
 	/**
-	 * Sets {@code state}
+	 * Sets {@link #state} value
 	 *
-	 * @param state the {@code java.lang.String} field
+	 * @param state new value of {@link #state}
 	 */
 	public void setState(String state) {
 		this.state = state;
 	}
 
 	/**
-	 * Retrieves {@code #presentation}}
+	 * Retrieves {@link #presentation}
 	 *
 	 * @return value of {@link #presentation}
 	 */
@@ -97,16 +96,16 @@ public class Device {
 	}
 
 	/**
-	 * Sets {@code presentation}
+	 * Sets {@link #presentation} value
 	 *
-	 * @param presentation the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DevicePresentation} field
+	 * @param presentation new value of {@link #presentation}
 	 */
 	public void setPresentation(DevicePresentation presentation) {
 		this.presentation = presentation;
 	}
 
 	/**
-	 * Retrieves {@code #deviceId}}
+	 * Retrieves {@link #deviceId}
 	 *
 	 * @return value of {@link #deviceId}
 	 */
@@ -115,16 +114,16 @@ public class Device {
 	}
 
 	/**
-	 * Sets {@code deviceId}
+	 * Sets {@link #deviceId} value
 	 *
-	 * @param deviceId the {@code java.lang.String} field
+	 * @param deviceId new value of {@link #deviceId}
 	 */
 	public void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;
 	}
 
 	/**
-	 * Retrieves {@code #name}}
+	 * Retrieves {@link #name}
 	 *
 	 * @return value of {@link #name}
 	 */
@@ -133,16 +132,16 @@ public class Device {
 	}
 
 	/**
-	 * Sets {@code name}
+	 * Sets {@link #name} value
 	 *
-	 * @param name the {@code java.lang.String} field
+	 * @param name new value of {@link #name}
 	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
 	/**
-	 * Retrieves {@code #presentationId}}
+	 * Retrieves {@link #presentationId}
 	 *
 	 * @return value of {@link #presentationId}
 	 */
@@ -151,16 +150,16 @@ public class Device {
 	}
 
 	/**
-	 * Sets {@code presentationId}
+	 * Sets {@link #presentationId} value
 	 *
-	 * @param presentationId the {@code java.lang.String} field
+	 * @param presentationId new value of {@link #presentationId}
 	 */
 	public void setPresentationId(String presentationId) {
 		this.presentationId = presentationId;
 	}
 
 	/**
-	 * Retrieves {@code #manufacturerName}}
+	 * Retrieves {@link #manufacturerName}
 	 *
 	 * @return value of {@link #manufacturerName}
 	 */
@@ -169,16 +168,16 @@ public class Device {
 	}
 
 	/**
-	 * Sets {@code manufacturerName}
+	 * Sets {@link #manufacturerName} value
 	 *
-	 * @param manufacturerName the {@code java.lang.String} field
+	 * @param manufacturerName new value of {@link #manufacturerName}
 	 */
 	public void setManufacturerName(String manufacturerName) {
 		this.manufacturerName = manufacturerName;
 	}
 
 	/**
-	 * Retrieves {@code #locationId}}
+	 * Retrieves {@link #locationId}
 	 *
 	 * @return value of {@link #locationId}
 	 */
@@ -187,16 +186,16 @@ public class Device {
 	}
 
 	/**
-	 * Sets {@code locationId}
+	 * Sets {@link #locationId} value
 	 *
-	 * @param locationId the {@code java.lang.String} field
+	 * @param locationId new value of {@link #locationId}
 	 */
 	public void setLocationId(String locationId) {
 		this.locationId = locationId;
 	}
 
 	/**
-	 * Retrieves {@code #roomId}}
+	 * Retrieves {@link #roomId}
 	 *
 	 * @return value of {@link #roomId}
 	 */
@@ -205,16 +204,16 @@ public class Device {
 	}
 
 	/**
-	 * Sets {@code roomId}
+	 * Sets {@link #roomId} value
 	 *
-	 * @param roomId the {@code java.lang.String} field
+	 * @param roomId new value of {@link #roomId}
 	 */
 	public void setRoomId(String roomId) {
 		this.roomId = roomId;
 	}
 
 	/**
-	 * Retrieves {@code #components}}
+	 * Retrieves {@link #components}
 	 *
 	 * @return value of {@link #components}
 	 */
@@ -223,9 +222,9 @@ public class Device {
 	}
 
 	/**
-	 * Sets {@code components}
+	 * Sets {@link #components} value
 	 *
-	 * @param components the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.Component>} field
+	 * @param components new value of {@link #components}
 	 */
 	public void setComponents(List<Component> components) {
 		this.components = components;
@@ -250,7 +249,6 @@ public class Device {
 	 *
 	 * @param capability device capability
 	 * @param command control command
-	 *
 	 * @return String JSON request body
 	 */
 	public String contributeRequestBodyForNonParamCommand(String capability, String command) {
@@ -268,7 +266,6 @@ public class Device {
 	 * @param capability device capability
 	 * @param command control command
 	 * @param arguments control arguments
-	 *
 	 * @return String JSON request body
 	 */
 	public String contributeRequestBodyForParameterCommand(String capability, String command, String arguments) {
@@ -286,7 +283,6 @@ public class Device {
 	 *
 	 * @param hue hue control arguments
 	 * @param saturation saturation control arguments
-	 *
 	 * @return String JSON request body
 	 */
 	public String contributeRequestBodyForColorCommand(String hue, String saturation) {
@@ -307,7 +303,6 @@ public class Device {
 	 * This method is used to create request body for updateDevice:
 	 *
 	 * @param roomId room ID
-	 *
 	 * @return String JSON request body
 	 */
 	public String contributeRequestBodyForUpdateDevice(String roomId) {

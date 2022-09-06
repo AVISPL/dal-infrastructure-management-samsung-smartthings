@@ -23,7 +23,7 @@ public class PoCode {
 	private String po;
 
 	/**
-	 * Retrieves {@code #label}}
+	 * Retrieves {@link #label}
 	 *
 	 * @return value of {@link #label}
 	 */
@@ -32,16 +32,16 @@ public class PoCode {
 	}
 
 	/**
-	 * Sets {@code label}
+	 * Sets {@link #label} value
 	 *
-	 * @param label the {@code java.lang.String} field
+	 * @param label new value of {@link #label}
 	 */
 	public void setLabel(String label) {
 		this.label = label;
 	}
 
 	/**
-	 * Retrieves {@code #po}}
+	 * Retrieves {@link #po}
 	 *
 	 * @return value of {@link #po}
 	 */
@@ -50,9 +50,9 @@ public class PoCode {
 	}
 
 	/**
-	 * Sets {@code po}
+	 * Sets {@link #po} value
 	 *
-	 * @param po the {@code java.lang.String} field
+	 * @param po new value of {@link #po}
 	 */
 	public void setPo(String po) {
 		this.po = po;

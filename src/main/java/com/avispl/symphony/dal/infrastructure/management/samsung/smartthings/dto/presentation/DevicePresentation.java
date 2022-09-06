@@ -39,7 +39,7 @@ public class DevicePresentation {
 	private List<Language> languages = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code #color}}
+	 * Retrieves {@link #color}
 	 *
 	 * @return value of {@link #color}
 	 */
@@ -48,16 +48,16 @@ public class DevicePresentation {
 	}
 
 	/**
-	 * Sets {@code color}
+	 * Sets {@link #color} value
 	 *
-	 * @param color the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.ColorDevicePresentation} field
+	 * @param color new value of {@link #color}
 	 */
 	public void setColor(ColorDevicePresentation color) {
 		this.color = color;
 	}
 
 	/**
-	 * Retrieves {@code #manufacturerName}}
+	 * Retrieves {@link #manufacturerName}
 	 *
 	 * @return value of {@link #manufacturerName}
 	 */
@@ -66,16 +66,16 @@ public class DevicePresentation {
 	}
 
 	/**
-	 * Sets {@code manufacturerName}
+	 * Sets {@link #manufacturerName} value
 	 *
-	 * @param manufacturerName the {@code java.lang.String} field
+	 * @param manufacturerName new value of {@link #manufacturerName}
 	 */
 	public void setManufacturerName(String manufacturerName) {
 		this.manufacturerName = manufacturerName;
 	}
 
 	/**
-	 * Retrieves {@code #presentationId}}
+	 * Retrieves {@link #presentationId}
 	 *
 	 * @return value of {@link #presentationId}
 	 */
@@ -84,16 +84,16 @@ public class DevicePresentation {
 	}
 
 	/**
-	 * Sets {@code presentationId}
+	 * Sets {@link #presentationId} value
 	 *
-	 * @param presentationId the {@code java.lang.String} field
+	 * @param presentationId new value of {@link #presentationId}
 	 */
 	public void setPresentationId(String presentationId) {
 		this.presentationId = presentationId;
 	}
 
 	/**
-	 * Retrieves {@code #dashboardPresentations}}
+	 * Retrieves {@link #dashboardPresentations}
 	 *
 	 * @return value of {@link #dashboardPresentations}
 	 */
@@ -102,16 +102,16 @@ public class DevicePresentation {
 	}
 
 	/**
-	 * Sets {@code dashboardPresentations}
+	 * Sets {@link #dashboardPresentations} value
 	 *
-	 * @param dashboardPresentations the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DashboardPresentation} field
+	 * @param dashboardPresentations new value of {@link #dashboardPresentations}
 	 */
 	public void setDashboardPresentations(DashboardPresentation dashboardPresentations) {
 		this.dashboardPresentations = dashboardPresentations;
 	}
 
 	/**
-	 * Retrieves {@code #detailViewPresentations}}
+	 * Retrieves {@link #detailViewPresentations}
 	 *
 	 * @return value of {@link #detailViewPresentations}
 	 */
@@ -120,16 +120,16 @@ public class DevicePresentation {
 	}
 
 	/**
-	 * Sets {@code detailViewPresentations}
+	 * Sets {@link #detailViewPresentations} value
 	 *
-	 * @param detailViewPresentations the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DetailViewPresentation>} field
+	 * @param detailViewPresentations new value of {@link #detailViewPresentations}
 	 */
 	public void setDetailViewPresentations(List<DetailViewPresentation> detailViewPresentations) {
 		this.detailViewPresentations = detailViewPresentations;
 	}
 
 	/**
-	 * Retrieves {@code #languages}}
+	 * Retrieves {@link #languages}
 	 *
 	 * @return value of {@link #languages}
 	 */
@@ -138,9 +138,9 @@ public class DevicePresentation {
 	}
 
 	/**
-	 * Sets {@code languages}
+	 * Sets {@link #languages} value
 	 *
-	 * @param languages the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.Language>} field
+	 * @param languages new value of {@link #languages}
 	 */
 	public void setLanguages(List<Language> languages) {
 		this.languages = languages;

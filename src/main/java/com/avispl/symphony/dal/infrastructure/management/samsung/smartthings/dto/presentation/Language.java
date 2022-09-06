@@ -26,7 +26,7 @@ public class Language {
 	private List<PoCode> poCodes = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code #locale}}
+	 * Retrieves {@link #locale}
 	 *
 	 * @return value of {@link #locale}
 	 */
@@ -35,16 +35,16 @@ public class Language {
 	}
 
 	/**
-	 * Sets {@code locale}
+	 * Sets {@link #locale} value
 	 *
-	 * @param locale the {@code java.lang.String} field
+	 * @param locale new value of {@link #locale}
 	 */
 	public void setLocale(String locale) {
 		this.locale = locale;
 	}
 
 	/**
-	 * Retrieves {@code #poCodes}}
+	 * Retrieves {@link #poCodes}
 	 *
 	 * @return value of {@link #poCodes}
 	 */
@@ -53,9 +53,9 @@ public class Language {
 	}
 
 	/**
-	 * Sets {@code poCodes}
+	 * Sets {@link #poCodes} value
 	 *
-	 * @param poCodes the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.PoCode>} field
+	 * @param poCodes new value of {@link #poCodes}
 	 */
 	public void setPoCodes(List<PoCode> poCodes) {
 		this.poCodes = poCodes;

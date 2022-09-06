@@ -24,7 +24,7 @@ public class DeviceWrapper {
 	private List<Device> devices = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code #devices}}
+	 * Retrieves {@link #devices}
 	 *
 	 * @return value of {@link #devices}
 	 */
@@ -33,9 +33,9 @@ public class DeviceWrapper {
 	}
 
 	/**
-	 * Sets {@code devices}
+	 * Sets {@link #devices} value
 	 *
-	 * @param devices the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.Device>} field
+	 * @param devices new value of {@link #devices}
 	 */
 	public void setDevices(List<Device> devices) {
 		this.devices = devices;

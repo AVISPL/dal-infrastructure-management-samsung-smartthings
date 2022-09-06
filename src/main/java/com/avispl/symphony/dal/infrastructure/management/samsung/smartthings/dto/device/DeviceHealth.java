@@ -23,7 +23,7 @@ public class DeviceHealth {
 	private String deviceId;
 
 	/**
-	 * Retrieves {@code #state}}
+	 * Retrieves {@link #state}
 	 *
 	 * @return value of {@link #state}
 	 */
@@ -32,16 +32,16 @@ public class DeviceHealth {
 	}
 
 	/**
-	 * Sets {@code state}
+	 * Sets {@link #state} value
 	 *
-	 * @param state the {@code java.lang.String} field
+	 * @param state new value of {@link #state}
 	 */
 	public void setState(String state) {
 		this.state = state;
 	}
 
 	/**
-	 * Retrieves {@code #deviceId}}
+	 * Retrieves {@link #deviceId}
 	 *
 	 * @return value of {@link #deviceId}
 	 */
@@ -50,9 +50,9 @@ public class DeviceHealth {
 	}
 
 	/**
-	 * Sets {@code deviceId}
+	 * Sets {@link #deviceId} value
 	 *
-	 * @param deviceId the {@code java.lang.String} field
+	 * @param deviceId new value of {@link #deviceId}
 	 */
 	public void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;

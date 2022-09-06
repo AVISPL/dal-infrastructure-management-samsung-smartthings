@@ -35,7 +35,7 @@ public enum DeviceCategoriesMetric {
 	}
 
 	/**
-	 * Retrieves {@code #name}}
+	 * Retrieves {@link #name}
 	 *
 	 * @return value of {@link #name}
 	 */
@@ -44,7 +44,7 @@ public enum DeviceCategoriesMetric {
 	}
 
 	/**
-	 * Retrieves {@code #isImplement}}
+	 * Retrieves {@link #isImplement}
 	 *
 	 * @return value of {@link #isImplement}
 	 */

@@ -23,7 +23,7 @@ public class SceneWrapper {
 	private List<Scene> scenes = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code #scenes}}
+	 * Retrieves {@link #scenes}
 	 *
 	 * @return value of {@link #scenes}
 	 */
@@ -32,9 +32,9 @@ public class SceneWrapper {
 	}
 
 	/**
-	 * Sets {@code scenes}
+	 * Sets {@link #scenes} value
 	 *
-	 * @param scenes the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.sence.Scene>} field
+	 * @param scenes new value of {@link #scenes}
 	 */
 	public void setScenes(List<Scene> scenes) {
 		this.scenes = scenes;

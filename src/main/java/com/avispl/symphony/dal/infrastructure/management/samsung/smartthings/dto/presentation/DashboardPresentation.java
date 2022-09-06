@@ -23,7 +23,7 @@ public class DashboardPresentation {
 	private List<DetailViewPresentation> actions = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code #actions}}
+	 * Retrieves {@link #actions}
 	 *
 	 * @return value of {@link #actions}
 	 */
@@ -32,9 +32,9 @@ public class DashboardPresentation {
 	}
 
 	/**
-	 * Sets {@code actions}
+	 * Sets {@link #actions} value
 	 *
-	 * @param actions the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DetailViewPresentation>} field
+	 * @param actions new value of {@link #actions}
 	 */
 	public void setActions(List<DetailViewPresentation> actions) {
 		this.actions = actions;

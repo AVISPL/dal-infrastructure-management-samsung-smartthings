@@ -29,7 +29,7 @@ public class Hub {
 	private String state;
 
 	/**
-	 * Retrieves {@code #name}}
+	 * Retrieves {@link #name}
 	 *
 	 * @return value of {@link #name}
 	 */
@@ -38,16 +38,16 @@ public class Hub {
 	}
 
 	/**
-	 * Sets {@code name}
+	 * Sets {@link #name} value
 	 *
-	 * @param name the {@code java.lang.String} field
+	 * @param name new value of {@link #name}
 	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
 	/**
-	 * Retrieves {@code #serialNumber}}
+	 * Retrieves {@link #serialNumber}
 	 *
 	 * @return value of {@link #serialNumber}
 	 */
@@ -56,16 +56,16 @@ public class Hub {
 	}
 
 	/**
-	 * Sets {@code serialNumber}
+	 * Sets {@link #serialNumber} value
 	 *
-	 * @param serialNumber the {@code java.lang.String} field
+	 * @param serialNumber new value of {@link #serialNumber}
 	 */
 	public void setSerialNumber(String serialNumber) {
 		this.serialNumber = serialNumber;
 	}
 
 	/**
-	 * Retrieves {@code #firmwareVersion}}
+	 * Retrieves {@link #firmwareVersion}
 	 *
 	 * @return value of {@link #firmwareVersion}
 	 */
@@ -74,16 +74,16 @@ public class Hub {
 	}
 
 	/**
-	 * Sets {@code firmwareVersion}
+	 * Sets {@link #firmwareVersion} value
 	 *
-	 * @param firmwareVersion the {@code java.lang.String} field
+	 * @param firmwareVersion new value of {@link #firmwareVersion}
 	 */
 	public void setFirmwareVersion(String firmwareVersion) {
 		this.firmwareVersion = firmwareVersion;
 	}
 
 	/**
-	 * Retrieves {@code #state}}
+	 * Retrieves {@link #state}
 	 *
 	 * @return value of {@link #state}
 	 */
@@ -92,9 +92,9 @@ public class Hub {
 	}
 
 	/**
-	 * Sets {@code state}
+	 * Sets {@link #state} value
 	 *
-	 * @param state the {@code java.lang.String} field
+	 * @param state new value of {@link #state}
 	 */
 	public void setState(String state) {
 		this.state = state;

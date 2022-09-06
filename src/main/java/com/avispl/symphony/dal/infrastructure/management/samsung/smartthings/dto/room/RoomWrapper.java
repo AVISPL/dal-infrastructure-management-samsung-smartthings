@@ -23,7 +23,7 @@ public class RoomWrapper {
 	private List<Room> rooms = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code #rooms}}
+	 * Retrieves {@link #rooms}
 	 *
 	 * @return value of {@link #rooms}
 	 */
@@ -32,9 +32,9 @@ public class RoomWrapper {
 	}
 
 	/**
-	 * Sets {@code rooms}
+	 * Sets {@link #rooms} value
 	 *
-	 * @param rooms the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.room.Room>} field
+	 * @param rooms new value of {@link #rooms}
 	 */
 	public void setRooms(List<Room> rooms) {
 		this.rooms = rooms;
