@@ -28,7 +28,7 @@ public class Room {
 	private String name;
 
 	/**
-	 * Retrieves {@code #roomId}}
+	 * Retrieves {@link #roomId}
 	 *
 	 * @return value of {@link #roomId}
 	 */
@@ -37,16 +37,16 @@ public class Room {
 	}
 
 	/**
-	 * Sets {@code roomId}
+	 * Sets {@link #roomId} value
 	 *
-	 * @param roomId the {@code java.lang.String} field
+	 * @param roomId new value of {@link #roomId}
 	 */
 	public void setRoomId(String roomId) {
 		this.roomId = roomId;
 	}
 
 	/**
-	 * Retrieves {@code #locationId}}
+	 * Retrieves {@link #locationId}
 	 *
 	 * @return value of {@link #locationId}
 	 */
@@ -55,16 +55,16 @@ public class Room {
 	}
 
 	/**
-	 * Sets {@code locationId}
+	 * Sets {@link #locationId} value
 	 *
-	 * @param locationId the {@code java.lang.String} field
+	 * @param locationId new value of {@link #locationId}
 	 */
 	public void setLocationId(String locationId) {
 		this.locationId = locationId;
 	}
 
 	/**
-	 * Retrieves {@code #name}}
+	 * Retrieves {@link #name}
 	 *
 	 * @return value of {@link #name}
 	 */
@@ -73,9 +73,9 @@ public class Room {
 	}
 
 	/**
-	 * Sets {@code name}
+	 * Sets {@link #name} value
 	 *
-	 * @param name the {@code java.lang.String} field
+	 * @param name new value of {@link #name}
 	 */
 	public void setName(String name) {
 		this.name = name;

@@ -23,7 +23,7 @@ public class DeviceCapabilityWrapper {
 	List<DeviceCapability> deviceCapabilities = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code #deviceCapabilities}}
+	 * Retrieves {@link #deviceCapabilities}
 	 *
 	 * @return value of {@link #deviceCapabilities}
 	 */
@@ -32,9 +32,9 @@ public class DeviceCapabilityWrapper {
 	}
 
 	/**
-	 * Sets {@code deviceCapabilities}
+	 * Sets {@link #deviceCapabilities} value
 	 *
-	 * @param deviceCapabilities the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.DeviceCapability>} field
+	 * @param deviceCapabilities new value of {@link #deviceCapabilities}
 	 */
 	public void setDeviceCapabilities(List<DeviceCapability> deviceCapabilities) {
 		this.deviceCapabilities = deviceCapabilities;

@@ -25,7 +25,7 @@ public class Location {
 	private String name;
 
 	/**
-	 * Retrieves {@code #locationId}}
+	 * Retrieves {@link #locationId}
 	 *
 	 * @return value of {@link #locationId}
 	 */
@@ -34,16 +34,16 @@ public class Location {
 	}
 
 	/**
-	 * Sets {@code locationId}
+	 * Sets {@link #locationId} value
 	 *
-	 * @param locationId the {@code java.lang.String} field
+	 * @param locationId new value of {@link #locationId}
 	 */
 	public void setLocationId(String locationId) {
 		this.locationId = locationId;
 	}
 
 	/**
-	 * Retrieves {@code #name}}
+	 * Retrieves {@link #name}
 	 *
 	 * @return value of {@link #name}
 	 */
@@ -52,9 +52,9 @@ public class Location {
 	}
 
 	/**
-	 * Sets {@code name}
+	 * Sets {@link #name} value
 	 *
-	 * @param name the {@code java.lang.String} field
+	 * @param name new value of {@link #name}
 	 */
 	public void setName(String name) {
 		this.name = name;

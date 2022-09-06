@@ -38,7 +38,7 @@ public class Command {
 	private List<Alternative> alternatives = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code #on}}
+	 * Retrieves {@link #on}
 	 *
 	 * @return value of {@link #on}
 	 */
@@ -47,16 +47,16 @@ public class Command {
 	}
 
 	/**
-	 * Sets {@code on}
+	 * Sets {@link #on} value
 	 *
-	 * @param on the {@code java.lang.String} field
+	 * @param on new value of {@link #on}
 	 */
 	public void setOn(String on) {
 		this.on = on;
 	}
 
 	/**
-	 * Retrieves {@code #off}}
+	 * Retrieves {@link #off}
 	 *
 	 * @return value of {@link #off}
 	 */
@@ -65,16 +65,16 @@ public class Command {
 	}
 
 	/**
-	 * Sets {@code off}
+	 * Sets {@link #off} value
 	 *
-	 * @param off the {@code java.lang.String} field
+	 * @param off new value of {@link #off}
 	 */
 	public void setOff(String off) {
 		this.off = off;
 	}
 
 	/**
-	 * Retrieves {@code #controlCommand}}
+	 * Retrieves {@link #controlCommand}
 	 *
 	 * @return value of {@link #controlCommand}
 	 */
@@ -83,16 +83,16 @@ public class Command {
 	}
 
 	/**
-	 * Sets {@code controlCommand}
+	 * Sets {@link #controlCommand} value
 	 *
-	 * @param controlCommand the {@code java.lang.String} field
+	 * @param controlCommand new value of {@link #controlCommand}
 	 */
 	public void setControlCommand(String controlCommand) {
 		this.controlCommand = controlCommand;
 	}
 
 	/**
-	 * Retrieves {@code #argumentType}}
+	 * Retrieves {@link #argumentType}
 	 *
 	 * @return value of {@link #argumentType}
 	 */
@@ -101,16 +101,16 @@ public class Command {
 	}
 
 	/**
-	 * Sets {@code argumentType}
+	 * Sets {@link #argumentType} value
 	 *
-	 * @param argumentType the {@code java.lang.String} field
+	 * @param argumentType new value of {@link #argumentType}
 	 */
 	public void setArgumentType(String argumentType) {
 		this.argumentType = argumentType;
 	}
 
 	/**
-	 * Retrieves {@code #name}}
+	 * Retrieves {@link #name}
 	 *
 	 * @return value of {@link #name}
 	 */
@@ -119,16 +119,16 @@ public class Command {
 	}
 
 	/**
-	 * Sets {@code name}
+	 * Sets {@link #name} value
 	 *
-	 * @param name the {@code java.lang.String} field
+	 * @param name new value of {@link #name}
 	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
 	/**
-	 * Retrieves {@code #alternatives}}
+	 * Retrieves {@link #alternatives}
 	 *
 	 * @return value of {@link #alternatives}
 	 */
@@ -137,9 +137,9 @@ public class Command {
 	}
 
 	/**
-	 * Sets {@code alternatives}
+	 * Sets {@link #alternatives} value
 	 *
-	 * @param alternatives the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.Alternative>} field
+	 * @param alternatives new value of {@link #alternatives}
 	 */
 	public void setAlternatives(List<Alternative> alternatives) {
 		this.alternatives = alternatives;

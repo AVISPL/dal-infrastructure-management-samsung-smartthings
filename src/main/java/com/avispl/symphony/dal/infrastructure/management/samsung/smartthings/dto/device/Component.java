@@ -34,7 +34,7 @@ public class Component {
 	private List<DeviceCategories> categories = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code #id}}
+	 * Retrieves {@link #id}
 	 *
 	 * @return value of {@link #id}
 	 */
@@ -43,16 +43,16 @@ public class Component {
 	}
 
 	/**
-	 * Sets {@code id}
+	 * Sets {@link #id} value
 	 *
-	 * @param id the {@code java.lang.String} field
+	 * @param id new value of {@link #id}
 	 */
 	public void setId(String id) {
 		this.id = id;
 	}
 
 	/**
-	 * Retrieves {@code #name}}
+	 * Retrieves {@link #name}
 	 *
 	 * @return value of {@link #name}
 	 */
@@ -61,16 +61,16 @@ public class Component {
 	}
 
 	/**
-	 * Sets {@code name}
+	 * Sets {@link #name} value
 	 *
-	 * @param name the {@code java.lang.String} field
+	 * @param name new value of {@link #name}
 	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
 	/**
-	 * Retrieves {@code #capabilities}}
+	 * Retrieves {@link #capabilities}
 	 *
 	 * @return value of {@link #capabilities}
 	 */
@@ -79,16 +79,16 @@ public class Component {
 	}
 
 	/**
-	 * Sets {@code capabilities}
+	 * Sets {@link #capabilities} value
 	 *
-	 * @param capabilities the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.DeviceCapability>} field
+	 * @param capabilities new value of {@link #capabilities}
 	 */
 	public void setCapabilities(List<DeviceCapability> capabilities) {
 		this.capabilities = capabilities;
 	}
 
 	/**
-	 * Retrieves {@code #categories}}
+	 * Retrieves {@link #categories}
 	 *
 	 * @return value of {@link #categories}
 	 */
@@ -97,9 +97,9 @@ public class Component {
 	}
 
 	/**
-	 * Sets {@code categories}
+	 * Sets {@link #categories} value
 	 *
-	 * @param categories the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.device.DeviceCategories>} field
+	 * @param categories new value of {@link #categories}
 	 */
 	public void setCategories(List<DeviceCategories> categories) {
 		this.categories = categories;

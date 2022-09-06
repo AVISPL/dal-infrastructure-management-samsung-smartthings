@@ -53,7 +53,7 @@ public class DetailViewPresentation {
 	private TextOrNumber textField;
 
 	/**
-	 * Retrieves {@code #capability}}
+	 * Retrieves {@link #capability}
 	 *
 	 * @return value of {@link #capability}
 	 */
@@ -62,16 +62,16 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Sets {@code capability}
+	 * Sets {@link #capability} value
 	 *
-	 * @param capability the {@code java.lang.String} field
+	 * @param capability new value of {@link #capability}
 	 */
 	public void setCapability(String capability) {
 		this.capability = capability;
 	}
 
 	/**
-	 * Retrieves {@code #label}}
+	 * Retrieves {@link #label}
 	 *
 	 * @return value of {@link #label}
 	 */
@@ -80,16 +80,16 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Sets {@code label}
+	 * Sets {@link #label} value
 	 *
-	 * @param label the {@code java.lang.String} field
+	 * @param label new value of {@link #label}
 	 */
 	public void setLabel(String label) {
 		this.label = label;
 	}
 
 	/**
-	 * Retrieves {@code #displayType}}
+	 * Retrieves {@link #displayType}
 	 *
 	 * @return value of {@link #displayType}
 	 */
@@ -98,16 +98,16 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Sets {@code displayType}
+	 * Sets {@link #displayType} value
 	 *
-	 * @param displayType the {@code java.lang.String} field
+	 * @param displayType new value of {@link #displayType}
 	 */
 	public void setDisplayType(String displayType) {
 		this.displayType = displayType;
 	}
 
 	/**
-	 * Retrieves {@code #standbyPowerSwitch}}
+	 * Retrieves {@link #standbyPowerSwitch}
 	 *
 	 * @return value of {@link #standbyPowerSwitch}
 	 */
@@ -116,16 +116,16 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Sets {@code standbyPowerSwitch}
+	 * Sets {@link #standbyPowerSwitch} value
 	 *
-	 * @param standbyPowerSwitch the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.Switch} field
+	 * @param standbyPowerSwitch new value of {@link #standbyPowerSwitch}
 	 */
 	public void setStandbyPowerSwitch(Switch standbyPowerSwitch) {
 		this.standbyPowerSwitch = standbyPowerSwitch;
 	}
 
 	/**
-	 * Retrieves {@code #dropdownList}}
+	 * Retrieves {@link #dropdownList}
 	 *
 	 * @return value of {@link #dropdownList}
 	 */
@@ -134,16 +134,16 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Sets {@code dropdownList}
+	 * Sets {@link #dropdownList} value
 	 *
-	 * @param dropdownList the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.DropdownList} field
+	 * @param dropdownList new value of {@link #dropdownList}
 	 */
 	public void setDropdownList(DropdownList dropdownList) {
 		this.dropdownList = dropdownList;
 	}
 
 	/**
-	 * Retrieves {@code #pushButton}}
+	 * Retrieves {@link #pushButton}
 	 *
 	 * @return value of {@link #pushButton}
 	 */
@@ -152,16 +152,16 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Sets {@code pushButton}
+	 * Sets {@link #pushButton} value
 	 *
-	 * @param pushButton the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.PushButton} field
+	 * @param pushButton new value of {@link #pushButton}
 	 */
 	public void setPushButton(PushButton pushButton) {
 		this.pushButton = pushButton;
 	}
 
 	/**
-	 * Retrieves {@code #slider}}
+	 * Retrieves {@link #slider}
 	 *
 	 * @return value of {@link #slider}
 	 */
@@ -170,16 +170,16 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Sets {@code slider}
+	 * Sets {@link #slider} value
 	 *
-	 * @param slider the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.Slider} field
+	 * @param slider new value of {@link #slider}
 	 */
 	public void setSlider(Slider slider) {
 		this.slider = slider;
 	}
 
 	/**
-	 * Retrieves {@code #state}}
+	 * Retrieves {@link #state}
 	 *
 	 * @return value of {@link #state}
 	 */
@@ -188,16 +188,16 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Sets {@code state}
+	 * Sets {@link #state} value
 	 *
-	 * @param state the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.Slider} field
+	 * @param state new value of {@link #state}
 	 */
 	public void setState(Slider state) {
 		this.state = state;
 	}
 
 	/**
-	 * Retrieves {@code #numberField}}
+	 * Retrieves {@link #numberField}
 	 *
 	 * @return value of {@link #numberField}
 	 */
@@ -206,16 +206,16 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Sets {@code numberField}
+	 * Sets {@link #numberField} value
 	 *
-	 * @param numberField the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.TextOrNumber} field
+	 * @param numberField new value of {@link #numberField}
 	 */
 	public void setNumberField(TextOrNumber numberField) {
 		this.numberField = numberField;
 	}
 
 	/**
-	 * Retrieves {@code #textField}}
+	 * Retrieves {@link #textField}
 	 *
 	 * @return value of {@link #textField}
 	 */
@@ -224,9 +224,9 @@ public class DetailViewPresentation {
 	}
 
 	/**
-	 * Sets {@code textField}
+	 * Sets {@link #textField} value
 	 *
-	 * @param textField the {@code com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.TextOrNumber} field
+	 * @param textField new value of {@link #textField}
 	 */
 	public void setTextField(TextOrNumber textField) {
 		this.textField = textField;

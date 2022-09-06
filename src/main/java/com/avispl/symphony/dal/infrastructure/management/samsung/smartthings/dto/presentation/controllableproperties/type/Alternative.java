@@ -26,7 +26,7 @@ public class Alternative {
 	private String type;
 
 	/**
-	 * Retrieves {@code #key}}
+	 * Retrieves {@link #key}
 	 *
 	 * @return value of {@link #key}
 	 */
@@ -35,16 +35,16 @@ public class Alternative {
 	}
 
 	/**
-	 * Sets {@code key}
+	 * Sets {@link #key} value
 	 *
-	 * @param key the {@code java.lang.String} field
+	 * @param key new value of {@link #key}
 	 */
 	public void setKey(String key) {
 		this.key = key;
 	}
 
 	/**
-	 * Retrieves {@code #value}}
+	 * Retrieves {@link #value}
 	 *
 	 * @return value of {@link #value}
 	 */
@@ -53,16 +53,16 @@ public class Alternative {
 	}
 
 	/**
-	 * Sets {@code value}
+	 * Sets {@link #value} value
 	 *
-	 * @param value the {@code java.lang.String} field
+	 * @param value new value of {@link #value}
 	 */
 	public void setValue(String value) {
 		this.value = value;
 	}
 
 	/**
-	 * Retrieves {@code #type}}
+	 * Retrieves {@link #type}
 	 *
 	 * @return value of {@link #type}
 	 */
@@ -71,9 +71,9 @@ public class Alternative {
 	}
 
 	/**
-	 * Sets {@code type}
+	 * Sets {@link #type} value
 	 *
-	 * @param type the {@code java.lang.String} field
+	 * @param type new value of {@link #type}
 	 */
 	public void setType(String type) {
 		this.type = type;

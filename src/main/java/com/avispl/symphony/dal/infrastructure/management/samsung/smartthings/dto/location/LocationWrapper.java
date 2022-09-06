@@ -23,7 +23,7 @@ public class LocationWrapper {
 	private List<Location> locations = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code #locations}}
+	 * Retrieves {@link #locations}
 	 *
 	 * @return value of {@link #locations}
 	 */
@@ -32,9 +32,9 @@ public class LocationWrapper {
 	}
 
 	/**
-	 * Sets {@code locations}
+	 * Sets {@link #locations} value
 	 *
-	 * @param locations the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.location.Location>} field
+	 * @param locations new value of {@link #locations}
 	 */
 	public void setLocations(List<Location> locations) {
 		this.locations = locations;

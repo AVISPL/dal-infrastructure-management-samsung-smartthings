@@ -39,7 +39,7 @@ public class ColorDevicePresentation {
 	}
 
 	/**
-	 * Retrieves {@code #hue}}
+	 * Retrieves {@link #hue}
 	 *
 	 * @return value of {@link #hue}
 	 */
@@ -48,16 +48,16 @@ public class ColorDevicePresentation {
 	}
 
 	/**
-	 * Sets {@code hue}
+	 * Sets {@link #hue} value
 	 *
-	 * @param hue the {@code java.lang.Float} field
+	 * @param hue new value of {@link #hue}
 	 */
 	public void setHue(Float hue) {
 		this.hue = hue;
 	}
 
 	/**
-	 * Retrieves {@code #saturation}}
+	 * Retrieves {@link #saturation}
 	 *
 	 * @return value of {@link #saturation}
 	 */
@@ -66,16 +66,16 @@ public class ColorDevicePresentation {
 	}
 
 	/**
-	 * Sets {@code saturation}
+	 * Sets {@link #saturation} value
 	 *
-	 * @param saturation the {@code java.lang.Float} field
+	 * @param saturation new value of {@link #saturation}
 	 */
 	public void setSaturation(Float saturation) {
 		this.saturation = saturation;
 	}
 
 	/**
-	 * Retrieves {@code #currentColor}}
+	 * Retrieves {@link #currentColor}
 	 *
 	 * @return value of {@link #currentColor}
 	 */
@@ -84,9 +84,9 @@ public class ColorDevicePresentation {
 	}
 
 	/**
-	 * Sets {@code currentColor}
+	 * Sets {@link #currentColor} value
 	 *
-	 * @param currentColor the {@code java.lang.String} field
+	 * @param currentColor new value of {@link #currentColor}
 	 */
 	public void setCurrentColor(String currentColor) {
 		this.currentColor = currentColor;

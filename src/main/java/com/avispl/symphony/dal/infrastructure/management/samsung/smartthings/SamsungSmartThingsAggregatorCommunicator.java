@@ -196,11 +196,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * Map of aggregated devices
 	 */
-	private ConcurrentHashMap<String, AggregatedDevice> aggregatedDevices = new ConcurrentHashMap<>();
-
-	/**
-	 * Map of aggregated devices
-	 */
 	private ConcurrentHashMap<String, AggregatedDevice> cachedAggregatedDevices = new ConcurrentHashMap<>();
 
 	/**
@@ -321,7 +316,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				retrieveDevicePresentation(deviceId);
 				retrieveDeviceFullStatus(deviceId);
 
-				mapDevicesToAggregatedDevice(cachedDevices.get(deviceId));
 				if (logger.isDebugEnabled()) {
 					Long time = System.currentTimeMillis() - startTime;
 					logger.debug(String.format("Finished fetch %s details info in worker thread: %s", cachedDevices.get(deviceId).getName(), time));
@@ -587,24 +581,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * This method is used to map device info in DTO to Aggregated device
-	 *
-	 * @param device device info
-	 */
-	private void mapDevicesToAggregatedDevice(Device device) {
-		Objects.requireNonNull(device);
-		AggregatedDevice aggregatedDevice = aggregatedDevices.get(device.getDeviceId());
-		if (aggregatedDevice == null) {
-			aggregatedDevice = new AggregatedDevice();
-		}
-		aggregatedDevice.setDeviceId(device.getDeviceId());
-		aggregatedDevice.setCategory(getDefaultValueForNullData(device.retrieveCategory(), SmartThingsConstant.NONE));
-		aggregatedDevice.setDeviceName(getDefaultValueForNullData(device.getName(), SmartThingsConstant.NONE));
-		aggregatedDevice.setDeviceOnline(convertDeviceStatusValue(device));
-		aggregatedDevices.put(device.getDeviceId(), aggregatedDevice);
-	}
-
-	/**
 	 * convert device Online/ Offline status to boolean
 	 *
 	 * @param device device info
@@ -622,7 +598,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	//endregion
 
 	/**
-	 * Retrieves {@code #locationFilter}}
+	 * Retrieves {@link #locationFilter}
 	 *
 	 * @return value of {@link #locationFilter}
 	 */
@@ -631,16 +607,16 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * Sets {@code locationFilter}
+	 * Sets {@link #locationFilter} value
 	 *
-	 * @param locationFilter the {@code java.lang.String} field
+	 * @param locationFilter new value of {@link #locationFilter}
 	 */
 	public void setLocationFilter(String locationFilter) {
 		this.locationFilter = locationFilter;
 	}
 
 	/**
-	 * Retrieves {@code #pollingInterval }}
+	 * Retrieves {@link #pollingInterval}
 	 *
 	 * @return value of {@link #pollingInterval}
 	 */
@@ -649,16 +625,16 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * Sets {@code pollingInterval}
+	 * Sets {@link #pollingInterval} value
 	 *
-	 * @param pollingInterval the {@code java.lang.String} field
+	 * @param pollingInterval new value of {@link #pollingInterval}
 	 */
 	public void setPollingInterval(String pollingInterval) {
 		this.pollingInterval = pollingInterval;
 	}
 
 	/**
-	 * Retrieves {@code #deviceTypesFilter}}
+	 * Retrieves {@link #deviceTypesFilter}
 	 *
 	 * @return value of {@link #deviceTypesFilter}
 	 */
@@ -667,16 +643,16 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * Sets {@code deviceTypesFilter}
+	 * Sets {@link #deviceTypesFilter} value
 	 *
-	 * @param deviceTypesFilter the {@code java.lang.String} field
+	 * @param deviceTypesFilter new value of {@link #deviceTypesFilter}
 	 */
 	public void setDeviceTypesFilter(String deviceTypesFilter) {
 		this.deviceTypesFilter = deviceTypesFilter;
 	}
 
 	/**
-	 * Retrieves {@code #deviceNamesFilter }}
+	 * Retrieves {@link #deviceNamesFilter}
 	 *
 	 * @return value of {@link #deviceNamesFilter}
 	 */
@@ -685,16 +661,16 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * Sets {@code devicesNamesFilter}
+	 * Sets {@link #deviceNamesFilter} value
 	 *
-	 * @param deviceNamesFilter the {@code java.lang.String} field
+	 * @param deviceNamesFilter new value of {@link #deviceNamesFilter}
 	 */
 	public void setDeviceNamesFilter(String deviceNamesFilter) {
 		this.deviceNamesFilter = deviceNamesFilter;
 	}
 
 	/**
-	 * Retrieves {@code #roomsFilter}}
+	 * Retrieves {@link #roomsFilter}
 	 *
 	 * @return value of {@link #roomsFilter}
 	 */
@@ -703,16 +679,16 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * Sets {@code roomsFilter}
+	 * Sets {@link #roomsFilter} value
 	 *
-	 * @param roomsFilter the {@code java.lang.String} field
+	 * @param roomsFilter new value of {@link #roomsFilter}
 	 */
 	public void setRoomsFilter(String roomsFilter) {
 		this.roomsFilter = roomsFilter;
 	}
 
 	/**
-	 * Retrieves {@code #configManagement}}
+	 * Retrieves {@link #configManagement}
 	 *
 	 * @return value of {@link #configManagement}
 	 */
@@ -721,30 +697,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * Sets {@code configManagement}
+	 * Sets {@link #configManagement} value
 	 *
-	 * @param configManagement the {@code java.lang.String} field
+	 * @param configManagement new value of {@link #configManagement}
 	 */
 	public void setConfigManagement(String configManagement) {
 		this.configManagement = configManagement;
-	}
-
-	/**
-	 * Retrieves {@code #locationIdFiltered}}
-	 *
-	 * @return value of {@link #locationIdFiltered}
-	 */
-	public String getLocationIdFiltered() {
-		return locationIdFiltered;
-	}
-
-	/**
-	 * Sets {@code locationIdFiltered}
-	 *
-	 * @param locationIdFiltered the {@code java.lang.String} field
-	 */
-	public void setLocationIdFiltered(String locationIdFiltered) {
-		this.locationIdFiltered = locationIdFiltered;
 	}
 
 	/**
@@ -970,7 +928,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			cachedDevicesAfterPollingInterval.clear();
 			cachedLocations.clear();
 			cachedScenes.clear();
-			aggregatedDevices.clear();
 			if (localExtendedStatistics.getStatistics() != null) {
 				localExtendedStatistics.getStatistics().clear();
 			}
@@ -2342,7 +2299,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		if (device != null) {
 			Optional<List<DetailViewPresentation>> detailViewPresentations = Optional.ofNullable(device.getPresentation())
 					.map(DevicePresentation::getDetailViewPresentations);
-			if (detailViewPresentations.isPresent() && !detailViewPresentations.get().isEmpty()) {
+			if (detailViewPresentations.isPresent()) {
 				DetailViewPresentation detailViewPresentation = findControlByLabel(controllableProperty, detailViewPresentations.get());
 				if (detailViewPresentation != null) {
 					switch (detailViewPresentation.getDisplayType()) {
@@ -2378,7 +2335,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				}
 				isEmergencyDelivery = true;
 			} else {
-				throw new ResourceNotReachableException(String.format("can not find device: %s", controllableProperty));
+				throw new ResourceNotReachableException(String.format("control %s error: can not find device", controllableProperty));
 			}
 		}
 	}
@@ -2556,9 +2513,10 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			Device device, DetailViewPresentation detailViewPresentation) {
 		try {
 			if (device != null) {
+				String deviceId = device.getDeviceId();
 				String request = SmartThingsURL.DEVICES
 						.concat(SmartThingsConstant.SLASH)
-						.concat(device.getDeviceId())
+						.concat(deviceId)
 						.concat(SmartThingsURL.COMMANDS);
 
 				HttpHeaders headers = new HttpHeaders();
@@ -2580,8 +2538,9 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				Optional<?> responseBody = Optional.ofNullable(response)
 						.map(HttpEntity::getBody);
 				if (response.getStatusCode().is2xxSuccessful() && responseBody.isPresent()) {
-
-					retrieveDeviceFullStatus(device.getDeviceId());
+					retrieveDeviceHealth(deviceId);
+					retrieveDevicePresentation(deviceId);
+					retrieveDeviceFullStatus(deviceId);
 					Device cachedDevice = new Device(cachedDevices.get(device.getDeviceId()));
 					cachedDevicesAfterPollingInterval.put(device.getDeviceId(), cachedDevice);
 					populateAggregatedDeviceView(stats, advancedControllableProperties, cachedDevice);
@@ -3164,33 +3123,25 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * This method is used to init Map<colorName, colorCode> of common color
 	 */
 	private void mapAggregatedDevicesToCache() {
-		for (AggregatedDevice aggregatedDevice : aggregatedDevices.values()) {
+		for (Device device : cachedDevicesAfterPollingInterval.values()) {
+			String deviceId = device.getDeviceId();
 
-			String deviceId = aggregatedDevice.getDeviceId();
-			AggregatedDevice cachedAggregatedDevice = cachedAggregatedDevices.get(deviceId);
-			if (cachedAggregatedDevice == null) {
-				cachedAggregatedDevice = new AggregatedDevice();
-			}
-			cachedAggregatedDevice.setDeviceName(aggregatedDevice.getDeviceName());
-			cachedAggregatedDevice.setDeviceId(deviceId);
-			cachedAggregatedDevice.setCategory(aggregatedDevice.getCategory());
-			cachedAggregatedDevice.setDeviceOnline(aggregatedDevice.getDeviceOnline());
-			if (cachedDevicesAfterPollingInterval != null) {
-				Device device = cachedDevicesAfterPollingInterval.get(deviceId);
-				if (device != null) {
-					Map<String, String> properties = new HashMap<>();
-					List<AdvancedControllableProperty> controllableProperties = new ArrayList<>();
+			AggregatedDevice cachedAggregatedDevice = Optional.ofNullable(cachedAggregatedDevices.get(deviceId)).orElse(new AggregatedDevice());
 
-					populateAggregatedDeviceView(properties, controllableProperties, device);
+			cachedAggregatedDevice.setDeviceName(getDefaultValueForNullData(device.getName(), SmartThingsConstant.NONE));
+			cachedAggregatedDevice.setDeviceId(device.getDeviceId());
+			cachedAggregatedDevice.setCategory(getDefaultValueForNullData(device.retrieveCategory(), SmartThingsConstant.NONE));
+			cachedAggregatedDevice.setDeviceOnline(convertDeviceStatusValue(device));
 
-					aggregatedDevice.setProperties(properties);
-					aggregatedDevice.setControllableProperties(controllableProperties);
-				}
-			}
-			cachedAggregatedDevice.setProperties(aggregatedDevice.getProperties());
-			cachedAggregatedDevice.setControllableProperties(aggregatedDevice.getControllableProperties());
+			Map<String, String> properties = new HashMap<>();
+			List<AdvancedControllableProperty> controllableProperties = new ArrayList<>();
 
-			cachedAggregatedDevices.put(aggregatedDevice.getDeviceId(), cachedAggregatedDevice);
+			populateAggregatedDeviceView(properties, controllableProperties, device);
+
+			cachedAggregatedDevice.setProperties(properties);
+			cachedAggregatedDevice.setControllableProperties(controllableProperties);
+
+			cachedAggregatedDevices.put(deviceId, cachedAggregatedDevice);
 		}
 	}
 

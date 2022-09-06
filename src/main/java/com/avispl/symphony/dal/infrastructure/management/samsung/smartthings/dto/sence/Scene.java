@@ -26,7 +26,7 @@ public class Scene {
 	private String locationId;
 
 	/**
-	 * Retrieves {@code #sceneId}}
+	 * Retrieves {@link #sceneId}
 	 *
 	 * @return value of {@link #sceneId}
 	 */
@@ -35,16 +35,16 @@ public class Scene {
 	}
 
 	/**
-	 * Sets {@code sceneId}
+	 * Sets {@link #sceneId} value
 	 *
-	 * @param sceneId the {@code java.lang.String} field
+	 * @param sceneId new value of {@link #sceneId}
 	 */
 	public void setSceneId(String sceneId) {
 		this.sceneId = sceneId;
 	}
 
 	/**
-	 * Retrieves {@code #sceneName}}
+	 * Retrieves {@link #sceneName}
 	 *
 	 * @return value of {@link #sceneName}
 	 */
@@ -53,16 +53,16 @@ public class Scene {
 	}
 
 	/**
-	 * Sets {@code sceneName}
+	 * Sets {@link #sceneName} value
 	 *
-	 * @param sceneName the {@code java.lang.String} field
+	 * @param sceneName new value of {@link #sceneName}
 	 */
 	public void setSceneName(String sceneName) {
 		this.sceneName = sceneName;
 	}
 
 	/**
-	 * Retrieves {@code #locationId}}
+	 * Retrieves {@link #locationId}
 	 *
 	 * @return value of {@link #locationId}
 	 */
@@ -71,9 +71,9 @@ public class Scene {
 	}
 
 	/**
-	 * Sets {@code locationId}
+	 * Sets {@link #locationId} value
 	 *
-	 * @param locationId the {@code java.lang.String} field
+	 * @param locationId new value of {@link #locationId}
 	 */
 	public void setLocationId(String locationId) {
 		this.locationId = locationId;

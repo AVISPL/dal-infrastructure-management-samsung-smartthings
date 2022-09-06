@@ -32,7 +32,7 @@ public class Slider {
 	private String argumentType;
 
 	/**
-	 * Retrieves {@code #value}}
+	 * Retrieves {@link #value}
 	 *
 	 * @return value of {@link #value}
 	 */
@@ -41,16 +41,16 @@ public class Slider {
 	}
 
 	/**
-	 * Sets {@code value}
+	 * Sets {@link #value} value
 	 *
-	 * @param value the {@code java.lang.String} field
+	 * @param value new value of {@link #value}
 	 */
 	public void setValue(String value) {
 		this.value = value;
 	}
 
 	/**
-	 * Retrieves {@code #unit}}
+	 * Retrieves {@link #unit}
 	 *
 	 * @return value of {@link #unit}
 	 */
@@ -59,16 +59,16 @@ public class Slider {
 	}
 
 	/**
-	 * Sets {@code unit}
+	 * Sets {@link #unit} value
 	 *
-	 * @param unit the {@code java.lang.String} field
+	 * @param unit new value of {@link #unit}
 	 */
 	public void setUnit(String unit) {
 		this.unit = unit;
 	}
 
 	/**
-	 * Retrieves {@code #range}}
+	 * Retrieves {@link #range}
 	 *
 	 * @return value of {@link #range}
 	 */
@@ -77,16 +77,16 @@ public class Slider {
 	}
 
 	/**
-	 * Sets {@code range}
+	 * Sets {@link #range} value
 	 *
-	 * @param range the {@code java.util.List<java.lang.Float>} field
+	 * @param range new value of {@link #range}
 	 */
 	public void setRange(List<Float> range) {
 		this.range = range;
 	}
 
 	/**
-	 * Retrieves {@code #command}}
+	 * Retrieves {@link #command}
 	 *
 	 * @return value of {@link #command}
 	 */
@@ -95,16 +95,16 @@ public class Slider {
 	}
 
 	/**
-	 * Sets {@code command}
+	 * Sets {@link #command} value
 	 *
-	 * @param command the {@code java.lang.String} field
+	 * @param command new value of {@link #command}
 	 */
 	public void setCommand(String command) {
 		this.command = command;
 	}
 
 	/**
-	 * Retrieves {@code #argumentType}}
+	 * Retrieves {@link #argumentType}
 	 *
 	 * @return value of {@link #argumentType}
 	 */
@@ -113,9 +113,9 @@ public class Slider {
 	}
 
 	/**
-	 * Sets {@code argumentType}
+	 * Sets {@link #argumentType} value
 	 *
-	 * @param argumentType the {@code java.lang.String} field
+	 * @param argumentType new value of {@link #argumentType}
 	 */
 	public void setArgumentType(String argumentType) {
 		this.argumentType = argumentType;

@@ -22,7 +22,7 @@ public class PushButton {
 	private String command;
 
 	/**
-	 * Retrieves {@code #value}}
+	 * Retrieves {@link #value}
 	 *
 	 * @return value of {@link #value}
 	 */
@@ -31,16 +31,16 @@ public class PushButton {
 	}
 
 	/**
-	 * Sets {@code value}
+	 * Sets {@link #value} value
 	 *
-	 * @param value the {@code java.lang.String} field
+	 * @param value new value of {@link #value}
 	 */
 	public void setValue(String value) {
 		this.value = value;
 	}
 
 	/**
-	 * Retrieves {@code #command}}
+	 * Retrieves {@link #command}
 	 *
 	 * @return value of {@link #command}
 	 */
@@ -49,9 +49,9 @@ public class PushButton {
 	}
 
 	/**
-	 * Sets {@code command}
+	 * Sets {@link #command} value
 	 *
-	 * @param command the {@code java.lang.String} field
+	 * @param command new value of {@link #command}
 	 */
 	public void setCommand(String command) {
 		this.command = command;

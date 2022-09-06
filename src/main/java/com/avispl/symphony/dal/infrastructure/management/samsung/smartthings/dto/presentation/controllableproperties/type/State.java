@@ -23,7 +23,7 @@ public class State {
 	private List<Alternative> alternatives = new ArrayList<>();
 
 	/**
-	 * Retrieves {@code #alternatives}}
+	 * Retrieves {@link #alternatives}
 	 *
 	 * @return value of {@link #alternatives}
 	 */
@@ -32,9 +32,9 @@ public class State {
 	}
 
 	/**
-	 * Sets {@code alternatives}
+	 * Sets {@link #alternatives} value
 	 *
-	 * @param alternatives the {@code java.util.List<com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.Alternative>} field
+	 * @param alternatives new value of {@link #alternatives}
 	 */
 	public void setAlternatives(List<Alternative> alternatives) {
 		this.alternatives = alternatives;
