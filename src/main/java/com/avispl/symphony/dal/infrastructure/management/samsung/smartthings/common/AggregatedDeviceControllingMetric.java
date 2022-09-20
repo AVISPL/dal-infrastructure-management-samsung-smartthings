@@ -21,8 +21,7 @@ public enum AggregatedDeviceControllingMetric {
 	COLOR_CONTROL("ColourControl"),
 	HUE_CONTROL("ColourHue"),
 	SATURATION_CONTROL("ColourSaturation"),
-	VALUE_CONTROL("ColourValue"),
-	CURRENT_COLOR_CONTROL("ColourCurrentColor"),
+	CURRENT_COLOR_CONTROL("ColourCurrentColour"),
 	CURRENT_VALUE("CurrentValue");
 
 	private final String name;

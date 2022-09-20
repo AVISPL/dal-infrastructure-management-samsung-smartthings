@@ -26,7 +26,6 @@ public class SmartThingsConstant {
 	public static final String RIGHT_PARENTHESES = ")";
 	public static final String LEFT_PARENTHESES = "(";
 	public static final String PERCENT_UNIT = "(%)";
-	public static final String DEGREES_UNIT = "(degrees)";
 	public static final String EMPTY = "";
 	public static final String ON = "On";
 	public static final String OFF = "Off";
@@ -45,6 +44,7 @@ public class SmartThingsConstant {
 	public static final String ONLINE = "ONLINE";
 	public static final String OFFLINE = "OFFLINE";
 	public static final String NO_ROOM_ASSIGNED = "No room assigned";
+	public static final String NO_LOCATION_FOUND = "No location found";
 	public static final String NONE = "None";
 	public static final String RATE_LIMIT_HEADER_KEY = "X-RateLimit-Reset";
 	public static final String IS_VALID_CONFIG_MANAGEMENT = "true";
@@ -60,6 +60,12 @@ public class SmartThingsConstant {
 
 	// presentations
 	public static final String VALUE = "value";
+	public static final String TV_PLAYBACK_STATUS = "playbackStatus";
+	public static final String TV_AUDIO_MUTE_CAPABILITY = "audioMute";
+	public static final String TV_AUDIO_MUTE = "muted";
 	public static final String UNIT = "unit";
 	public static final String ENG_LOCALE = "en";
+
+	// Broken device capabilities
+	public static final String TV_CHANNEL = "tvChannel";
 }
