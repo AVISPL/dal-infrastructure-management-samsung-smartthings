@@ -102,9 +102,9 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	 */
 	@Test
 	void testFilter() throws Exception {
-		communicator.setRoomsFilter("Dining");
-		communicator.setDeviceTypesFilter("Light");
-		communicator.setDeviceNamesFilter("light 1");
+		communicator.setRoomFilter("Dining");
+		communicator.setDeviceTypeFilter("Light");
+		communicator.setDeviceNameFilter("light 1");
 		communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
 		communicator.getMultipleStatistics().get(0);
@@ -431,9 +431,9 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	void testLocationAndDeviceFilter() throws Exception {
 		communicator.setConfigManagement("true");
 		communicator.setLocationFilter("HomeHCm");
-		communicator.setDeviceNamesFilter("");
-		communicator.setDeviceTypesFilter("light");
-		communicator.setRoomsFilter("terrace, attic, media room");
+		communicator.setDeviceNameFilter("");
+		communicator.setDeviceTypeFilter("light");
+		communicator.setRoomFilter("terrace, attic, media room");
 		communicator.getMultipleStatistics();
 		Thread.sleep(30000);
 		communicator.getMultipleStatistics();
@@ -459,9 +459,9 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	void testFilterAndEditRoomName() throws Exception {
 		communicator.setConfigManagement("true");
 		communicator.setLocationFilter("HomeHCm");
-		communicator.setDeviceNamesFilter("VEdge Light 10");
-		communicator.setDeviceTypesFilter("light");
-		communicator.setRoomsFilter("terrace, attic, media room");
+		communicator.setDeviceNameFilter("VEdge Light 10");
+		communicator.setDeviceTypeFilter("light");
+		communicator.setRoomFilter("terrace, attic, media room");
 		communicator.getMultipleStatistics();
 		Thread.sleep(30000);
 		communicator.getMultipleStatistics();
