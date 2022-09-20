@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,7 +38,9 @@ import org.springframework.util.CollectionUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Throwables;
 import com.google.common.math.IntMath;
+import javax.security.auth.login.FailedLoginException;
 
 import com.avispl.symphony.api.dal.control.Controller;
 import com.avispl.symphony.api.dal.dto.control.AdvancedControllableProperty;
@@ -51,7 +54,7 @@ import com.avispl.symphony.api.dal.monitor.aggregator.Aggregator;
 import com.avispl.symphony.dal.communicator.RestCommunicator;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceColorControllingConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceControllingMetric;
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceThermostatControllingConstant;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceDropdownListModesControllingConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatorGroupControllingMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.DeviceCategoriesMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.DeviceDisplayTypesMetric;
@@ -77,6 +80,7 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.Command;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.DropdownList;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.Slider;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.controllableproperties.type.State;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.room.Room;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.room.RoomWrapper;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.sence.Scene;
@@ -146,7 +150,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * SmartThings current room in device dashboard
 	 */
 	private String currentRoomInDeviceDashBoard;
-
 
 	/**
 	 * Caching the list of locations
@@ -226,17 +229,17 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * store deviceTypesFilter adapter properties
 	 */
-	private String deviceTypesFilter;
+	private String deviceTypeFilter;
 
 	/**
 	 * store deviceNamesFilter adapter properties
 	 */
-	private String deviceNamesFilter;
+	private String deviceNameFilter;
 
 	/**
 	 * store roomsFilter adapter properties
 	 */
-	private String roomsFilter;
+	private String roomFilter;
 
 	/**
 	 * store configManagement adapter properties
@@ -263,6 +266,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 */
 	private String locationIdFiltered;
 
+	/**
+	 * store next polling interval
+	 */
+	private long nextPollingInterval;
+
 	private ExtendedStatistics localExtendedStatistics;
 	private boolean isEmergencyDelivery = false;
 	private Boolean isEditedForCreateRoom = false;
@@ -273,6 +281,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * Stored common color
 	 */
 	private static Map<String, Color> commonColors = new HashMap<>();
+
+	/**
+	 * Stored media playback modes
+	 */
+	private static Map<String, String> mediaPlaybackModes = new HashMap<>();
 
 	/**
 	 * Polling interval which applied in adapter
@@ -543,6 +556,17 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					break;
 				case DeviceDisplayTypesMetric.LIST:
 					detailViewPresentation.getDropdownList().setValue(value);
+					if (AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_MODE.equals(detailViewPresentation.getCapability())) {
+						String state = Optional.ofNullable(response.elements().next())
+								.map(JsonNode::elements)
+								.map(Iterator::next)
+								.map(c -> c.get(detailViewPresentation.getCapability()))
+								.map(d -> d.get(SmartThingsConstant.TV_PLAYBACK_STATUS))
+								.map(u -> u.get(SmartThingsConstant.VALUE))
+								.map(JsonNode::asText)
+								.orElse(SmartThingsConstant.NONE);
+						detailViewPresentation.getDropdownList().getState().setValue(state);
+					}
 					break;
 				case DeviceDisplayTypesMetric.NUMBER_FIELD:
 					detailViewPresentation.getNumberField().setValue(value);
@@ -634,57 +658,57 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * Retrieves {@link #deviceTypesFilter}
+	 * Retrieves {@link #deviceTypeFilter}
 	 *
-	 * @return value of {@link #deviceTypesFilter}
+	 * @return value of {@link #deviceTypeFilter}
 	 */
-	public String getDeviceTypesFilter() {
-		return deviceTypesFilter;
+	public String getDeviceTypeFilter() {
+		return deviceTypeFilter;
 	}
 
 	/**
-	 * Sets {@link #deviceTypesFilter} value
+	 * Sets {@link #deviceTypeFilter} value
 	 *
-	 * @param deviceTypesFilter new value of {@link #deviceTypesFilter}
+	 * @param deviceTypeFilter new value of {@link #deviceTypeFilter}
 	 */
-	public void setDeviceTypesFilter(String deviceTypesFilter) {
-		this.deviceTypesFilter = deviceTypesFilter;
+	public void setDeviceTypeFilter(String deviceTypeFilter) {
+		this.deviceTypeFilter = deviceTypeFilter;
 	}
 
 	/**
-	 * Retrieves {@link #deviceNamesFilter}
+	 * Retrieves {@link #deviceNameFilter}
 	 *
-	 * @return value of {@link #deviceNamesFilter}
+	 * @return value of {@link #deviceNameFilter}
 	 */
-	public String getDeviceNamesFilter() {
-		return deviceNamesFilter;
+	public String getDeviceNameFilter() {
+		return deviceNameFilter;
 	}
 
 	/**
-	 * Sets {@link #deviceNamesFilter} value
+	 * Sets {@link #deviceNameFilter} value
 	 *
-	 * @param deviceNamesFilter new value of {@link #deviceNamesFilter}
+	 * @param deviceNameFilter new value of {@link #deviceNameFilter}
 	 */
-	public void setDeviceNamesFilter(String deviceNamesFilter) {
-		this.deviceNamesFilter = deviceNamesFilter;
+	public void setDeviceNameFilter(String deviceNameFilter) {
+		this.deviceNameFilter = deviceNameFilter;
 	}
 
 	/**
-	 * Retrieves {@link #roomsFilter}
+	 * Retrieves {@link #roomFilter}
 	 *
-	 * @return value of {@link #roomsFilter}
+	 * @return value of {@link #roomFilter}
 	 */
-	public String getRoomsFilter() {
-		return roomsFilter;
+	public String getRoomFilter() {
+		return roomFilter;
 	}
 
 	/**
-	 * Sets {@link #roomsFilter} value
+	 * Sets {@link #roomFilter} value
 	 *
-	 * @param roomsFilter new value of {@link #roomsFilter}
+	 * @param roomFilter new value of {@link #roomFilter}
 	 */
-	public void setRoomsFilter(String roomsFilter) {
-		this.roomsFilter = roomsFilter;
+	public void setRoomFilter(String roomFilter) {
+		this.roomFilter = roomFilter;
 	}
 
 	/**
@@ -715,6 +739,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		}
 		apiToken = this.getPassword();
 		initCommonColors();
+		initMediaPlayBackList();
 		this.setBaseUri(SmartThingsURL.BASE_URI);
 		super.internalInit();
 	}
@@ -729,61 +754,60 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		}
 		reentrantLock.lock();
 		try {
-			ExtendedStatistics extendedStatistics = new ExtendedStatistics();
-			Map<String, String> stats = new HashMap<>();
-			List<AdvancedControllableProperty> advancedControllableProperties = new ArrayList<>();
-			isValidConfigManagement();
-
 			if (!isEmergencyDelivery) {
+				ExtendedStatistics extendedStatistics = new ExtendedStatistics();
+				Map<String, String> stats = new HashMap<>();
+				List<AdvancedControllableProperty> advancedControllableProperties = new ArrayList<>();
+				isValidConfigManagement();
 
-				// retrieve device and filter devices in first monitoring cycle of polling interval
-				if (currentPhase.get() == localPollingInterval || currentPhase.get() == 0) {
+				if (currentPhase.get() == localPollingInterval || currentPhase.get() == SmartThingsConstant.FIRST_MONITORING_CYCLE_OF_POLLING_INTERVAL) {
+					// retrieve device and filter devices in first monitoring cycle of polling interval
 					cachedDevicesAfterPollingInterval = (ConcurrentHashMap<String, Device>) cachedDevices.values().stream().collect(Collectors.toConcurrentMap(Device::getDeviceId, Device::new));
 					mapAggregatedDevicesToCache();
 					retrieveInfo();
 					filterDeviceIds();
+
+					// calculating polling interval and threads quantity
+					localPollingInterval = calculatingLocalPollingInterval();
+					deviceStatisticsCollectionThreads = calculatingThreadQuantity();
+					pushFailedMonitoringDevicesIDToPriority();
+					nextPollingInterval = System.currentTimeMillis() + localPollingInterval * 1000;
+					currentPhase.set(0);
 				}
+				populateCurrentLocation(stats);
 
 				// populate edit location, create room, edit room group when configManagement is true
 				if (isConfigManagement) {
 					populateLocationsManagement(stats, advancedControllableProperties);
-					populateRoomManagement(stats, advancedControllableProperties);
-					populateCreateRoomManagement(stats, advancedControllableProperties);
-				}
-
-				retrieveScenes(true);
-				populateScenesManagement(stats, advancedControllableProperties);
-				populateCurrentLocation(stats);
-
-				// retrieve/ populate hub detail and submit threads to get devices when list of device is not empty
-				if (!cachedDevices.isEmpty()) {
-					String hubId = findDeviceIdByCategory(DeviceCategoriesMetric.HUB.getName());
-					if (!hubId.isEmpty()) {
-						retrieveHubDetailInfo(stats, hubId, true);
-						retrieveHubHealth(stats, hubId, true);
-					}
-					populatePollingInterval(stats);
-
-					// calculating polling interval and threads quantity
-					if (currentPhase.get() == SmartThingsConstant.FIRST_MONITORING_CYCLE_OF_POLLING_INTERVAL) {
-						localPollingInterval = calculatingLocalPollingInterval();
-						deviceStatisticsCollectionThreads = calculatingThreadQuantity();
-						pushFailedMonitoringDevicesIDToPriority();
-					}
-
-					if (currentPhase.get() == localPollingInterval) {
-						currentPhase.set(0);
-					}
-					currentPhase.incrementAndGet();
-
-					if (executorService == null) {
-						executorService = Executors.newFixedThreadPool(deviceStatisticsCollectionThreads);
-					}
-					for (int threadNumber = 0; threadNumber < deviceStatisticsCollectionThreads; threadNumber++) {
-						executorService.submit(new SamsungSmartThingsDeviceDataLoader(threadNumber));
+					if (!SmartThingsConstant.NO_LOCATION_FOUND.equals(locationIdFiltered)) {
+						populateRoomManagement(stats, advancedControllableProperties);
+						populateCreateRoomManagement(stats, advancedControllableProperties);
 					}
 				}
-				populateDeviceDashboardView(stats, advancedControllableProperties);
+				if (!SmartThingsConstant.NO_LOCATION_FOUND.equals(locationIdFiltered)) {
+					retrieveScenes(true);
+					populateScenesManagement(stats, advancedControllableProperties);
+
+					// retrieve/ populate hub detail and submit threads to get devices when list of device is not empty
+					if (!cachedDevices.isEmpty()) {
+						String hubId = findDeviceIdByCategory(DeviceCategoriesMetric.HUB.getName());
+						if (!hubId.isEmpty()) {
+							retrieveHubDetailInfo(stats, hubId, true);
+							retrieveHubHealth(stats, hubId, true);
+						}
+						populatePollingInterval(stats);
+
+						// Submit thread to get aggregated device
+						currentPhase.incrementAndGet();
+						if (executorService == null) {
+							executorService = Executors.newFixedThreadPool(deviceStatisticsCollectionThreads);
+						}
+						for (int threadNumber = 0; threadNumber < deviceStatisticsCollectionThreads; threadNumber++) {
+							executorService.submit(new SamsungSmartThingsDeviceDataLoader(threadNumber));
+						}
+					}
+					populateDeviceDashboardView(stats, advancedControllableProperties);
+				}
 				extendedStatistics.setStatistics(stats);
 				extendedStatistics.setControllableProperties(advancedControllableProperties);
 				localExtendedStatistics = extendedStatistics;
@@ -841,11 +865,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				}
 			} else if (cachedAggregatedDevices.get(deviceId) != null) {
 				AggregatedDeviceControllingMetric aggregatedDeviceControllingMetric = AggregatedDeviceControllingMetric.getByName(property);
-				if (cachedAggregatedDevices.get(deviceId) == null) {
-					throw new ResourceNotReachableException("device is null");
+				AggregatedDevice aggregatedDevice = cachedAggregatedDevices.get(deviceId);
+				if (!aggregatedDevice.getDeviceOnline()) {
+					throw new ResourceNotReachableException(String.format("Unable to control %s, device is offline", aggregatedDevice.getDeviceName()));
 				}
-				if (cachedAggregatedDevices.get(deviceId).getProperties() == null) {
-					throw new ResourceNotReachableException("properties is null");
+				if (aggregatedDevice.getProperties() == null) {
+					throw new ResourceNotReachableException("The device's properties are null, please wait until the next polling interval");
 				}
 				Map<String, String> aggregatedDeviceProperties = cachedAggregatedDevices.get(deviceId).getProperties();
 				List<AdvancedControllableProperty> aggregatedDeviceControllableProperties = cachedAggregatedDevices.get(deviceId).getControllableProperties();
@@ -916,26 +941,26 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		if (logger.isDebugEnabled()) {
 			logger.debug("Internal destroy is called.");
 		}
-
-		if (currentPhase.get() == localPollingInterval) {
-			if (executorService != null) {
-				executorService.shutdownNow();
-				executorService = null;
-			}
-
-			cachedRooms.clear();
-			cachedDevices.clear();
-			cachedDevicesAfterPollingInterval.clear();
-			cachedLocations.clear();
-			cachedScenes.clear();
-			if (localExtendedStatistics.getStatistics() != null) {
-				localExtendedStatistics.getStatistics().clear();
-			}
-			if (localExtendedStatistics.getControllableProperties() != null) {
-				localExtendedStatistics.getControllableProperties().clear();
-			}
-			super.internalDestroy();
+		if (executorService != null) {
+			executorService.shutdownNow();
+			executorService = null;
 		}
+		localPollingInterval = SmartThingsConstant.FIRST_MONITORING_CYCLE_OF_POLLING_INTERVAL;
+		cachedRooms.clear();
+		cachedDevices.clear();
+		cachedDevicesAfterPollingInterval.clear();
+		cachedAggregatedDevices.clear();
+		cachedPresentations.clear();
+		cachedLocations.clear();
+		controllablePropertyNames.clear();
+		cachedScenes.clear();
+		if (localExtendedStatistics.getStatistics() != null) {
+			localExtendedStatistics.getStatistics().clear();
+		}
+		if (localExtendedStatistics.getControllableProperties() != null) {
+			localExtendedStatistics.getControllableProperties().clear();
+		}
+		super.internalDestroy();
 	}
 
 	@Override
@@ -1013,7 +1038,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private void retrieveHubDetailInfo(Map<String, String> stats, String hubId, boolean retryOnError) {
 		try {
 			String request = SmartThingsURL.HUB_DEVICE.concat(hubId);
-
 			Hub hub = doGet(request, Hub.class);
 
 			if (hub != null) {
@@ -1070,13 +1094,18 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 			LocationWrapper locationWrapper = doGet(request, LocationWrapper.class);
 
-			if (locationWrapper != null && locationWrapper.getLocations() != null) {
+			if (locationWrapper != null) {
 				cachedLocations = locationWrapper.getLocations();
-				locationIdFiltered = findLocationByName(locationFilter).getLocationId();
+				locationIdFiltered = getDefaultValueForNullData(findLocationByName(locationFilter).getLocationId(), SmartThingsConstant.NO_LOCATION_FOUND);
 			} else {
 				logger.error("Locations is empty, Please go to https://graph-ap02-apnortheast2.api.smartthings.com/ to check if the locations are removed from Smartthings");
 			}
+		} catch (FailedLoginException failedLoginException) {
+			throw new ResourceNotReachableException("Login failed, Please check the server address and the personal access token");
 		} catch (Exception e) {
+			if (Throwables.getRootCause(e) instanceof UnknownHostException) {
+				throw new ResourceNotReachableException("Login failed, Please check the server address and the personal access token");
+			}
 			if (retryOnError) {
 				retrieveLocations(false);
 			}
@@ -1106,7 +1135,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 */
 	private void populateCurrentLocation(Map<String, String> stats) {
 		String locationName = cachedLocations.stream().filter(l -> l.getLocationId().equals(locationIdFiltered)).map(Location::getName).findFirst()
-				.orElse(cachedLocations.get(0).getName());
+				.orElse(SmartThingsConstant.NO_LOCATION_FOUND);
 		stats.put(HubInfoMetric.CURRENT_LOCATION.getName(), locationName);
 	}
 
@@ -1178,8 +1207,8 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties store all controllable properties
 	 */
 	private void populateCreateRoomManagement(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties) {
-		Location location = findLocationByName(locationFilter);
-		stats.put(AggregatorGroupControllingMetric.CREATE_ROOM.getName() + CreateRoomMetric.LOCATION.getName(), getDefaultValueForNullData(location.getName(), SmartThingsConstant.EMPTY));
+		String locationName = getDefaultValueForNullData(findLocationByName(locationFilter).getName(), SmartThingsConstant.NO_LOCATION_FOUND);
+		stats.put(AggregatorGroupControllingMetric.CREATE_ROOM.getName() + CreateRoomMetric.LOCATION.getName(), getDefaultValueForNullData(locationName, SmartThingsConstant.EMPTY));
 		addAdvanceControlProperties(advancedControllableProperties,
 				createText(stats, AggregatorGroupControllingMetric.CREATE_ROOM.getName() + CreateRoomMetric.ROOM_NAME.getName(), cachedCreateRoom.getName()));
 		addAdvanceControlProperties(advancedControllableProperties,
@@ -1256,7 +1285,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private void populatePollingInterval(Map<String, String> stats) {
 		Integer minPollingInterval = calculatingMinPollingInterval();
 
-		Long nextPollingInterval = System.currentTimeMillis() + localPollingInterval * 1000;
 		Date date = new Date(nextPollingInterval);
 		Format format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
 
@@ -1567,8 +1595,8 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 		boolean isNoRoomAssignedExisting = validateNoRoomAssigned();
 		// Get list room modes when applying filter
-		if (StringUtils.isNotNullOrEmpty(roomsFilter)) {
-			Set<String> filteredRoom = convertUserInput(roomsFilter.toUpperCase());
+		if (StringUtils.isNotNullOrEmpty(roomFilter)) {
+			Set<String> filteredRoom = convertUserInput(roomFilter.toUpperCase());
 			rooms = cachedRooms.stream().map(Room::getName).filter(roomName -> filteredRoom.contains(roomName.toUpperCase())).collect(Collectors.toList());
 			if (filteredRoom.contains(SmartThingsConstant.NO_ROOM_ASSIGNED.toUpperCase()) && isNoRoomAssignedExisting) {
 				rooms.add(SmartThingsConstant.NO_ROOM_ASSIGNED);
@@ -1616,10 +1644,13 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						case DeviceDisplayTypesMetric.SWITCH:
 							String onLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOn(), SmartThingsConstant.ON);
 							String offLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOff(), SmartThingsConstant.OFF);
-							String currentVale = getDefaultValueForNullData(action.getStandbyPowerSwitch().getValue(), SmartThingsConstant.OFF);
+							String currentValue = getDefaultValueForNullData(action.getStandbyPowerSwitch().getValue(), SmartThingsConstant.OFF);
+							if (currentValue.equals(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_PARTIALLY_OPEN)) {
+								currentValue = AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_OPEN;
+							}
 
 							addAdvanceControlProperties(advancedControllableProperties,
-									createSwitch(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), currentVale, offLabel, onLabel));
+									createSwitch(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), currentValue, offLabel, onLabel));
 							unusedDeviceControlKeys.add(AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName());
 							isEmptyDevicesControl = false;
 							break;
@@ -1676,6 +1707,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		if (controllableProperty.equals(RoomManagementMetric.ACTIVE_ROOM.getName())) {
 			currentRoomInDeviceDashBoard = value;
 			populateDeviceDashboardView(stats, advancedControllableProperties);
+			isEmergencyDelivery = true;
 		} else {
 			// devices control
 			try {
@@ -1735,6 +1767,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 									action.getStandbyPowerSwitch().setValue(command);
 									device.getPresentation().getDashboardPresentations().getActions().set(0, action);
 									cachedDevicesAfterPollingInterval.put(device.getDeviceId(), device);
+									cachedDevices.put(device.getDeviceId(), device);
 
 									addAdvanceControlProperties(advancedControllableProperties,
 											createSwitch(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), command, offLabel, onLabel));
@@ -1807,7 +1840,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						// populate custom HSV color control
 						String hueControlLabel = AggregatedDeviceControllingMetric.HUE_CONTROL.getName();
 						String currentHueControlLabel = AggregatedDeviceControllingMetric.HUE_CONTROL.getName()
-								+ AggregatedDeviceControllingMetric.CURRENT_VALUE.getName() + SmartThingsConstant.DEGREES_UNIT;
+								+ AggregatedDeviceControllingMetric.CURRENT_VALUE.getName();
 						String saturationLabel = AggregatedDeviceControllingMetric.SATURATION_CONTROL.getName();
 						String currentSaturationControlLabel = AggregatedDeviceControllingMetric.SATURATION_CONTROL.getName()
 								+ AggregatedDeviceControllingMetric.CURRENT_VALUE.getName() + SmartThingsConstant.PERCENT_UNIT;
@@ -1829,8 +1862,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 							stats.put(currentHueControlLabel, String.valueOf(colorDevicePresentation.getHue().intValue()));
 							stats.put(currentSaturationControlLabel, String.valueOf(colorDevicePresentation.getSaturation().intValue()));
 							stats.put(AggregatedDeviceControllingMetric.CURRENT_COLOR_CONTROL.getName(), colorName);
-							stats.put(AggregatedDeviceControllingMetric.VALUE_CONTROL.getName() + SmartThingsConstant.PERCENT_UNIT
-									, String.valueOf((int) (AggregatedDeviceColorControllingConstant.DEFAULT_BRIGHTNESS * AggregatedDeviceColorControllingConstant.ONE_HUNDRED_PERCENT)));
 						} else {
 							Set<String> unusedKeys = new HashSet<>();
 							unusedKeys.add(hueControlLabel);
@@ -1838,7 +1869,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 							unusedKeys.add(currentHueControlLabel);
 							unusedKeys.add(currentSaturationControlLabel);
 							unusedKeys.add(AggregatedDeviceControllingMetric.CURRENT_COLOR_CONTROL.getName());
-							unusedKeys.add(AggregatedDeviceControllingMetric.VALUE_CONTROL.getName());
 							removeUnusedStatsAndControls(stats, advancedControllableProperties, unusedKeys);
 						}
 						continue;
@@ -1906,19 +1936,22 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				String onLabel = getDefaultValueForNullData(detailViewPresentation.getStandbyPowerSwitch().getCommand().getOn(), SmartThingsConstant.ON);
 				String offLabel = getDefaultValueForNullData(detailViewPresentation.getStandbyPowerSwitch().getCommand().getOff(), SmartThingsConstant.OFF);
 
+				// check on/off status for special case
+				if (SmartThingsConstant.TV_AUDIO_MUTE_CAPABILITY.equals(detailViewPresentation.getCapability())) {
+					currentValue = currentValue.equals(SmartThingsConstant.TV_AUDIO_MUTE) ? onLabel : offLabel;
+				}
+
 				addAdvanceControlProperties(advancedControllableProperties,
 						createSwitch(stats, convertToTitleCaseIteratingChars(detailViewPresentation.getLabel()), currentValue, offLabel, onLabel));
 				break;
 			case DeviceDisplayTypesMetric.PUSH_BUTTON:
-				addAdvanceControlProperties(advancedControllableProperties,
-						createButton(stats, convertToTitleCaseIteratingChars(detailViewPresentation.getLabel()), SmartThingsConstant.PUSH, SmartThingsConstant.PUSHING));
+				if (!isEmergencyDelivery) {
+					addAdvanceControlProperties(advancedControllableProperties,
+							createButton(stats, convertToTitleCaseIteratingChars(detailViewPresentation.getLabel()), SmartThingsConstant.PUSH, SmartThingsConstant.PUSHING));
+				}
 				break;
 			case DeviceDisplayTypesMetric.SLIDER:
 				Optional<String> command = Optional.ofNullable(detailViewPresentation.getSlider()).map(Slider::getCommand);
-				if (!command.isPresent()) {
-					break;
-				}
-
 				Optional<List<Float>> range = Optional.ofNullable(detailViewPresentation.getSlider())
 						.map(Slider::getRange);
 
@@ -1934,6 +1967,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					String labelEnd = String.valueOf(valueEnd.intValue()).concat(unit);
 					String controlLabel = convertToTitleCaseIteratingChars(detailViewPresentation.getLabel());
 
+					// populate read-only property when controllable property does not provide control command
+					if (!command.isPresent()) {
+						stats.put(controlLabel + SmartThingsConstant.LEFT_PARENTHESES + unit + SmartThingsConstant.RIGHT_PARENTHESES, String.valueOf(currentSliderValue.intValue()));
+						break;
+					}
+
 					addAdvanceControlProperties(advancedControllableProperties, createSlider(stats, controlLabel, labelStart, labelEnd, valueStart, valueEnd, currentSliderValue));
 					stats.put(controlLabel + AggregatedDeviceControllingMetric.CURRENT_VALUE.getName() + SmartThingsConstant.LEFT_PARENTHESES + unit + SmartThingsConstant.RIGHT_PARENTHESES,
 							String.valueOf(currentSliderValue.intValue()));
@@ -1945,26 +1984,45 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						.map(Command::getAlternatives);
 
 				if (alternatives.isPresent()) {
-					List<String> dropdownListModes = alternatives.get().stream().map(Alternative::getKey)
-							.collect(Collectors.toList());
+					List<String> dropdownListModes = new ArrayList<>();
 					currentValue = detailViewPresentation.getDropdownList().getValue();
 					if (StringUtils.isNullOrEmpty(currentValue)) {
 						break;
 					}
-					if (AggregatedDeviceThermostatControllingConstant.THERMOSTAT_FAN_MODE.equals(detailViewPresentation.getCapability())) {
-						dropdownListModes.clear();
-						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_FAN_MODE_AUTO);
-						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_FAN_MODE_CIRCULATE);
-						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_FAN_MODE_ON);
+
+					switch (detailViewPresentation.getCapability()) {
+						case AggregatedDeviceDropdownListModesControllingConstant.THERMOSTAT_FAN_MODE:
+							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.THERMOSTAT_FAN_MODE_AUTO);
+							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.THERMOSTAT_FAN_MODE_CIRCULATE);
+							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.THERMOSTAT_FAN_MODE_ON);
+							break;
+						case AggregatedDeviceDropdownListModesControllingConstant.THERMOSTAT_MODE:
+							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.THERMOSTAT_MODE_OFF);
+							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.THERMOSTAT_MODE_HEAT);
+							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.THERMOSTAT_MODE_AUTO);
+							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.THERMOSTAT_MODE_COOL);
+							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.THERMOSTAT_MODE_EMERGENCY);
+							break;
+						case AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE:
+							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_OPEN);
+							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_CLOSE);
+							if (currentValue.equals(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_PARTIALLY_OPEN)) {
+								currentValue = AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_OPEN;
+							}
+							break;
+						case AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_MODE:
+							String playBackStatus = Optional.ofNullable(detailViewPresentation.getDropdownList().getState()).map(State::getValue)
+									.orElse(AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_STATUS_PLAY);
+							currentValue = mediaPlaybackModes.get(playBackStatus);
+							dropdownListModes = alternatives.get().stream().map(Alternative::getKey)
+									.collect(Collectors.toList());
+							break;
+						default:
+							dropdownListModes = alternatives.get().stream().map(Alternative::getKey)
+									.collect(Collectors.toList());
+							break;
 					}
-					if (AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE.equals(detailViewPresentation.getCapability())) {
-						dropdownListModes.clear();
-						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE_OFF);
-						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE_HEAT);
-						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE_AUTO);
-						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE_COOL);
-						dropdownListModes.add(AggregatedDeviceThermostatControllingConstant.THERMOSTAT_MODE_EMERGENCY);
-					}
+
 					addAdvanceControlProperties(advancedControllableProperties,
 							createDropdown(stats, convertToTitleCaseIteratingChars(detailViewPresentation.getLabel()), dropdownListModes, currentValue));
 				}
@@ -1982,6 +2040,10 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				if (StringUtils.isNullOrEmpty(currentValue)) {
 					break;
 				}
+				if (SmartThingsConstant.TV_CHANNEL.equals(detailViewPresentation.getCapability())) {
+					stats.put(detailViewPresentation.getLabel(), currentValue);
+					break;
+				}
 				addAdvanceControlProperties(advancedControllableProperties,
 						createText(stats, convertToTitleCaseIteratingChars(detailViewPresentation.getLabel()), currentValue));
 				break;
@@ -1994,6 +2056,18 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
+	 * This method is used to init mediaPlaybackModes
+	 */
+	private void initMediaPlayBackList() {
+		mediaPlaybackModes.put(AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_STATUS_PLAY, AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_MODE_PLAY);
+		mediaPlaybackModes.put(AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_STATUS_PAUSE, AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_MODE_PAUSE);
+		mediaPlaybackModes.put(AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_STATUS_REWIND, AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_MODE_REWIND);
+		mediaPlaybackModes.put(AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_STATUS_FAST_FORWARD,
+				AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_MODE_FAST_FORWARD);
+		mediaPlaybackModes.put(AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_STATUS_STOP, AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_MODE_STOP);
+	}
+
+	/**
 	 * This method is used to populate common device control
 	 *
 	 * @param stats store all statistics
@@ -2002,6 +2076,9 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 */
 	private void populateAggregatedDeviceRoomControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, Device device) {
 		List<String> roomModes = cachedRooms.stream().map(Room::getName).collect(Collectors.toList());
+		if (validateNoRoomAssigned()) {
+			roomModes.add(SmartThingsConstant.NO_ROOM_ASSIGNED);
+		}
 		String currentRoom = findRoomNameById(device.getRoomId());
 		if (currentRoom.isEmpty()) {
 			currentRoom = SmartThingsConstant.NO_ROOM_ASSIGNED;
@@ -2041,6 +2118,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					device.setRoomId(roomID);
 					populateAggregatedDeviceRoomControl(stats, advancedControllableProperties, device);
 					cachedDevicesAfterPollingInterval.put(deviceId, device);
+					cachedDevices.put(deviceId, device);
 					isEmergencyDelivery = true;
 				} else {
 					throw new ResourceNotReachableException(String.format("can not assign device to room %s", value));
@@ -2405,9 +2483,10 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			Device device, DetailViewPresentation detailViewPresentation) {
 		try {
 			if (device != null) {
+				String deviceId = device.getDeviceId();
 				String request = SmartThingsURL.DEVICES
 						.concat(SmartThingsConstant.SLASH)
-						.concat(device.getDeviceId())
+						.concat(deviceId)
 						.concat(SmartThingsURL.COMMANDS);
 
 				HttpHeaders headers = new HttpHeaders();
@@ -2423,6 +2502,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				if (response.getStatusCode().is2xxSuccessful() && responseBody.isPresent()) {
 					addAdvanceControlProperties(advancedControllableProperties,
 							createButton(stats, convertToTitleCaseIteratingChars(controllableProperty), SmartThingsConstant.SUCCESSFUL, SmartThingsConstant.SUCCESSFUL));
+					retrieveDeviceHealth(deviceId);
+					retrieveDevicePresentation(deviceId);
+					retrieveDeviceFullStatus(deviceId);
+					Device cachedDevice = new Device(cachedDevices.get(device.getDeviceId()));
+					cachedDevicesAfterPollingInterval.put(device.getDeviceId(), cachedDevice);
+					populateAggregatedDeviceView(stats, advancedControllableProperties, cachedDevice);
 				} else {
 					throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
 				}
@@ -2447,9 +2532,10 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			Device device, DetailViewPresentation detailViewPresentation) {
 		try {
 			if (device != null) {
+				String deviceId = device.getDeviceId();
 				String request = SmartThingsURL.DEVICES
 						.concat(SmartThingsConstant.SLASH)
-						.concat(device.getDeviceId())
+						.concat(deviceId)
 						.concat(SmartThingsURL.COMMANDS);
 
 				HttpHeaders headers = new HttpHeaders();
@@ -2470,24 +2556,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 							.map(Slider::getRange);
 
 					if (range.isPresent() && range.get().size() == 2) {
-						String unit = detailViewPresentation.getSlider().getUnit();
-						String labelStart = range.get().get(0).toString().concat(unit);
-						String labelEnd = range.get().get(1).toString().concat(unit);
-						Float valueStart = range.get().get(0);
-						Float valueEnd = range.get().get(1);
-						String controlLabel = convertToTitleCaseIteratingChars(detailViewPresentation.getLabel());
-
-						addAdvanceControlProperties(advancedControllableProperties,
-								createSlider(stats, controlLabel, labelStart, labelEnd, valueStart, valueEnd, currentSliderValue.floatValue()));
-						stats.put(
-								controlLabel + AggregatedDeviceControllingMetric.CURRENT_VALUE.getName() + SmartThingsConstant.LEFT_PARENTHESES + unit + SmartThingsConstant.RIGHT_PARENTHESES,
-								currentSliderValue.toString());
-
-						device.getPresentation().getDetailViewPresentations().remove(detailViewPresentation);
-						detailViewPresentation.getSlider().setValue(currentSliderValue.toString());
-						device.getPresentation().getDetailViewPresentations().add(detailViewPresentation);
-						cachedDevicesAfterPollingInterval.put(device.getDeviceId(), device);
-						cachedDevices.put(device.getDeviceId(), device);
+						retrieveDeviceHealth(deviceId);
+						retrieveDevicePresentation(deviceId);
+						retrieveDeviceFullStatus(deviceId);
+						Device cachedDevice = new Device(cachedDevices.get(device.getDeviceId()));
+						cachedDevicesAfterPollingInterval.put(device.getDeviceId(), cachedDevice);
+						populateAggregatedDeviceView(stats, advancedControllableProperties, cachedDevice);
 					}
 				} else {
 					throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
@@ -2670,14 +2744,14 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				.map(presentation -> presentation.getName().toUpperCase())
 				.collect(Collectors.toSet());
 
-		if (deviceTypesFilter != null) {
-			filteredCategories = convertUserInput(deviceTypesFilter.toUpperCase());
+		if (deviceTypeFilter != null) {
+			filteredCategories = convertUserInput(deviceTypeFilter.toUpperCase());
 		}
-		if (deviceNamesFilter != null) {
-			filteredNames = convertUserInput(deviceNamesFilter.toUpperCase());
+		if (deviceNameFilter != null) {
+			filteredNames = convertUserInput(deviceNameFilter.toUpperCase());
 		}
-		if (roomsFilter != null) {
-			filteredRooms = convertUserInput(roomsFilter.toUpperCase());
+		if (roomFilter != null) {
+			filteredRooms = convertUserInput(roomFilter.toUpperCase());
 		}
 		if (filteredRooms.contains(SmartThingsConstant.NO_ROOM_ASSIGNED.toUpperCase())) {
 			filteredRooms.remove(SmartThingsConstant.NO_ROOM_ASSIGNED.toUpperCase());
@@ -2985,17 +3059,16 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * Find location by location name
 	 *
 	 * @param name location name
-	 * @return String location
+	 * @return Location
 	 */
 	private Location findLocationByName(String name) {
 		Objects.requireNonNull(cachedLocations);
 		if (StringUtils.isNotNullOrEmpty(name)) {
-			Optional<Location> location = cachedLocations.stream().filter(l -> name.equalsIgnoreCase(l.getName())).findFirst();
-			if (location.isPresent()) {
-				return location.get();
-			}
+			Location location = cachedLocations.stream().filter(l -> name.equalsIgnoreCase(l.getName())).findFirst().orElse(new Location());
+			return location;
+		} else {
+			return cachedLocations.get(0);
 		}
-		return cachedLocations.get(0);
 	}
 
 	/**
@@ -3125,7 +3198,10 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private void mapAggregatedDevicesToCache() {
 		for (Device device : cachedDevicesAfterPollingInterval.values()) {
 			String deviceId = device.getDeviceId();
-
+			if (!deviceIds.contains(deviceId)) {
+				cachedAggregatedDevices.remove(deviceId);
+				continue;
+			}
 			AggregatedDevice cachedAggregatedDevice = Optional.ofNullable(cachedAggregatedDevices.get(deviceId)).orElse(new AggregatedDevice());
 
 			cachedAggregatedDevice.setDeviceName(getDefaultValueForNullData(device.getName(), SmartThingsConstant.NONE));
