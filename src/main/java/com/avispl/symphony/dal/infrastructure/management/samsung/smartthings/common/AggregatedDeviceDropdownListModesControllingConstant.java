@@ -35,7 +35,6 @@ public class AggregatedDeviceDropdownListModesControllingConstant {
 	public static final String WINDOW_SHADE_MODE = "windowShade";
 	public static final String WINDOW_SHADE_MODE_OPEN = "open";
 	public static final String WINDOW_SHADE_MODE_CLOSE = "close";
-	public static final String WINDOW_SHADE_PARTIALLY_OPEN = "partially open";
 
 	// TV media playback
 	public static final String TV_MEDIA_PLAYBACK_MODE = "mediaPlayback";

@@ -48,6 +48,7 @@ public class SmartThingsConstant {
 	public static final String NONE = "None";
 	public static final String RATE_LIMIT_HEADER_KEY = "X-RateLimit-Reset";
 	public static final String IS_VALID_CONFIG_MANAGEMENT = "true";
+	public static final String FAHRENHEIT = "F";
 	public static final int MAX_ROOM_QUANTITY = 20;
 
 	// Thread metric

@@ -39,7 +39,7 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	public void setUp() throws Exception {
 		communicator = new SamsungSmartThingsAggregatorCommunicator();
 		communicator.setHost("api.smartthings.com");
-		communicator.setTrustAllCertificates(false);
+		communicator.setTrustAllCertificates(true);
 		communicator.setPort(443);
 		communicator.setProtocol("https");
 		communicator.setContentType("application/json");

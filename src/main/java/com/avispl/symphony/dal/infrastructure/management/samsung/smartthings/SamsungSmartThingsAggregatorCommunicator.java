@@ -1645,8 +1645,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 							String onLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOn(), SmartThingsConstant.ON);
 							String offLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOff(), SmartThingsConstant.OFF);
 							String currentValue = getDefaultValueForNullData(action.getStandbyPowerSwitch().getValue(), SmartThingsConstant.OFF);
-							if (currentValue.equals(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_PARTIALLY_OPEN)) {
+							if (currentValue.contains(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_OPEN)) {
 								currentValue = AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_OPEN;
+							}
+							if (currentValue.contains(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_CLOSE)) {
+								currentValue = AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_CLOSE;
 							}
 
 							addAdvanceControlProperties(advancedControllableProperties,
@@ -1831,7 +1834,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						colorModes.add(AggregatedDeviceColorControllingConstant.CUSTOM_COLOR);
 						String currentColor = Optional.ofNullable(colorDevicePresentation.getCurrentColor()).orElse(SmartThingsConstant.EMPTY);
 
-						if (currentColor.isEmpty()) {
+						if (SmartThingsConstant.EMPTY.equals(currentColor)) {
 							currentColor = getDefaultColorNameByHueAndSaturation(colorDevicePresentation.getHue(), colorDevicePresentation.getSaturation());
 						}
 						addAdvanceControlProperties(advancedControllableProperties,
@@ -1963,6 +1966,15 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					String unit = detailViewPresentation.getSlider().getUnit();
 					Float valueStart = range.get().get(0);
 					Float valueEnd = range.get().get(1);
+
+					if ((AggregatedDeviceControllingMetric.THERMOSTAT_HEATING_SET_POINT.equals(detailViewPresentation.getCapability()) ||
+							detailViewPresentation.getCapability().equals(AggregatedDeviceControllingMetric.THERMOSTAT_COOLING_SET_POINT) ||
+							detailViewPresentation.getCapability().equals(AggregatedDeviceControllingMetric.PARTY_VOICE23922_VTEMPSET)) &&
+							SmartThingsConstant.FAHRENHEIT.equalsIgnoreCase(unit)) {
+						valueStart = convertFromCelsiusToFahrenheit(valueStart);
+						valueEnd = convertFromCelsiusToFahrenheit(valueEnd);
+					}
+
 					String labelStart = String.valueOf(valueStart.intValue()).concat(unit);
 					String labelEnd = String.valueOf(valueEnd.intValue()).concat(unit);
 					String controlLabel = convertToTitleCaseIteratingChars(detailViewPresentation.getLabel());
@@ -2006,8 +2018,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						case AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE:
 							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_OPEN);
 							dropdownListModes.add(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_CLOSE);
-							if (currentValue.equals(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_PARTIALLY_OPEN)) {
+							if (currentValue.contains(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_OPEN)) {
 								currentValue = AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_OPEN;
+							}
+							if (currentValue.contains(AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_CLOSE)) {
+								currentValue = AggregatedDeviceDropdownListModesControllingConstant.WINDOW_SHADE_MODE_CLOSE;
 							}
 							break;
 						case AggregatedDeviceDropdownListModesControllingConstant.TV_MEDIA_PLAYBACK_MODE:
@@ -2053,6 +2068,13 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				}
 				break;
 		}
+	}
+
+	/**
+	 * This method is used to Convert from celsius to fahrenheit
+	 */
+	private float convertFromCelsiusToFahrenheit(float value) {
+		return value * 9 / 5 + 32;
 	}
 
 	/**
