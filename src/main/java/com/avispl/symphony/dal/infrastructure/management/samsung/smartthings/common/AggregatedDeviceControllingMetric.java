@@ -22,7 +22,10 @@ public enum AggregatedDeviceControllingMetric {
 	HUE_CONTROL("ColourHue"),
 	SATURATION_CONTROL("ColourSaturation"),
 	CURRENT_COLOR_CONTROL("ColourCurrentColour"),
-	CURRENT_VALUE("CurrentValue");
+	CURRENT_VALUE("CurrentValue"),
+	THERMOSTAT_HEATING_SET_POINT("thermostatHeatingSetpoint"),
+	THERMOSTAT_COOLING_SET_POINT("thermostatCoolingSetpoint"),
+	PARTY_VOICE23922_VTEMPSET("partyvoice23922.vtempset");
 
 	private final String name;
 
