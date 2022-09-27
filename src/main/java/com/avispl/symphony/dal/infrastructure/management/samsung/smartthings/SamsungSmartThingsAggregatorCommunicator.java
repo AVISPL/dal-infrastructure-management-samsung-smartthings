@@ -920,12 +920,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		if (logger.isWarnEnabled()) {
 			logger.warn("Start call retrieveMultipleStatistic");
 		}
-		reentrantLock.lock();
-		try {
 			return cachedAggregatedDevices.values().stream().collect(Collectors.toList());
-		} finally {
-			reentrantLock.unlock();
-		}
 	}
 
 	@Override
@@ -1967,9 +1962,9 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					Float valueStart = range.get().get(0);
 					Float valueEnd = range.get().get(1);
 
-					if ((AggregatedDeviceControllingMetric.THERMOSTAT_HEATING_SET_POINT.equals(detailViewPresentation.getCapability()) ||
-							detailViewPresentation.getCapability().equals(AggregatedDeviceControllingMetric.THERMOSTAT_COOLING_SET_POINT) ||
-							detailViewPresentation.getCapability().equals(AggregatedDeviceControllingMetric.PARTY_VOICE23922_VTEMPSET)) &&
+					if ((AggregatedDeviceControllingMetric.THERMOSTAT_HEATING_SET_POINT.getName().equals(detailViewPresentation.getCapability()) ||
+							AggregatedDeviceControllingMetric.THERMOSTAT_COOLING_SET_POINT.getName().equals(detailViewPresentation.getCapability()) ||
+							AggregatedDeviceControllingMetric.PARTY_VOICE23922_VTEMPSET.getName().equals(detailViewPresentation.getCapability())) &&
 							SmartThingsConstant.FAHRENHEIT.equalsIgnoreCase(unit)) {
 						valueStart = convertFromCelsiusToFahrenheit(valueStart);
 						valueEnd = convertFromCelsiusToFahrenheit(valueEnd);
