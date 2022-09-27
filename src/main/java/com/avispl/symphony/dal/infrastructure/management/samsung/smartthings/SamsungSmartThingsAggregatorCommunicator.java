@@ -1104,8 +1104,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			if (retryOnError) {
 				retrieveLocations(false);
 			}
-			logger.error("Error while retrieve locations info: " + e.getMessage(), e);
-
+			throw new ResourceNotReachableException("Error while retrieve locations info: " + e.getMessage(), e);
 		}
 	}
 
