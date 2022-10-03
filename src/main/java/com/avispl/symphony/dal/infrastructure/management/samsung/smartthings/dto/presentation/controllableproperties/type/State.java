@@ -16,11 +16,31 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * Created on 8/11/2022
  * @since 1.0.0
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(value = "value", ignoreUnknown = true)
 public class State {
+
+	private String value;
 
 	@JsonAlias ("alternatives")
 	private List<Alternative> alternatives = new ArrayList<>();
+
+	/**
+	 * Retrieves {@link #value}
+	 *
+	 * @return value of {@link #value}
+	 */
+	public String getValue() {
+		return value;
+	}
+
+	/**
+	 * Sets {@link #value} value
+	 *
+	 * @param value new value of {@link #value}
+	 */
+	public void setValue(String value) {
+		this.value = value;
+	}
 
 	/**
 	 * Retrieves {@link #alternatives}
