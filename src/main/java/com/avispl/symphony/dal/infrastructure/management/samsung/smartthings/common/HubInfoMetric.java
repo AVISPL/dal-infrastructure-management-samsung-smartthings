@@ -15,7 +15,7 @@ public enum HubInfoMetric {
 	NAME("HubName"),
 	CURRENT_LOCATION("CurrentLocation"),
 	FIRMWARE_VERSION("FirmwareVersion"),
-	MIN_POLLING_INTERVAL("MinPollingInterval"),
+	MIN_POLLING_INTERVAL("MinPollingInterval(minutes)"),
 	NEXT_POLLING_INTERVAL("NextPollingInterval"),
 	STATE("Status");
 

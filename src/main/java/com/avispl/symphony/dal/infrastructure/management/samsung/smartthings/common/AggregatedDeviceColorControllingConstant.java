@@ -35,7 +35,7 @@ public class AggregatedDeviceColorControllingConstant {
 	public static final String RED = "Red";
 	public static final String WHITE = "White";
 	public static final String YELLOW = "Yellow";
-	public static final String CUSTOM_COLOR = "CustomColor";
+	public static final String CUSTOM_COLOR = "CustomColour";
 
 	// Color Sections
 	public static final String RED_SECTION = "Red";

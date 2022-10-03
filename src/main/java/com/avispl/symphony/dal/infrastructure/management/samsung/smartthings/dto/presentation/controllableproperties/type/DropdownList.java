@@ -17,9 +17,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class DropdownList {
 
 	private String value;
+	private State state;
 
 	@JsonAlias("command")
 	private Command command;
+
 
 	/**
 	 * Retrieves {@link #value}
@@ -37,6 +39,24 @@ public class DropdownList {
 	 */
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	/**
+	 * Retrieves {@link #state}
+	 *
+	 * @return value of {@link #state}
+	 */
+	public State getState() {
+		return state;
+	}
+
+	/**
+	 * Sets {@link #state} value
+	 *
+	 * @param state new value of {@link #state}
+	 */
+	public void setState(State state) {
+		this.state = state;
 	}
 
 	/**
