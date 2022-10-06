@@ -1411,7 +1411,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				if (i == roomIndex) {
 					continue;
 				}
-				if (cachedRooms.get(i).getName().equalsIgnoreCase(value)) {
+				if (!controllableProperty.contains(SmartThingsConstant.DELETE) && cachedRooms.get(i).getName().equalsIgnoreCase(value)) {
 					throw new ResourceNotReachableException(String.format("The room name %s already exists, Please chose the different room name", value));
 				}
 			}
@@ -1709,6 +1709,9 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			// devices control
 			try {
 				Device device = findDeviceByName(controllableProperty);
+				if (!convertDeviceStatusValue(device)) {
+					throw new ResourceNotReachableException(String.format("Unable to control %s, device is offline", device.getName()));
+				}
 				if (device != null) {
 					String request = SmartThingsURL.DEVICES
 							.concat(SmartThingsConstant.SLASH)
