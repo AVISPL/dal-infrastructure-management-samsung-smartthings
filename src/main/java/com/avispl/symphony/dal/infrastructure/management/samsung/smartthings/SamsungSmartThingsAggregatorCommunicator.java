@@ -920,7 +920,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		if (logger.isWarnEnabled()) {
 			logger.warn("Start call retrieveMultipleStatistic");
 		}
-			return cachedAggregatedDevices.values().stream().collect(Collectors.toList());
+		return cachedAggregatedDevices.values().stream().collect(Collectors.toList());
 	}
 
 	@Override
@@ -1363,6 +1363,9 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					throw new ResourceNotReachableException(String.format("The location name %s already exists, Please chose the different location name", value));
 				}
 			}
+			if (value.trim().isEmpty()){
+				throw new IllegalArgumentException("Invalid location name, the location name can not be empty");
+			}
 			String request = SmartThingsURL.LOCATIONS
 					.concat(SmartThingsConstant.SLASH)
 					.concat(cachedLocations.get(locationIndex).getLocationId());
@@ -1415,7 +1418,9 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					throw new ResourceNotReachableException(String.format("The room name %s already exists, Please chose the different room name", value));
 				}
 			}
-
+			if (value.trim().isEmpty()){
+				throw new IllegalArgumentException("Invalid room name, the room name can not be empty");
+			}
 			RoomManagementMetric roomManagementMetric = RoomManagementMetric.getByName(controllableProperty, formatOrderNumber(roomIndex, Arrays.asList(cachedRooms.toArray())));
 
 			String request = SmartThingsURL.LOCATIONS
@@ -1529,7 +1534,10 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				cachedCreateRoom = new Room();
 				break;
 			case CREATE_ROOM:
-				isEditedForCreateRoom = false;
+				String roomName = cachedCreateRoom.getName();
+				if (roomName == null || roomName.trim().isEmpty()){
+					throw new IllegalArgumentException("Invalid room name, the room name can not be empty");
+				}
 				if (cachedRooms.size() >= SmartThingsConstant.MAX_ROOM_QUANTITY) {
 					throw new ResourceNotReachableException(String.format("Can not create more than %s room", SmartThingsConstant.MAX_ROOM_QUANTITY));
 				}
@@ -1556,7 +1564,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					} else {
 						throw new ResourceNotReachableException(String.format("Creating room with name %s fail, please try again later", value));
 					}
-
+					isEditedForCreateRoom = false;
 					populateCreateRoomManagement(stats, advancedControllableProperties);
 					populateRoomManagement(stats, advancedControllableProperties);
 					isEmergencyDelivery = true;
