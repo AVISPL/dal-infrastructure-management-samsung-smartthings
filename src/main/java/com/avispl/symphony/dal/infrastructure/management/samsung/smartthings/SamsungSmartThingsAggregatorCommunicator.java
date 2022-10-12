@@ -867,7 +867,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				AggregatedDeviceControllingMetric aggregatedDeviceControllingMetric = AggregatedDeviceControllingMetric.getByName(property);
 				AggregatedDevice aggregatedDevice = cachedAggregatedDevices.get(deviceId);
 				if (!aggregatedDevice.getDeviceOnline()) {
-					throw new ResourceNotReachableException(String.format("Unable to control %s, device is offline", aggregatedDevice.getDeviceName()));
+					throw new IllegalStateException(String.format("Unable to control %s, device is offline", aggregatedDevice.getDeviceName()));
 				}
 				if (aggregatedDevice.getProperties() == null) {
 					throw new ResourceNotReachableException("The device's properties are null, please wait until the next polling interval");
@@ -920,7 +920,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		if (logger.isWarnEnabled()) {
 			logger.warn("Start call retrieveMultipleStatistic");
 		}
-			return cachedAggregatedDevices.values().stream().collect(Collectors.toList());
+		return cachedAggregatedDevices.values().stream().collect(Collectors.toList());
 	}
 
 	@Override
@@ -1350,7 +1350,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties is the list that store all controllable properties
 	 * @param controllableProperty name of controllable property
 	 * @param value value of controllable property
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void locationControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value) {
 		int locationIndex = Integer.parseInt(controllableProperty.substring(LocationManagementMetric.LOCATION.getName().length()));
@@ -1360,8 +1360,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					continue;
 				}
 				if (cachedLocations.get(i).getName().equalsIgnoreCase(value)) {
-					throw new ResourceNotReachableException(String.format("The location name %s already exists, Please chose the different location name", value));
+					throw new IllegalArgumentException(String.format("The location name %s already exists, Please chose the different location name", value));
 				}
+			}
+			if (value.trim().isEmpty()) {
+				throw new IllegalArgumentException("Invalid location name, the location name can not be empty");
 			}
 			String request = SmartThingsURL.LOCATIONS
 					.concat(SmartThingsConstant.SLASH)
@@ -1383,14 +1386,14 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				location = objectMapper.readValue(responseBody.get().toString(), Location.class);
 				cachedLocations.set(locationIndex, location);
 			} else {
-				throw new ResourceNotReachableException(String.format("Changing %s name fail, please try again later", controllableProperty));
+				throw new IllegalStateException(String.format("Changing %s name fail, please try again later", controllableProperty));
 			}
 
 			addAdvanceControlProperties(advancedControllableProperties,
 					createText(stats, AggregatorGroupControllingMetric.LOCATION_MANAGEMENT.getName() + LocationManagementMetric.LOCATION.getName() + locationIndex, value));
 			isEmergencyDelivery = true;
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling location %s %s: %s", controllableProperty, cachedLocations.get(locationIndex).getName(), e.getMessage()), e);
+			throw new IllegalStateException(String.format("Error while controlling location %s %s: %s", controllableProperty, cachedLocations.get(locationIndex).getName(), e.getMessage()), e);
 		}
 	}
 
@@ -1401,7 +1404,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties is the list that store all controllable properties
 	 * @param controllableProperty name of controllable property
 	 * @param value value of controllable property
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void roomControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value) {
 		int roomIndex = Integer.parseInt(controllableProperty.substring(RoomManagementMetric.ROOM.getName().length(),
@@ -1411,11 +1414,13 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				if (i == roomIndex) {
 					continue;
 				}
-				if (cachedRooms.get(i).getName().equalsIgnoreCase(value)) {
-					throw new ResourceNotReachableException(String.format("The room name %s already exists, Please chose the different room name", value));
+				if (!controllableProperty.contains(SmartThingsConstant.DELETE) && cachedRooms.get(i).getName().equalsIgnoreCase(value)) {
+					throw new IllegalArgumentException(String.format("The room name %s already exists, Please chose the different room name", value));
 				}
 			}
-
+			if (value.trim().isEmpty()) {
+				throw new IllegalArgumentException("Invalid room name, the room name can not be empty");
+			}
 			RoomManagementMetric roomManagementMetric = RoomManagementMetric.getByName(controllableProperty, formatOrderNumber(roomIndex, Arrays.asList(cachedRooms.toArray())));
 
 			String request = SmartThingsURL.LOCATIONS
@@ -1443,7 +1448,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						room = objectMapper.readValue(responseBody.get().toString(), Room.class);
 						cachedRooms.set(roomIndex, room);
 					} else {
-						throw new ResourceNotReachableException(String.format("Changing %s name fail, please try again later", controllableProperty));
+						throw new IllegalStateException(String.format("Changing %s name fail, please try again later", controllableProperty));
 					}
 
 					populateRoomManagement(stats, advancedControllableProperties);
@@ -1455,7 +1460,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					handleRateLimitExceed(response);
 
 					if (!response.getStatusCode().is2xxSuccessful()) {
-						throw new ResourceNotReachableException(String.format("%s fail, please try again later", controllableProperty));
+						throw new IllegalStateException(String.format("%s fail, please try again later", controllableProperty));
 					}
 					cachedRooms.remove(roomIndex);
 
@@ -1468,7 +1473,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					throw new IllegalStateException(String.format("Operation %s is not supported.", controllableProperty));
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling room %s %s: %s", controllableProperty, cachedRooms.get(roomIndex), e.getMessage()), e);
+			throw new IllegalStateException(String.format("Error while controlling room %s %s: %s", controllableProperty, cachedRooms.get(roomIndex), e.getMessage()), e);
 		}
 	}
 
@@ -1478,7 +1483,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param stats is the map that store all statistics
 	 * @param advancedControllableProperties is the list that store all controllable properties
 	 * @param controllableProperty name of controllable property
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void sceneControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty) {
 		try {
@@ -1491,13 +1496,13 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			ResponseEntity<?> response = doPost(request, String.class);
 
 			if (!response.getStatusCode().is2xxSuccessful()) {
-				throw new ResourceNotReachableException(String.format("Run Scene %s fail, please try again later", controllableProperty));
+				throw new IllegalStateException(String.format("Run Scene %s fail, please try again later", controllableProperty));
 			}
 			addAdvanceControlProperties(advancedControllableProperties,
 					createButton(stats, AggregatorGroupControllingMetric.SCENE.getName().concat(controllableProperty), SmartThingsConstant.SUCCESSFUL, SmartThingsConstant.SUCCESSFUL));
 			isEmergencyDelivery = true;
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling scene %s: %s", controllableProperty, e.getMessage()), e);
+			throw new IllegalStateException(String.format("Error while controlling scene %s: %s", controllableProperty, e.getMessage()), e);
 		}
 	}
 
@@ -1508,7 +1513,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties is the list that store all controllable properties
 	 * @param controllableProperty name of controllable property
 	 * @param value value of controllable property
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void createRoomControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value) {
 		CreateRoomMetric createRoomMetric = CreateRoomMetric.getByName(controllableProperty);
@@ -1519,7 +1524,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			case ROOM_NAME:
 				for (Room room : cachedRooms) {
 					if (room.getName().equalsIgnoreCase(value)) {
-						throw new ResourceNotReachableException(String.format("The room name %s already exists, Please chose the different room name", value));
+						throw new IllegalArgumentException(String.format("The room name %s already exists, Please chose the different room name", value));
 					}
 				}
 				cachedCreateRoom.setName(value);
@@ -1529,7 +1534,10 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				cachedCreateRoom = new Room();
 				break;
 			case CREATE_ROOM:
-				isEditedForCreateRoom = false;
+				String roomName = cachedCreateRoom.getName();
+				if (roomName == null || roomName.trim().isEmpty()) {
+					throw new IllegalArgumentException("Invalid room name, the room name can not be empty");
+				}
 				if (cachedRooms.size() >= SmartThingsConstant.MAX_ROOM_QUANTITY) {
 					throw new ResourceNotReachableException(String.format("Can not create more than %s room", SmartThingsConstant.MAX_ROOM_QUANTITY));
 				}
@@ -1554,14 +1562,14 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						cachedCreateRoom = new Room();
 						cachedRooms.add(room);
 					} else {
-						throw new ResourceNotReachableException(String.format("Creating room with name %s fail, please try again later", value));
+						throw new IllegalStateException(String.format("Creating room with name %s fail, please try again later", value));
 					}
-
+					isEditedForCreateRoom = false;
 					populateCreateRoomManagement(stats, advancedControllableProperties);
 					populateRoomManagement(stats, advancedControllableProperties);
 					isEmergencyDelivery = true;
 				} catch (Exception e) {
-					throw new ResourceNotReachableException(String.format("Error while controlling create room %s: %s", controllableProperty, e.getMessage()), e);
+					throw new IllegalStateException(String.format("Error while controlling create room %s: %s", controllableProperty, e.getMessage()), e);
 				}
 				break;
 			default:
@@ -1696,7 +1704,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties is the list that store all controllable properties
 	 * @param controllableProperty name of controllable property
 	 * @param value value of controllable property
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void deviceDashboardControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value) {
 
@@ -1709,6 +1717,9 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			// devices control
 			try {
 				Device device = findDeviceByName(controllableProperty);
+				if (!convertDeviceStatusValue(device)) {
+					throw new IllegalStateException(String.format("Unable to control %s, device is offline", device.getName()));
+				}
 				if (device != null) {
 					String request = SmartThingsURL.DEVICES
 							.concat(SmartThingsConstant.SLASH)
@@ -1781,16 +1792,16 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 							}
 						}
 					} else {
-						throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
+						throw new IllegalStateException(String.format("control device %s fail, please try again later", controllableProperty));
 					}
 
 					populateDeviceDashboardView(stats, advancedControllableProperties);
 					isEmergencyDelivery = true;
 				} else {
-					throw new ResourceNotReachableException(String.format("can not find device: %s", controllableProperty));
+					throw new IllegalArgumentException(String.format("can not find device: %s", controllableProperty));
 				}
 			} catch (Exception e) {
-				throw new ResourceNotReachableException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
+				throw new IllegalStateException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 			}
 		}
 	}
@@ -2112,7 +2123,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties is the list that store all controllable properties
 	 * @param controllableProperty name of controllable property
 	 * @param value value of controllable property
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void aggregatedDeviceRoomControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value, String deviceId) {
 		try {
@@ -2137,13 +2148,13 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					cachedDevices.put(deviceId, device);
 					isEmergencyDelivery = true;
 				} else {
-					throw new ResourceNotReachableException(String.format("can not assign device to room %s", value));
+					throw new IllegalStateException(String.format("can not assign device to room %s", value));
 				}
 			} else {
-				throw new ResourceNotReachableException(String.format("can not assign device to room %s", value));
+				throw new IllegalStateException(String.format("can not assign device to room %s", value));
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
+			throw new IllegalStateException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 		}
 	}
 
@@ -2222,7 +2233,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties is the list that store all controllable properties
 	 * @param controllableProperty name of controllable property
 	 * @param saturation value of saturation
-	 * @throws ResourceNotReachableException when fail to control
 	 */
 	private void aggregatedDeviceColorSaturationControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, Float saturation,
 			String deviceId) {
@@ -2245,7 +2255,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param device device data
 	 * @param hue color hue
 	 * @param saturation color saturation
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private boolean sendColorControlRequest(String controllableProperty, Device device, String hue, String saturation) {
 		try {
@@ -2263,11 +2273,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 				handleRateLimitExceed(response);
 				if (!response.getStatusCode().is2xxSuccessful()) {
-					throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
+					throw new IllegalStateException(String.format("control device %s fail, please try again later", controllableProperty));
 				}
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
+			throw new IllegalStateException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 		}
 		return true;
 	}
@@ -2385,7 +2395,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param advancedControllableProperties is the list that store all controllable properties
 	 * @param controllableProperty name of controllable property
 	 * @param value value of controllable property
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalArgumentException when fail to control
 	 */
 	private void aggregatedDeviceControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value, String deviceId) {
 
@@ -2429,7 +2439,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				}
 				isEmergencyDelivery = true;
 			} else {
-				throw new ResourceNotReachableException(String.format("control %s error: can not find device", controllableProperty));
+				throw new IllegalArgumentException(String.format("control %s error: can not find device", controllableProperty));
 			}
 		}
 	}
@@ -2443,7 +2453,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param controllableProperty name of controllable property
 	 * @param device device data
 	 * @param detailViewPresentation device detailViewPresentation
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void switchControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String value, String controllableProperty,
 			Device device, DetailViewPresentation detailViewPresentation) {
@@ -2477,11 +2487,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					cachedDevicesAfterPollingInterval.put(device.getDeviceId(), device);
 					cachedDevices.put(device.getDeviceId(), device);
 				} else {
-					throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
+					throw new IllegalStateException(String.format("control device %s fail, please try again later", controllableProperty));
 				}
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
+			throw new IllegalStateException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 		}
 	}
 
@@ -2493,7 +2503,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param controllableProperty name of controllable property
 	 * @param device device data
 	 * @param detailViewPresentation device detailViewPresentation
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void pushButtonControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty,
 			Device device, DetailViewPresentation detailViewPresentation) {
@@ -2525,11 +2535,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					cachedDevicesAfterPollingInterval.put(device.getDeviceId(), cachedDevice);
 					populateAggregatedDeviceView(stats, advancedControllableProperties, cachedDevice);
 				} else {
-					throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
+					throw new IllegalStateException(String.format("control device %s fail, please try again later", controllableProperty));
 				}
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
+			throw new IllegalStateException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 		}
 	}
 
@@ -2542,7 +2552,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param controllableProperty name of controllable property
 	 * @param device device data
 	 * @param detailViewPresentation device detailViewPresentation
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void sliderControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String value, String controllableProperty,
 			Device device, DetailViewPresentation detailViewPresentation) {
@@ -2580,11 +2590,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						populateAggregatedDeviceView(stats, advancedControllableProperties, cachedDevice);
 					}
 				} else {
-					throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
+					throw new IllegalStateException(String.format("control device %s fail, please try again later", controllableProperty));
 				}
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
+			throw new IllegalStateException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 		}
 	}
 
@@ -2597,7 +2607,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param controllableProperty name of controllable property
 	 * @param device device data
 	 * @param detailViewPresentation device detailViewPresentation
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void listControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String value, String controllableProperty,
 			Device device, DetailViewPresentation detailViewPresentation) {
@@ -2635,11 +2645,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					cachedDevicesAfterPollingInterval.put(device.getDeviceId(), cachedDevice);
 					populateAggregatedDeviceView(stats, advancedControllableProperties, cachedDevice);
 				} else {
-					throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
+					throw new IllegalStateException(String.format("control device %s fail, please try again later", controllableProperty));
 				}
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
+			throw new IllegalStateException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 		}
 	}
 
@@ -2652,7 +2662,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param controllableProperty name of controllable property
 	 * @param device device data
 	 * @param detailViewPresentation device detailViewPresentation
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void numberControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String value, String controllableProperty,
 			Device device, DetailViewPresentation detailViewPresentation) {
@@ -2684,11 +2694,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					cachedDevicesAfterPollingInterval.put(device.getDeviceId(), device);
 					cachedDevices.put(device.getDeviceId(), device);
 				} else {
-					throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
+					throw new IllegalStateException(String.format("control device %s fail, please try again later", controllableProperty));
 				}
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
+			throw new IllegalStateException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 		}
 	}
 
@@ -2701,7 +2711,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param controllableProperty name of controllable property
 	 * @param device device data
 	 * @param detailViewPresentation device detailViewPresentation
-	 * @throws ResourceNotReachableException when fail to control
+	 * @throws IllegalStateException when fail to control
 	 */
 	private void textControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String value, String controllableProperty,
 			Device device, DetailViewPresentation detailViewPresentation) {
@@ -2732,11 +2742,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 					cachedDevicesAfterPollingInterval.put(device.getDeviceId(), device);
 					cachedDevices.put(device.getDeviceId(), device);
 				} else {
-					throw new ResourceNotReachableException(String.format("control device %s fail, please try again later", controllableProperty));
+					throw new IllegalStateException(String.format("control device %s fail, please try again later", controllableProperty));
 				}
 			}
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
+			throw new IllegalStateException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 		}
 	}
 
@@ -2964,7 +2974,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	/**
 	 * calculating minimum of polling interval
 	 *
-	 * @throws ResourceNotReachableException when get limit rate exceed error
+	 * @throws IllegalArgumentException when get limit rate exceed error
 	 */
 	private int calculatingLocalPollingInterval() {
 
@@ -2981,14 +2991,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			}
 			return pollingIntervalValue;
 		} catch (Exception e) {
-			throw new ResourceNotReachableException(String.format("Unexpected pollingInterval value: %s", pollingInterval));
+			throw new IllegalArgumentException(String.format("Unexpected pollingInterval value: %s", pollingInterval));
 		}
 	}
 
 	/**
 	 * calculating minimum of polling interval
-	 *
-	 * @throws ResourceNotReachableException when get limit rate exceed error
 	 */
 	private int calculatingMinPollingInterval() {
 		if (!deviceIds.isEmpty()) {
@@ -3000,9 +3008,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	}
 
 	/**
-	 * calculating minimum of polling interval
-	 *
-	 * @throws ResourceNotReachableException when get limit rate exceed error
+	 * calculating thread quantity
 	 */
 	private int calculatingThreadQuantity() {
 		if (deviceIds.isEmpty()) {
@@ -3018,7 +3024,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * Handle rate limit exceed error while controlling
 	 *
 	 * @param response ResponseEntity
-	 * @throws ResourceNotReachableException when get limit rate exceed error
+	 * @throws IllegalStateException when get limit rate exceed error
 	 */
 	private void handleRateLimitExceed(ResponseEntity<?> response) {
 		Optional<String> rateLimit = Optional.ofNullable(response)
@@ -3027,7 +3033,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				.map(t -> t.get(0));
 		if (response.getStatusCode().equals(HttpStatus.TOO_MANY_REQUESTS) && rateLimit.isPresent()) {
 			Integer resetTime = Integer.parseInt(rateLimit.get()) / 1000;
-			throw new ResourceNotReachableException(String.format("Rate limit exceeded; request rejected. please waiting for %s", resetTime));
+			throw new IllegalStateException(String.format("Rate limit exceeded; request rejected. please waiting for %s", resetTime));
 		}
 	}
 
