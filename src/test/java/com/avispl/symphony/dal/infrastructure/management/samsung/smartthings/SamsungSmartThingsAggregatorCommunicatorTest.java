@@ -4,6 +4,7 @@
 
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -14,9 +15,10 @@ import org.junit.jupiter.api.Test;
 
 import com.avispl.symphony.api.dal.dto.control.ControllableProperty;
 import com.avispl.symphony.api.dal.dto.monitor.ExtendedStatistics;
+import com.avispl.symphony.api.dal.dto.monitor.aggregator.AggregatedDevice;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceColorControllingConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceControllingMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatorGroupControllingMetric;
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceColorControllingConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.HubInfoMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.SmartThingsConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.location.LocationManagementMetric;
@@ -29,9 +31,8 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.com
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/2/2022
  * @since 1.0.0
- *
  */
-@Tag ("RealDevice")
+@Tag("RealDevice")
 class SamsungSmartThingsAggregatorCommunicatorTest {
 	private SamsungSmartThingsAggregatorCommunicator communicator;
 
@@ -814,5 +815,42 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 		communicator.controlProperty(controllableProperty);
 
 		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty aggregated device: Power on/off Tapo smart plug
+	 *
+	 * Expected: control successfully
+	 */
+	@Test
+	void testAggregatedDeviceTapoPowerOnOffControl() throws Exception {
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		List<AggregatedDevice> aggregatedDevices = communicator.retrieveMultipleStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+		String deviceId = "41573fb5-121a-4d04-aabb-cfdc79b3561e";
+		AggregatedDevice aggregatedDevice = aggregatedDevices.stream().filter(device -> deviceId.equals(device.getDeviceId())).findFirst().orElse(null);
+		String propertyName = "Power";
+		String propertyValue = "1";
+		String currentStatus = "none";
+		if (aggregatedDevice != null) {
+			Map<String, String> aggregatedDeviceStats = aggregatedDevice.getProperties();
+			currentStatus = aggregatedDeviceStats.get(propertyName);
+			if (currentStatus.equals("1")) {
+				propertyValue = "0";
+			}
+			controllableProperty.setProperty(propertyName);
+			controllableProperty.setValue(propertyValue);
+			controllableProperty.setDeviceId(deviceId);
+
+			communicator.controlProperty(controllableProperty);
+			currentStatus = aggregatedDeviceStats.get(propertyName);
+
+		}
+		Assertions.assertEquals(propertyValue, currentStatus);
 	}
 }
