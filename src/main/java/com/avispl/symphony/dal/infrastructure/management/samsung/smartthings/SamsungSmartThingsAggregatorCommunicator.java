@@ -3228,7 +3228,13 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 			cachedAggregatedDevice.setDeviceName(getDefaultValueForNullData(device.getName(), SmartThingsConstant.NONE));
 			cachedAggregatedDevice.setDeviceId(device.getDeviceId());
-			cachedAggregatedDevice.setCategory(getDefaultValueForNullData(device.retrieveCategory(), SmartThingsConstant.NONE));
+
+			String deviceCategory = getDefaultValueForNullData(device.retrieveCategory(), SmartThingsConstant.NONE);
+
+			if (deviceCategory.equals(DeviceCategoriesMetric.SWITCH.getName())) {
+				deviceCategory = SmartThingsConstant.POWER;
+			}
+			cachedAggregatedDevice.setCategory(deviceCategory);
 			cachedAggregatedDevice.setType(SmartThingsConstant.DEFAULT_DEVICE_TYPE);
 			cachedAggregatedDevice.setDeviceOnline(convertDeviceStatusValue(device));
 
