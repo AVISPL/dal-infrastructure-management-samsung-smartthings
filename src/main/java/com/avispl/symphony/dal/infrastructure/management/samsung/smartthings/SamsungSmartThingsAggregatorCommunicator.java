@@ -3229,6 +3229,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			cachedAggregatedDevice.setDeviceName(getDefaultValueForNullData(device.getName(), SmartThingsConstant.NONE));
 			cachedAggregatedDevice.setDeviceId(device.getDeviceId());
 			cachedAggregatedDevice.setCategory(getDefaultValueForNullData(device.retrieveCategory(), SmartThingsConstant.NONE));
+			cachedAggregatedDevice.setType(SmartThingsConstant.DEFAULT_DEVICE_TYPE);
 			cachedAggregatedDevice.setDeviceOnline(convertDeviceStatusValue(device));
 
 			Map<String, String> properties = new HashMap<>();
