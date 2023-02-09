@@ -104,7 +104,7 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	@Test
 	void testFilter() throws Exception {
 		communicator.setRoomFilter("Dining");
-		communicator.setDeviceTypeFilter("Light");
+		communicator.setDeviceTypeFilter("Lights");
 		communicator.setDeviceNameFilter("light 1");
 		communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
@@ -256,10 +256,12 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
 		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
 
 		ControllableProperty controllableProperty = new ControllableProperty();
 
-		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Shade 1";
+		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Shade 3";
 		String propertyValue = "1";
 		controllableProperty.setProperty(propertyName);
 		controllableProperty.setValue(propertyValue);
@@ -832,7 +834,7 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 		Thread.sleep(30000);
 		List<AggregatedDevice> aggregatedDevices = communicator.retrieveMultipleStatistics();
 		ControllableProperty controllableProperty = new ControllableProperty();
-		String deviceId = "41573fb5-121a-4d04-aabb-cfdc79b3561e";
+		String deviceId = "74dfbb28-70fa-4753-81c7-5dae6bed8709";
 		AggregatedDevice aggregatedDevice = aggregatedDevices.stream().filter(device -> deviceId.equals(device.getDeviceId())).findFirst().orElse(null);
 		String propertyName = "Power";
 		String propertyValue = "1";
