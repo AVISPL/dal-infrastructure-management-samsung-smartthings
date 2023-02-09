@@ -104,9 +104,8 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	@Test
 	void testFilter() throws Exception {
 		communicator.setRoomFilter("Dining");
-
-		communicator.setDeviceTypeFilter("abc");
-//		communicator.setDeviceNameFilter("light 1");
+		communicator.setDeviceTypeFilter("Lights");
+		communicator.setDeviceNameFilter("light 1");
 		communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
 		communicator.getMultipleStatistics().get(0);
