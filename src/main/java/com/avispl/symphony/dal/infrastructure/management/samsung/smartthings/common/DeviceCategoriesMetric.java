@@ -17,6 +17,7 @@ public enum DeviceCategoriesMetric {
 	THERMOSTAT("Thermostat", true),
 	PRESENCE_SENSOR("PresenceSensor", true),
 	WINDOW_SHADE("Blind", true),
+	SWITCH("Switch", true),
 	TV("Television", true);
 
 	private final String name;
