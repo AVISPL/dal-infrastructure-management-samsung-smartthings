@@ -1607,7 +1607,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		} else {
 			// Get list room modes when do not applying filter
 			rooms = cachedRooms.stream().map(Room::getName).collect(Collectors.toList());
-			if (!deviceIds.isEmpty() && isNoRoomAssignedExisting) {
+			if (isNoRoomAssignedExisting) {
 				rooms.add(SmartThingsConstant.NO_ROOM_ASSIGNED);
 			}
 		}

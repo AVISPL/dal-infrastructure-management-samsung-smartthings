@@ -14,7 +14,7 @@ import java.util.Arrays;
  */
 public enum DeviceCategoriesMetric {
 
-	HUB("Hub", "Hub", true),
+	HUB("Hub", "Bridges", true),
 	LIGHT("Light", "Lights", true),
 	THERMOSTAT("Thermostat", "Sensor", true),
 	PRESENCE_SENSOR("PresenceSensor", "Sensor", true),
