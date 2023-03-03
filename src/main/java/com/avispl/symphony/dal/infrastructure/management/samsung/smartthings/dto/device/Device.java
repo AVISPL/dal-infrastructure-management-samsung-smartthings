@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceColorControllingConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.SmartThingsConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.dto.presentation.DevicePresentation;
+import com.avispl.symphony.dal.util.StringUtils;
 
 /**
  * Aggregated device info
@@ -47,6 +48,9 @@ public class Device {
 	@JsonAlias("components")
 	private List<Component> components = new ArrayList<>();
 
+	@JsonAlias("deviceManufacturerCode")
+	private String deviceManufacturerCode;
+
 	/**
 	 * non-parameter constructor
 	 */
@@ -66,6 +70,9 @@ public class Device {
 		this.locationId = device.getLocationId();
 		this.roomId = device.getRoomId();
 		this.components = device.getComponents();
+		if (StringUtils.isNotNullOrEmpty(device.getDeviceManufacturerCode())) {
+			this.deviceManufacturerCode = device.getDeviceManufacturerCode();
+		}
 	}
 
 	/**
@@ -228,6 +235,24 @@ public class Device {
 	 */
 	public void setComponents(List<Component> components) {
 		this.components = components;
+	}
+
+	/**
+	 * Retrieves {@link #deviceManufacturerCode}
+	 *
+	 * @return value of {@link #deviceManufacturerCode}
+	 */
+	public String getDeviceManufacturerCode() {
+		return deviceManufacturerCode;
+	}
+
+	/**
+	 * Sets {@link #deviceManufacturerCode} value
+	 *
+	 * @param deviceManufacturerCode new value of {@link #deviceManufacturerCode}
+	 */
+	public void setDeviceManufacturerCode(String deviceManufacturerCode) {
+		this.deviceManufacturerCode = deviceManufacturerCode;
 	}
 
 	/**
