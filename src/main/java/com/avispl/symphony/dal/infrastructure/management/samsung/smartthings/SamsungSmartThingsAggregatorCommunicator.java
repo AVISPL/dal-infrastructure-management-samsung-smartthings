@@ -899,6 +899,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						}
 						throw new IllegalStateException(String.format("Controlling group %s is not supported.", aggregatedDeviceControllingMetric.getName()));
 				}
+				populateDeviceDashboardView(stats, advancedControllableProperties);
 			}
 		} finally {
 			reentrantLock.unlock();
@@ -1606,7 +1607,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 		} else {
 			// Get list room modes when do not applying filter
 			rooms = cachedRooms.stream().map(Room::getName).collect(Collectors.toList());
-			if (!deviceIds.isEmpty() && isNoRoomAssignedExisting) {
+			if (isNoRoomAssignedExisting) {
 				rooms.add(SmartThingsConstant.NO_ROOM_ASSIGNED);
 			}
 		}
@@ -1707,7 +1708,6 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @throws IllegalStateException when fail to control
 	 */
 	private void deviceDashboardControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value) {
-
 		// ActiveRoom dropdown control
 		if (controllableProperty.equals(RoomManagementMetric.ACTIVE_ROOM.getName())) {
 			currentRoomInDeviceDashBoard = value;
@@ -1772,10 +1772,17 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 									String onLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOn(), SmartThingsConstant.ON);
 									String offLabel = getDefaultValueForNullData(action.getStandbyPowerSwitch().getCommand().getOff(), SmartThingsConstant.OFF);
 
-									action.getStandbyPowerSwitch().setValue(command);
-									device.getPresentation().getDashboardPresentations().getActions().set(0, action);
-									cachedDevicesAfterPollingInterval.put(device.getDeviceId(), device);
-									cachedDevices.put(device.getDeviceId(), device);
+									String deviceId = device.getDeviceId();
+									// device need 1s to update the new status
+									Thread.sleep(1000);
+									retrieveDeviceFullStatus(deviceId);
+
+									Device cachedDevice = new Device(cachedDevices.get(device.getDeviceId()));
+									cachedDevicesAfterPollingInterval.put(deviceId, cachedDevice);
+									AggregatedDevice aggregatedDevice = cachedAggregatedDevices.get(deviceId);
+									Map<String, String> aggregatedDeviceStats = aggregatedDevice.getProperties();
+									List<AdvancedControllableProperty> aggregatedDeviceAdvancedControllablePropertyList = aggregatedDevice.getControllableProperties();
+									populateAggregatedDeviceView(aggregatedDeviceStats, aggregatedDeviceAdvancedControllablePropertyList, cachedDevice);
 
 									addAdvanceControlProperties(advancedControllableProperties,
 											createSwitch(stats, AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + device.getName(), command, offLabel, onLabel));
@@ -1804,6 +1811,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				throw new IllegalStateException(String.format("Error while controlling device %s: %s", controllableProperty, e.getMessage()), e);
 			}
 		}
+
 	}
 
 	//--------------------------------------------------------------------------------------------------------------------------------
@@ -1831,7 +1839,8 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 				switch (detailViewPresentation.getCapability()) {
 					case AggregatedDeviceColorControllingConstant.COLOR_CONTROL:
 						ColorDevicePresentation colorDevicePresentation = Optional.ofNullable(device.getPresentation())
-								.map(DevicePresentation::getColor).orElse(new ColorDevicePresentation(AggregatedDeviceColorControllingConstant.HUE_COORDINATE, AggregatedDeviceColorControllingConstant.MIN_SATURATION,
+								.map(DevicePresentation::getColor)
+								.orElse(new ColorDevicePresentation(AggregatedDeviceColorControllingConstant.HUE_COORDINATE, AggregatedDeviceColorControllingConstant.MIN_SATURATION,
 										AggregatedDeviceColorControllingConstant.CUSTOM_COLOR));
 
 						// populate color dropdown control
@@ -2125,7 +2134,8 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param value value of controllable property
 	 * @throws IllegalStateException when fail to control
 	 */
-	private void aggregatedDeviceRoomControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value, String deviceId) {
+	private void aggregatedDeviceRoomControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, String value, String
+			deviceId) {
 		try {
 			Device device = cachedDevicesAfterPollingInterval.get(deviceId);
 			String roomID = findRoomIdByName(value);
@@ -2234,7 +2244,8 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	 * @param controllableProperty name of controllable property
 	 * @param saturation value of saturation
 	 */
-	private void aggregatedDeviceColorSaturationControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, Float saturation,
+	private void aggregatedDeviceColorSaturationControl(Map<String, String> stats, List<AdvancedControllableProperty> advancedControllableProperties, String controllableProperty, Float
+			saturation,
 			String deviceId) {
 		Device device = cachedDevicesAfterPollingInterval.get(deviceId);
 		float hue = Optional.ofNullable(device.getPresentation()).map(DevicePresentation::getColor).map(ColorDevicePresentation::getHue).orElse(AggregatedDeviceColorControllingConstant.MIN_HUE);
@@ -2481,11 +2492,11 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 					addAdvanceControlProperties(advancedControllableProperties, createSwitch(stats, convertToTitleCaseIteratingChars(controllableProperty), command, offLabel, onLabel));
 
-					device.getPresentation().getDetailViewPresentations().remove(detailViewPresentation);
-					detailViewPresentation.getStandbyPowerSwitch().setValue(command);
-					device.getPresentation().getDetailViewPresentations().add(detailViewPresentation);
-					cachedDevicesAfterPollingInterval.put(device.getDeviceId(), device);
-					cachedDevices.put(device.getDeviceId(), device);
+					String deviceId = device.getDeviceId();
+					retrieveDeviceFullStatus(deviceId);
+					Device cachedDevice = new Device(cachedDevices.get(device.getDeviceId()));
+					cachedDevicesAfterPollingInterval.put(device.getDeviceId(), cachedDevice);
+					populateAggregatedDeviceView(stats, advancedControllableProperties, cachedDevice);
 				} else {
 					throw new IllegalStateException(String.format("control device %s fail, please try again later", controllableProperty));
 				}
@@ -2767,7 +2778,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 		Set<String> supportedCategories = Arrays.stream(DeviceCategoriesMetric.values())
 				.filter(DeviceCategoriesMetric::isImplement)
-				.map(presentation -> presentation.getName().toUpperCase())
+				.map(categoriesMetric -> categoriesMetric.getName().toUpperCase())
 				.collect(Collectors.toSet());
 
 		if (deviceTypeFilter != null) {
@@ -2788,7 +2799,12 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 			if (!supportedCategories.contains(device.retrieveCategory().toUpperCase())) {
 				continue;
 			}
-			if (!filteredCategories.isEmpty() && !filteredCategories.contains(device.retrieveCategory().toUpperCase())) {
+
+			String deviceCategory = getDefaultValueForNullData(DeviceCategoriesMetric.getUiNameByName(device.retrieveCategory()), SmartThingsConstant.NONE);
+			if (deviceCategory.equals(DeviceCategoriesMetric.SWITCH.getName()) && StringUtils.isNotNullOrEmpty(device.getDeviceManufacturerCode())) {
+				deviceCategory = SmartThingsConstant.POWER;
+			}
+			if (!filteredCategories.isEmpty() && !filteredCategories.contains(deviceCategory.toUpperCase())) {
 				continue;
 			}
 			if (!filteredRooms.isEmpty() && !filteredRooms.contains(findRoomNameById(device.getRoomId()).toUpperCase())) {
@@ -3228,7 +3244,14 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 
 			cachedAggregatedDevice.setDeviceName(getDefaultValueForNullData(device.getName(), SmartThingsConstant.NONE));
 			cachedAggregatedDevice.setDeviceId(device.getDeviceId());
-			cachedAggregatedDevice.setCategory(getDefaultValueForNullData(device.retrieveCategory(), SmartThingsConstant.NONE));
+
+			String deviceCategory = getDefaultValueForNullData(DeviceCategoriesMetric.getUiNameByName(device.retrieveCategory()), SmartThingsConstant.NONE);
+
+			if (deviceCategory.equals(DeviceCategoriesMetric.SWITCH.getName()) && StringUtils.isNotNullOrEmpty(device.getDeviceManufacturerCode())) {
+				deviceCategory = SmartThingsConstant.POWER;
+			}
+			cachedAggregatedDevice.setCategory(deviceCategory);
+			cachedAggregatedDevice.setType(SmartThingsConstant.DEFAULT_DEVICE_TYPE);
 			cachedAggregatedDevice.setDeviceOnline(convertDeviceStatusValue(device));
 
 			Map<String, String> properties = new HashMap<>();

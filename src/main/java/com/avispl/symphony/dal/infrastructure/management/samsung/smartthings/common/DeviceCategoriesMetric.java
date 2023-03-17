@@ -3,6 +3,8 @@
  */
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common;
 
+import java.util.Arrays;
+
 /**
  * DeviceCategoryMetric defined the enum for supported device categories
  *
@@ -12,14 +14,16 @@ package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.co
  */
 public enum DeviceCategoriesMetric {
 
-	HUB("Hub", true),
-	LIGHT("Light", true),
-	THERMOSTAT("Thermostat", true),
-	PRESENCE_SENSOR("PresenceSensor", true),
-	WINDOW_SHADE("Blind", true),
-	TV("Television", true);
+	HUB("Hub", "Bridges", true),
+	LIGHT("Light", "Lights", true),
+	THERMOSTAT("Thermostat", "Sensor", true),
+	PRESENCE_SENSOR("PresenceSensor", "Sensor", true),
+	WINDOW_SHADE("Blind", "Shades", true),
+	SWITCH("Switch", "Switch", true),
+	TV("Television", "Monitors", true);
 
 	private final String name;
+	private final String uiName;
 
 	private final boolean isImplement;
 
@@ -27,10 +31,10 @@ public enum DeviceCategoriesMetric {
 	 * Parameterized constructor
 	 *
 	 * @param name Name of create room metric
-	 * @param isImplement
 	 */
-	DeviceCategoriesMetric(String name, boolean isImplement) {
+	DeviceCategoriesMetric(String name, String uiName, boolean isImplement) {
 		this.name = name;
+		this.uiName = uiName;
 		this.isImplement = isImplement;
 	}
 
@@ -44,11 +48,30 @@ public enum DeviceCategoriesMetric {
 	}
 
 	/**
+	 * Retrieves {@link #uiName}
+	 *
+	 * @return value of {@link #uiName}
+	 */
+	public String getUiName() {
+		return uiName;
+	}
+
+	/**
 	 * Retrieves {@link #isImplement}
 	 *
 	 * @return value of {@link #isImplement}
 	 */
 	public boolean isImplement() {
 		return isImplement;
+	}
+
+	/**
+	 * This method is used to get device category metric ui name by name
+	 *
+	 * @param name is the name of device category metric that want to get
+	 * @return String ui name of device category metric that want to get
+	 */
+	public static String getUiNameByName(String name) {
+		return Arrays.stream(DeviceCategoriesMetric.values()).filter(c -> name.equals(c.getName())).findFirst().map(DeviceCategoriesMetric::getUiName).orElse(SmartThingsConstant.EMPTY);
 	}
 }

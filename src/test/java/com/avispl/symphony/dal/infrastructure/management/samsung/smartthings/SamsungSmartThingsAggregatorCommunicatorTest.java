@@ -4,6 +4,7 @@
 
 package com.avispl.symphony.dal.infrastructure.management.samsung.smartthings;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -14,9 +15,10 @@ import org.junit.jupiter.api.Test;
 
 import com.avispl.symphony.api.dal.dto.control.ControllableProperty;
 import com.avispl.symphony.api.dal.dto.monitor.ExtendedStatistics;
+import com.avispl.symphony.api.dal.dto.monitor.aggregator.AggregatedDevice;
+import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceColorControllingConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceControllingMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatorGroupControllingMetric;
-import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.AggregatedDeviceColorControllingConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.HubInfoMetric;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.SmartThingsConstant;
 import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.common.location.LocationManagementMetric;
@@ -29,9 +31,8 @@ import com.avispl.symphony.dal.infrastructure.management.samsung.smartthings.com
  * @author Kevin / Symphony Dev Team<br>
  * Created on 8/2/2022
  * @since 1.0.0
- *
  */
-@Tag ("RealDevice")
+@Tag("RealDevice")
 class SamsungSmartThingsAggregatorCommunicatorTest {
 	private SamsungSmartThingsAggregatorCommunicator communicator;
 
@@ -103,7 +104,7 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 	@Test
 	void testFilter() throws Exception {
 		communicator.setRoomFilter("Dining");
-		communicator.setDeviceTypeFilter("Light");
+		communicator.setDeviceTypeFilter("Lights");
 		communicator.setDeviceNameFilter("light 1");
 		communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
@@ -255,10 +256,12 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 		ExtendedStatistics extendedStatistics = (ExtendedStatistics) communicator.getMultipleStatistics().get(0);
 		Thread.sleep(30000);
 		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
 
 		ControllableProperty controllableProperty = new ControllableProperty();
 
-		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Shade 1";
+		String propertyName = AggregatorGroupControllingMetric.DEVICES_DASHBOARD.getName() + "vEdge Shade 3";
 		String propertyValue = "1";
 		controllableProperty.setProperty(propertyName);
 		controllableProperty.setValue(propertyValue);
@@ -814,5 +817,42 @@ class SamsungSmartThingsAggregatorCommunicatorTest {
 		communicator.controlProperty(controllableProperty);
 
 		Assertions.assertEquals(propertyValue, stats.get(propertyName));
+	}
+
+	/**
+	 * Test SamSungSmartThingsAggregator.controlProperty aggregated device: Power on/off Tapo smart plug
+	 *
+	 * Expected: control successfully
+	 */
+	@Test
+	void testAggregatedDeviceTapoPowerOnOffControl() throws Exception {
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		communicator.getMultipleStatistics();
+		Thread.sleep(30000);
+		List<AggregatedDevice> aggregatedDevices = communicator.retrieveMultipleStatistics();
+		ControllableProperty controllableProperty = new ControllableProperty();
+		String deviceId = "74dfbb28-70fa-4753-81c7-5dae6bed8709";
+		AggregatedDevice aggregatedDevice = aggregatedDevices.stream().filter(device -> deviceId.equals(device.getDeviceId())).findFirst().orElse(null);
+		String propertyName = "Power";
+		String propertyValue = "1";
+		String currentStatus = "none";
+		if (aggregatedDevice != null) {
+			Map<String, String> aggregatedDeviceStats = aggregatedDevice.getProperties();
+			currentStatus = aggregatedDeviceStats.get(propertyName);
+			if (currentStatus.equals("1")) {
+				propertyValue = "0";
+			}
+			controllableProperty.setProperty(propertyName);
+			controllableProperty.setValue(propertyValue);
+			controllableProperty.setDeviceId(deviceId);
+
+			communicator.controlProperty(controllableProperty);
+			currentStatus = aggregatedDeviceStats.get(propertyName);
+
+		}
+		Assertions.assertEquals(propertyValue, currentStatus);
 	}
 }

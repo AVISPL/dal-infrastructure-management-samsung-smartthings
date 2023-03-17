@@ -46,6 +46,7 @@ public class SmartThingsConstant {
 	public static final String NO_ROOM_ASSIGNED = "No room assigned";
 	public static final String NO_LOCATION_FOUND = "No location found";
 	public static final String NONE = "None";
+	public static final String DEFAULT_DEVICE_TYPE = "AV Devices";
 	public static final String RATE_LIMIT_HEADER_KEY = "X-RateLimit-Reset";
 	public static final String IS_VALID_CONFIG_MANAGEMENT = "true";
 	public static final String FAHRENHEIT = "F";
@@ -69,4 +70,5 @@ public class SmartThingsConstant {
 
 	// Broken device capabilities
 	public static final String TV_CHANNEL = "tvChannel";
+	public static final String POWER = "Power";
 }
