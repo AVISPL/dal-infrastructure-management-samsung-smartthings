@@ -1843,6 +1843,10 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 								.orElse(new ColorDevicePresentation(AggregatedDeviceColorControllingConstant.HUE_COORDINATE, AggregatedDeviceColorControllingConstant.MIN_SATURATION,
 										AggregatedDeviceColorControllingConstant.CUSTOM_COLOR));
 
+						if (colorDevicePresentation.getHue() == null) {
+							colorDevicePresentation = new ColorDevicePresentation(AggregatedDeviceColorControllingConstant.HUE_COORDINATE, AggregatedDeviceColorControllingConstant.MIN_SATURATION,
+									AggregatedDeviceColorControllingConstant.CUSTOM_COLOR);
+						}
 						// populate color dropdown control
 						List<String> colorModes = commonColors.keySet().stream().collect(Collectors.toList());
 						colorModes.add(AggregatedDeviceColorControllingConstant.CUSTOM_COLOR);
@@ -1973,7 +1977,7 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 						.map(Slider::getRange);
 
 				if (range.isPresent() && range.get().size() == 2) {
-					if (StringUtils.isNullOrEmpty(detailViewPresentation.getSlider().getValue())) {
+					if (StringUtils.isNullOrEmpty(detailViewPresentation.getSlider().getValue()) || SmartThingsConstant.NULL.equalsIgnoreCase(detailViewPresentation.getSlider().getValue())) {
 						break;
 					}
 					Float currentSliderValue = Float.parseFloat(getDefaultValueForNullData(detailViewPresentation.getSlider().getValue(), range.get().get(0).toString()));
