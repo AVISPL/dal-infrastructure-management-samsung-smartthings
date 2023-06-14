@@ -71,4 +71,5 @@ public class SmartThingsConstant {
 	// Broken device capabilities
 	public static final String TV_CHANNEL = "tvChannel";
 	public static final String POWER = "Power";
+	public static final String NULL = "null";
 }
