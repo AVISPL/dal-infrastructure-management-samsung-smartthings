@@ -3049,8 +3049,8 @@ public class SamsungSmartThingsAggregatorCommunicator extends RestCommunicator i
 	private void handleRateLimitExceed(ResponseEntity<?> response) {
 		Optional<String> rateLimit = Optional.ofNullable(response)
 				.map(HttpEntity::getHeaders)
-				.map(l -> l.get(SmartThingsConstant.RATE_LIMIT_HEADER_KEY))
-				.map(t -> t.get(0));
+				// getFirst() instead of get(): HttpHeaders.get has different signatures in Spring 6 and 7
+				.map(l -> l.getFirst(SmartThingsConstant.RATE_LIMIT_HEADER_KEY));
 		if (response.getStatusCode().equals(HttpStatus.TOO_MANY_REQUESTS) && rateLimit.isPresent()) {
 			Integer resetTime = Integer.parseInt(rateLimit.get()) / 1000;
 			throw new IllegalStateException(String.format("Rate limit exceeded; request rejected. please waiting for %s", resetTime));
