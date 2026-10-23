@@ -54,7 +54,7 @@ public enum AggregatedDeviceControllingMetric {
 	 * @return AggregatedDeviceControllingMetric is the metric that want to get
 	 */
 	public static AggregatedDeviceControllingMetric getByName(String name) {
-		Optional<AggregatedDeviceControllingMetric> managementGroupMetric = Arrays.stream(AggregatedDeviceControllingMetric.values()).filter(c -> name.equals(c.getName())).findFirst();
-		return managementGroupMetric.orElse(AggregatedDeviceControllingMetric.AGGREGATED_DEVICE);
+		Optional<AggregatedDeviceControllingMetric> managementGroupMetric = Arrays.stream(values()).filter(c -> name.equals(c.getName())).findFirst();
+		return managementGroupMetric.orElse(AGGREGATED_DEVICE);
 	}
 }

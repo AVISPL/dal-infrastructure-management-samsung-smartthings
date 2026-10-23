@@ -72,6 +72,6 @@ public enum DeviceCategoriesMetric {
 	 * @return String ui name of device category metric that want to get
 	 */
 	public static String getUiNameByName(String name) {
-		return Arrays.stream(DeviceCategoriesMetric.values()).filter(c -> name.equals(c.getName())).findFirst().map(DeviceCategoriesMetric::getUiName).orElse(SmartThingsConstant.EMPTY);
+		return Arrays.stream(values()).filter(c -> name.equals(c.getName())).findFirst().map(DeviceCategoriesMetric::getUiName).orElse(SmartThingsConstant.EMPTY);
 	}
 }

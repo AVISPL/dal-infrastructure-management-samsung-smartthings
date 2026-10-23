@@ -43,10 +43,10 @@ public enum RoomManagementMetric {
 	 * @return RoomManagementMetric is the metric that want to get
 	 */
 	public static RoomManagementMetric getByName(String name, String roomIndex) {
-		if (name.equals(RoomManagementMetric.ROOM.getName().concat(roomIndex))) {
+		if (name.equals(ROOM.getName().concat(roomIndex))) {
 			return ROOM;
 		}
-		if (name.equals(RoomManagementMetric.ROOM.getName().concat(roomIndex).concat(RoomManagementMetric.DELETE_ROOM.getName()))) {
+		if (name.equals(ROOM.getName().concat(roomIndex).concat(DELETE_ROOM.getName()))) {
 			return DELETE_ROOM;
 		}
 		throw new IllegalStateException("Could not find the create room metric with name: " + name);
