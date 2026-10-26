@@ -52,10 +52,10 @@ public enum AggregatorGroupControllingMetric {
 	 * @return AggregatorManagementGroupMetric is the management metric group that want to get
 	 */
 	public static AggregatorGroupControllingMetric getByName(String name) {
-		Optional<AggregatorGroupControllingMetric> managementGroupMetric = Arrays.stream(AggregatorGroupControllingMetric.values()).filter(c -> name.equals(c.getName())).findFirst();
+		Optional<AggregatorGroupControllingMetric> managementGroupMetric = Arrays.stream(values()).filter(c -> name.equals(c.getName())).findFirst();
 		if (managementGroupMetric.isPresent()) {
 			return managementGroupMetric.get();
 		}
-		return AggregatorGroupControllingMetric.AGGREGATED_DEVICE;
+		return AGGREGATED_DEVICE;
 	}
 }
