@@ -47,7 +47,7 @@ public enum CreateRoomMetric {
 	 * @return CreateRoomMetric is the metric that want to get
 	 */
 	public static CreateRoomMetric getByName(String name) {
-		Optional<CreateRoomMetric> createRoomMetric = Arrays.stream(CreateRoomMetric.values()).filter(c -> name.contains(c.getName())).findFirst();
+		Optional<CreateRoomMetric> createRoomMetric = Arrays.stream(values()).filter(c -> name.contains(c.getName())).findFirst();
 		if (createRoomMetric.isPresent()) {
 			return createRoomMetric.get();
 		}
